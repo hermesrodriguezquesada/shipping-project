@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CLIENT
+  EMPLOYEE
+  ADMIN
+}
+
+model User {
+  id           String  @id @default(uuid())
+  email        String  @unique
+  passwordHash String
+  roles        Role[]  @default([CLIENT])
+  isActive     Boolean @default(true)
+  isDeleted    Boolean @default(false)
+
+  firstName    String?
+  lastName     String?
+  phone        String?
+  birthDate    DateTime?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  country      String?
+  postalCode   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions             UserSession[]
+  passwordResets       PasswordResetToken[]
+  identityVerification UserIdentityVerification?
+  beneficiaries        Beneficiary[]
+}
+
+model UserSession {
+  id               String    @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  revokedAt        DateTime?
+  expiresAt        DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum IdentityStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum DocumentType {
+  ID_CARD
+  PASSPORT
+  DRIVER_LICENSE
+}
+
+model UserIdentityVerification {
+  id             String         @id @default(uuid())
+  userId         String         @unique
+  status         IdentityStatus @default(UNVERIFIED)
+  documentType   DocumentType?
+  documentNumber String?
+  fullName       String?
+  birthDate      DateTime?
+  country        String?
+  city           String?
+  addressLine1   String?
+
+  documentFrontUrl String? // Para MVP: guardamos URLs (el cliente sube a storage y nos pasa links)
+  documentBackUrl  String?
+  selfieUrl        String?
+
+  reviewedAt      DateTime?
+  reviewedById    String?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+enum BeneficiaryRelationship {
+  FAMILY
+  FRIEND
+  BUSINESS
+  OTHER
+}
+
+model Beneficiary {
+  id             String                   @id @default(uuid())
+  ownerUserId    String
+  fullName       String
+  phone          String?
+  email          String?
+  country        String
+  city           String?
+  addressLine1   String?
+  postalCode     String?
+  documentType   DocumentType?
+  documentNumber String?
+  relationship   BeneficiaryRelationship? @default(OTHER)
+  isDeleted      Boolean                  @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  owner User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerUserId, documentNumber])
+  @@index([ownerUserId])
+  @@index([ownerUserId, isDeleted])
+}
