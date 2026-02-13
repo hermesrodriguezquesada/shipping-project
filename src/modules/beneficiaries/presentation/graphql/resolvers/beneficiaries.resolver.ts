@@ -29,7 +29,7 @@ export class BeneficiariesResolver {
 
   @Mutation(() => BeneficiaryType)
   async createBeneficiary(
-    @Args('input') input: CreateBeneficiaryInput,
+    @Args('input', { type: () => CreateBeneficiaryInput }) input: CreateBeneficiaryInput,
     @CurrentUser() user: AuthContextUser,
   ) {
     const created = await this.createUC.execute({ ownerUserId: user.id, ...input });
@@ -38,10 +38,14 @@ export class BeneficiariesResolver {
 
   @Query(() => [BeneficiaryType])
   async myBeneficiaries(
-    @Args('input', { nullable: true }) input: ListBeneficiariesInput | undefined,
+    @Args('input', { type: () => ListBeneficiariesInput, nullable: true })
+    input: ListBeneficiariesInput | undefined,
     @CurrentUser() user: AuthContextUser,
   ) {
-    const items = await this.listUC.execute(user.id, { offset: input?.offset, limit: input?.limit });
+    const items = await this.listUC.execute(user.id, {
+      offset: input?.offset,
+      limit: input?.limit,
+    });
     return items.map(BeneficiaryMapper.toGraphQL);
   }
 

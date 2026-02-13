@@ -1,4 +1,4 @@
-import './shared/graphql/enums/role.enum';
+import './shared/graphql/enums/index';
 
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -11,6 +11,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CryptoModule } from './core/crypto/crypto.module';
 import { IdentityModule } from './modules/identity/identity.module';
+import { BeneficiariesModule } from './modules/beneficiaries/beneficiaries.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { IdentityModule } from './modules/identity/identity.module';
     CryptoModule,
     UsersModule,
     AuthModule,
-    IdentityModule
+    IdentityModule,
+    BeneficiariesModule
   ],
   controllers: [AppController],
   providers: [AppService],

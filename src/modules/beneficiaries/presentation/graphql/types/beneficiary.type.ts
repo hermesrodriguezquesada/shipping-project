@@ -10,7 +10,7 @@ export class BeneficiaryType {
   fullName!: string;
 
   @Field({ nullable: true })
-  phone?: string;
+  phone!: string;
 
   @Field({ nullable: true })
   email?: string;
@@ -22,7 +22,10 @@ export class BeneficiaryType {
   city?: string;
 
   @Field({ nullable: true })
-  addressLine1?: string;
+  addressLine1!: string;
+
+  @Field({ nullable: true })
+  addressLine2?: string;
 
   @Field({ nullable: true })
   postalCode?: string;
@@ -31,10 +34,13 @@ export class BeneficiaryType {
   documentType?: DocumentType;
 
   @Field({ nullable: true })
-  documentNumber?: string;
+  documentNumber!: string;
 
   @Field(() => BeneficiaryRelationship, { nullable: true })
   relationship?: BeneficiaryRelationship;
+
+  @Field({ nullable: true })
+  deliveryInstructions?: string;
 
   @Field()
   createdAt!: Date;

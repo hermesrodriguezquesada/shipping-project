@@ -1,9 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { IdentityStatus, DocumentType } from '@prisma/client';
-import { registerEnumType } from '@nestjs/graphql';
-
-registerEnumType(IdentityStatus, { name: 'IdentityStatus' });
-registerEnumType(DocumentType, { name: 'DocumentType' });
 
 @ObjectType()
 export class IdentityVerificationType {
@@ -16,39 +12,39 @@ export class IdentityVerificationType {
   @Field(() => DocumentType, { nullable: true })
   documentType?: DocumentType;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   documentNumber?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   fullName?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   birthDate?: Date;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   country?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   city?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   addressLine1?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   documentFrontUrl?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   documentBackUrl?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   selfieUrl?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   reviewedAt?: Date;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   reviewedById?: string;
 
-  @Field({ nullable: true }) 
+  @Field({ nullable: true })
   rejectionReason?: string;
 }

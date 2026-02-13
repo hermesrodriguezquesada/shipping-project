@@ -18,6 +18,12 @@ input AdminListUsersInput {
   role: Role
 }
 
+input AdminReviewIdentityInput {
+  rejectionReason: String
+  status: IdentityStatus!
+  userId: String!
+}
+
 input AdminSetUserRolesInput {
   roles: [Role!]!
   userId: String!
@@ -26,13 +32,90 @@ input AdminSetUserRolesInput {
 type AuthPayload {
   accessToken: String!
   refreshToken: String!
+  sessionId: String!
   user: UserType!
+}
+
+enum BeneficiaryRelationship {
+  BUSINESS
+  FAMILY
+  FRIEND
+  OTHER
+}
+
+type BeneficiaryType {
+  addressLine1: String
+  addressLine2: String
+  city: String
+  country: String!
+  createdAt: DateTime!
+  deliveryInstructions: String
+  documentNumber: String
+  documentType: DocumentType
+  email: String
+  fullName: String!
+  id: String!
+  phone: String
+  postalCode: String
+  relationship: BeneficiaryRelationship
+  updatedAt: DateTime!
+}
+
+input CreateBeneficiaryInput {
+  addressLine1: String
+  addressLine2: String
+  city: String
+  country: String!
+  deliveryInstructions: String
+  documentNumber: String
+  documentType: DocumentType
+  email: String
+  fullName: String!
+  phone: String
+  postalCode: String
+  relationship: BeneficiaryRelationship
 }
 
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+enum DocumentType {
+  DRIVER_LICENSE
+  ID_CARD
+  PASSPORT
+}
+
+enum IdentityStatus {
+  PENDING
+  REJECTED
+  UNVERIFIED
+  VERIFIED
+}
+
+type IdentityVerificationType {
+  addressLine1: String
+  birthDate: DateTime
+  city: String
+  country: String
+  documentBackUrl: String
+  documentFrontUrl: String
+  documentNumber: String
+  documentType: DocumentType
+  fullName: String
+  rejectionReason: String
+  reviewedAt: DateTime
+  reviewedById: String
+  selfieUrl: String
+  status: IdentityStatus!
+  userId: String!
+}
+
+input ListBeneficiariesInput {
+  limit: Int
+  offset: Int
+}
 
 input LoginInput {
   email: String!
@@ -48,19 +131,28 @@ type Mutation {
   adminBanUser(userId: ID!): UserType!
   adminCreateUser(input: AdminCreateUserInput!): UserType!
   adminDeleteUser(userId: ID!): UserType!
+  adminReviewIdentityVerification(input: AdminReviewIdentityInput!): Boolean!
   adminSetUserRoles(input: AdminSetUserRolesInput!): UserType!
+  createBeneficiary(input: CreateBeneficiaryInput!): BeneficiaryType!
+  deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
   refresh(input: RefreshInput!): AuthPayload!
   register(input: RegisterInput!): AuthPayload!
   requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
   resetPassword(input: ResetPasswordInput!): Boolean!
+  submitIdentityVerification(input: SubmitIdentityInput!): Boolean!
+  updateBeneficiary(input: UpdateBeneficiaryInput!): BeneficiaryType!
   updateMyProfile(input: UpdateMyProfileInput!): UserType!
 }
 
 type Query {
+  adminPendingVerifications(limit: Float, offset: Float): [IdentityVerificationType!]!
   adminUsers(input: AdminListUsersInput): [UserType!]!
+  beneficiary(id: ID!): BeneficiaryType!
   me: UserType!
+  myBeneficiaries(input: ListBeneficiariesInput): [BeneficiaryType!]!
+  myIdentityVerification: IdentityVerificationType
   myProfile: UserType!
   user(id: ID!): UserType
 }
@@ -87,6 +179,35 @@ enum Role {
   ADMIN
   CLIENT
   EMPLOYEE
+}
+
+input SubmitIdentityInput {
+  addressLine1: String
+  birthDate: DateTime
+  city: String
+  country: String
+  documentBackUrl: String
+  documentFrontUrl: String
+  documentNumber: String!
+  documentType: DocumentType!
+  fullName: String!
+  selfieUrl: String
+}
+
+input UpdateBeneficiaryInput {
+  addressLine1: String
+  addressLine2: String
+  city: String
+  country: String
+  deliveryInstructions: String
+  documentNumber: String
+  documentType: DocumentType
+  email: String
+  fullName: String
+  id: ID!
+  phone: String
+  postalCode: String
+  relationship: BeneficiaryRelationship
 }
 
 input UpdateMyProfileInput {

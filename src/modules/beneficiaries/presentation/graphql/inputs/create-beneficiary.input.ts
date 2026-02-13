@@ -1,16 +1,17 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsEmail, IsOptional, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 import { BeneficiaryRelationship, DocumentType } from '@prisma/client';
 
 @InputType()
 export class CreateBeneficiaryInput {
   @Field()
+  @IsString()
   @MinLength(2)
   fullName!: string;
 
   @Field({ nullable: true })
-  @IsOptional()
-  phone?: string;
+  @IsString()
+  phone!: string;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -18,29 +19,44 @@ export class CreateBeneficiaryInput {
   email?: string;
 
   @Field()
+  @IsString()
+  @MinLength(2)
   country!: string;
 
   @Field({ nullable: true })
-  @IsOptional()
+  @IsString()
   city?: string;
 
   @Field({ nullable: true })
-  @IsOptional()
-  addressLine1?: string;
+  @IsString()
+  addressLine1!: string;
 
   @Field({ nullable: true })
   @IsOptional()
+  @IsString()
+  addressLine2?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   postalCode?: string;
 
   @Field(() => DocumentType, { nullable: true })
   @IsOptional()
+  @IsEnum(DocumentType)
   documentType?: DocumentType;
 
   @Field({ nullable: true })
-  @IsOptional()
-  documentNumber?: string;
+  @IsString()
+  documentNumber!: string;
 
   @Field(() => BeneficiaryRelationship, { nullable: true })
   @IsOptional()
+  @IsEnum(BeneficiaryRelationship)
   relationship?: BeneficiaryRelationship;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  deliveryInstructions?: string;
 }

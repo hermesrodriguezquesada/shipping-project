@@ -116,22 +116,24 @@ enum BeneficiaryRelationship {
 }
 
 model Beneficiary {
-  id             String                   @id @default(uuid())
-  ownerUserId    String
-  fullName       String
-  phone          String?
-  email          String?
-  country        String
-  city           String?
-  addressLine1   String?
-  postalCode     String?
-  documentType   DocumentType?
-  documentNumber String?
-  relationship   BeneficiaryRelationship? @default(OTHER)
-  isDeleted      Boolean                  @default(false)
-  deletedAt      DateTime?
-  createdAt      DateTime                 @default(now())
-  updatedAt      DateTime                 @updatedAt
+  id                   String                   @id @default(uuid())
+  ownerUserId          String
+  fullName             String
+  phone                String
+  email                String?
+  country              String
+  city                 String?
+  addressLine1         String
+  addressLine2         String?
+  postalCode           String?
+  documentType         DocumentType?
+  documentNumber       String
+  relationship         BeneficiaryRelationship? @default(OTHER)
+  deliveryInstructions String?
+  isDeleted            Boolean                  @default(false)
+  deletedAt            DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
 
   owner User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
 
