@@ -37,6 +37,8 @@ model User {
   passwordResets       PasswordResetToken[]
   identityVerification UserIdentityVerification?
   beneficiaries        Beneficiary[]
+  beneficiaryUsage BeneficiaryUsage[]
+  remittances Remittance[]
 }
 
 model UserSession {
@@ -130,14 +132,81 @@ model Beneficiary {
   documentNumber       String
   relationship         BeneficiaryRelationship? @default(OTHER)
   deliveryInstructions String?
+  isFavorite           Boolean                  @default(false)
+  favoriteAt           DateTime?
   isDeleted            Boolean                  @default(false)
   deletedAt            DateTime?
   createdAt            DateTime                 @default(now())
   updatedAt            DateTime                 @updatedAt
 
   owner User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  usage BeneficiaryUsage?
+  remittances Remittance[]
 
   @@unique([ownerUserId, documentNumber])
   @@index([ownerUserId])
   @@index([ownerUserId, isDeleted])
+  @@index([ownerUserId, isFavorite])
+}
+
+model BeneficiaryUsage {
+  beneficiaryId String @id
+  ownerUserId   String
+  timesUsed     Int    @default(0)
+  lastUsedAt    DateTime?
+
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  owner       User        @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+
+  @@index([ownerUserId, timesUsed])
+  @@index([ownerUserId, lastUsedAt])
+}
+
+enum RemittanceStatus {
+  DRAFT
+  SUBMITTED
+  CANCELLED
+  COMPLETED
+}
+
+enum TransferStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  COMPLETED
+}
+
+enum Currency {
+  USD
+  EUR
+}
+
+model Remittance {
+  id            String           @id @default(uuid())
+  senderUserId  String
+  beneficiaryId String
+  amount        Decimal
+  currency      Currency         @default(USD)
+  status        RemittanceStatus @default(SUBMITTED)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  sender      User        @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
+  transfer Transfer?
+
+  @@index([senderUserId, createdAt])
+  @@index([beneficiaryId])
+}
+
+model Transfer {
+  id          String         @id @default(uuid())
+  remittanceId String        @unique
+  status      TransferStatus @default(PENDING)
+  providerRef String?
+  failureReason String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  remittance Remittance @relation(fields: [remittanceId], references: [id], onDelete: Cascade)
 }

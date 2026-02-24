@@ -3,8 +3,17 @@
 # ------------------------------------------------------
 
 input AdminCreateUserInput {
+  addressLine1: String
+  addressLine2: String
+  birthDate: DateTime
+  city: String
+  country: String
   email: String!
+  firstName: String
+  lastName: String
   password: String!
+  phone: String
+  postalCode: String
   roles: [Role!]
 }
 
@@ -29,6 +38,19 @@ input AdminSetUserRolesInput {
   userId: String!
 }
 
+input AdminUpdateUserProfileInput {
+  addressLine1: String
+  addressLine2: String
+  birthDate: DateTime
+  city: String
+  country: String
+  firstName: String
+  lastName: String
+  phone: String
+  postalCode: String
+  userId: ID!
+}
+
 type AuthPayload {
   accessToken: String!
   refreshToken: String!
@@ -44,34 +66,43 @@ enum BeneficiaryRelationship {
 }
 
 type BeneficiaryType {
-  addressLine1: String
+  addressLine1: String!
   addressLine2: String
   city: String
   country: String!
   createdAt: DateTime!
   deliveryInstructions: String
-  documentNumber: String
+  documentNumber: String!
   documentType: DocumentType
   email: String
+  favoriteAt: DateTime
   fullName: String!
   id: String!
-  phone: String
+  isFavorite: Boolean!
+  lastUsedAt: DateTime
+  phone: String!
   postalCode: String
   relationship: BeneficiaryRelationship
+  timesUsed: Float
   updatedAt: DateTime!
 }
 
+input ChangePasswordInput {
+  newPassword: String!
+  oldPassword: String!
+}
+
 input CreateBeneficiaryInput {
-  addressLine1: String
+  addressLine1: String!
   addressLine2: String
   city: String
   country: String!
   deliveryInstructions: String
-  documentNumber: String
+  documentNumber: String!
   documentType: DocumentType
   email: String
   fullName: String!
-  phone: String
+  phone: String!
   postalCode: String
   relationship: BeneficiaryRelationship
 }
@@ -133,6 +164,8 @@ type Mutation {
   adminDeleteUser(userId: ID!): UserType!
   adminReviewIdentityVerification(input: AdminReviewIdentityInput!): Boolean!
   adminSetUserRoles(input: AdminSetUserRolesInput!): UserType!
+  adminUpdateUserProfile(input: AdminUpdateUserProfileInput!): UserType!
+  changePassword(input: ChangePasswordInput!): Boolean!
   createBeneficiary(input: CreateBeneficiaryInput!): BeneficiaryType!
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
@@ -141,19 +174,22 @@ type Mutation {
   register(input: RegisterInput!): AuthPayload!
   requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
   resetPassword(input: ResetPasswordInput!): Boolean!
+  revokeMySession(sessionId: String!): Boolean!
+  revokeOtherMySessions(currentSessionId: String!): Boolean!
   submitIdentityVerification(input: SubmitIdentityInput!): Boolean!
   updateBeneficiary(input: UpdateBeneficiaryInput!): BeneficiaryType!
   updateMyProfile(input: UpdateMyProfileInput!): UserType!
 }
 
 type Query {
-  adminPendingVerifications(limit: Float, offset: Float): [IdentityVerificationType!]!
+  adminPendingVerifications(limit: Int, offset: Int): [IdentityVerificationType!]!
   adminUsers(input: AdminListUsersInput): [UserType!]!
   beneficiary(id: ID!): BeneficiaryType!
   me: UserType!
   myBeneficiaries(input: ListBeneficiariesInput): [BeneficiaryType!]!
   myIdentityVerification: IdentityVerificationType
   myProfile: UserType!
+  mySessions(limit: Int, offset: Int): [SessionType!]!
   user(id: ID!): UserType
 }
 
@@ -179,6 +215,15 @@ enum Role {
   ADMIN
   CLIENT
   EMPLOYEE
+}
+
+type SessionType {
+  createdAt: DateTime!
+  expiresAt: DateTime!
+  id: String!
+  isActive: Boolean!
+  revokedAt: DateTime
+  userId: String!
 }
 
 input SubmitIdentityInput {

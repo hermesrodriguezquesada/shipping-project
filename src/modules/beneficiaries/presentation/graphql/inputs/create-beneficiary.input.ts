@@ -9,7 +9,7 @@ export class CreateBeneficiaryInput {
   @MinLength(2)
   fullName!: string;
 
-  @Field({ nullable: true })
+  @Field()
   @IsString()
   phone!: string;
 
@@ -27,7 +27,7 @@ export class CreateBeneficiaryInput {
   @IsString()
   city?: string;
 
-  @Field({ nullable: true })
+  @Field()
   @IsString()
   addressLine1!: string;
 
@@ -46,7 +46,7 @@ export class CreateBeneficiaryInput {
   @IsEnum(DocumentType)
   documentType?: DocumentType;
 
-  @Field({ nullable: true })
+  @Field()
   @IsString()
   documentNumber!: string;
 

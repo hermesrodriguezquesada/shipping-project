@@ -1,16 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { USER_AUTH_PORT, PASSWORD_HASHER, USER_COMMAND_PORT } from 'src/shared/constants/tokens';
+import { MAILER_PORT, PASSWORD_RESET_STORE, USER_AUTH_PORT } from 'src/shared/constants/tokens';
 import { UserAuthPort } from 'src/modules/users/domain/ports/user-auth.port';
-import { PasswordHasherPort } from '../../domain/ports/password-hasher.port';
 import { AppConfigService } from 'src/core/config/config.service';
 import { MailerPort } from 'src/core/notifications/ports/mailer.port';
 import { PasswordResetStorePort } from '../../domain/ports/password-reset-store.port';
 
 import { randomBytes, createHash } from 'crypto';
-import { UserCommandPort } from 'src/modules/users/domain/ports/user-command.port';
-
-export const PASSWORD_RESET_STORE = 'PasswordResetStorePort';
-export const MAILER_PORT = 'MailerPort';
 
 @Injectable()
 export class RequestPasswordResetUseCase {
@@ -43,7 +38,7 @@ export class RequestPasswordResetUseCase {
       expiresAt,
     });
 
-    const resetUrl = `${this.config.frontendUrl}/reset-password?token=${token}`;
+    const resetUrl = `${this.config.frontendUrl}/reset_password?hash=${token}`;
 
     await this.mailer.sendPasswordResetEmail({
       to: user.email,

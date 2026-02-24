@@ -9,7 +9,7 @@ export class BeneficiaryType {
   @Field()
   fullName!: string;
 
-  @Field({ nullable: true })
+  @Field()
   phone!: string;
 
   @Field({ nullable: true })
@@ -21,7 +21,7 @@ export class BeneficiaryType {
   @Field({ nullable: true })
   city?: string;
 
-  @Field({ nullable: true })
+  @Field()
   addressLine1!: string;
 
   @Field({ nullable: true })
@@ -33,7 +33,7 @@ export class BeneficiaryType {
   @Field(() => DocumentType, { nullable: true })
   documentType?: DocumentType;
 
-  @Field({ nullable: true })
+  @Field()
   documentNumber!: string;
 
   @Field(() => BeneficiaryRelationship, { nullable: true })
@@ -41,6 +41,19 @@ export class BeneficiaryType {
 
   @Field({ nullable: true })
   deliveryInstructions?: string;
+
+  @Field() 
+  isFavorite!: boolean;
+
+  @Field({ nullable: true }) 
+  favoriteAt?: Date;
+
+
+  @Field({ nullable: true }) 
+  timesUsed?: number;
+  
+  @Field({ nullable: true }) 
+  lastUsedAt?: Date;
 
   @Field()
   createdAt!: Date;

@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Role, IdentityStatus } from '@prisma/client';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
@@ -50,8 +50,8 @@ export class IdentityResolver {
   @Roles(Role.ADMIN)
   @Query(() => [IdentityVerificationType])
   async adminPendingVerifications(
-    @Args('offset', { nullable: true }) offset?: number,
-    @Args('limit', { nullable: true }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
   ) {
     const views = await this.identityQuery.listByStatus(IdentityStatus.PENDING, {
       offset: offset ?? 0,

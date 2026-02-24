@@ -1,5 +1,5 @@
 import { Field, InputType, ID } from '@nestjs/graphql';
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, MinLength, ValidateIf } from 'class-validator';
 import { BeneficiaryRelationship, DocumentType } from '@prisma/client';
 
 @InputType()
@@ -9,13 +9,13 @@ export class UpdateBeneficiaryInput {
   id!: string;
 
   @Field({ nullable: true })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
   @MinLength(2)
   fullName?: string;
 
   @Field({ nullable: true })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
   phone?: string;
 
@@ -25,7 +25,7 @@ export class UpdateBeneficiaryInput {
   email?: string;
 
   @Field({ nullable: true })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
   @MinLength(2)
   country?: string;
@@ -36,7 +36,7 @@ export class UpdateBeneficiaryInput {
   city?: string;
 
   @Field({ nullable: true })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
   addressLine1?: string;
 
@@ -56,7 +56,7 @@ export class UpdateBeneficiaryInput {
   documentType?: DocumentType;
 
   @Field({ nullable: true })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString()
   documentNumber?: string;
 

@@ -23,6 +23,8 @@ import { AdminSoftDeleteUserUseCase } from 'src/modules/users/application/use-ca
 import { AdminCreateUserInput } from '../inputs/admin-create-user.input';
 import { AdminCreateUserUseCase } from 'src/modules/users/application/use-cases/admin/admin-create-user.usecase';
 import { AdminListUsersInput } from '../inputs/admin-list-users.input';
+import { AdminUpdateUserProfileInput } from '../inputs/admin-update-user-profile.input';
+import { AdminUpdateUserProfileUseCase } from 'src/modules/users/application/use-cases/admin/admin-update-user-profile.usecase';
 
 @UseGuards(GqlAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
@@ -35,6 +37,7 @@ export class AdminUsersResolver {
     private readonly banUser: AdminBanUserUseCase,
     private readonly activateUser: AdminActivateUserUseCase,
     private readonly deleteUser: AdminSoftDeleteUserUseCase,
+    private readonly updateUserProfile: AdminUpdateUserProfileUseCase,
   ) {}
 
 @Query(() => [UserType], { name: 'adminUsers' })
@@ -65,6 +68,15 @@ async adminUsers(
       email: input.email,
       password: input.password,
       roles: input.roles,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      phone: input.phone,
+      birthDate: input.birthDate,
+      addressLine1: input.addressLine1,
+      addressLine2: input.addressLine2,
+      city: input.city,
+      country: input.country,
+      postalCode: input.postalCode,
     });
     return UserMapper.toGraphQL(created);
   }
@@ -101,6 +113,25 @@ async adminUsers(
     @Args('userId', { type: () => ID }) userId: string,
   ): Promise<UserType> {
     const updated = await this.deleteUser.execute(userId);
+    return UserMapper.toGraphQL(updated);
+  }
+
+  @Mutation(() => UserType, { name: 'adminUpdateUserProfile' })
+  async adminUpdateUserProfile(
+    @Args('input') input: AdminUpdateUserProfileInput,
+  ): Promise<UserType> {
+    const updated = await this.updateUserProfile.execute({
+      userId: input.userId,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      phone: input.phone,
+      birthDate: input.birthDate,
+      addressLine1: input.addressLine1,
+      addressLine2: input.addressLine2,
+      city: input.city,
+      country: input.country,
+      postalCode: input.postalCode,
+    });
     return UserMapper.toGraphQL(updated);
   }
 }

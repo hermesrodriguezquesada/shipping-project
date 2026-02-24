@@ -42,10 +42,13 @@ export class BeneficiariesResolver {
     input: ListBeneficiariesInput | undefined,
     @CurrentUser() user: AuthContextUser,
   ) {
-    const items = await this.listUC.execute(user.id, {
+    const items = await this.listUC.execute({
+      ownerUserId: user.id,
       offset: input?.offset,
       limit: input?.limit,
+      includeDeleted: false,
     });
+
     return items.map(BeneficiaryMapper.toGraphQL);
   }
 

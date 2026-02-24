@@ -20,7 +20,20 @@ export class AdminCreateUserUseCase {
     private readonly hasher: PasswordHasherPort,
   ) {}
 
-  async execute(input: { email: string; password: string; roles?: Role[] }) {
+  async execute(input: {
+    email: string;
+    password: string;
+    roles?: Role[];
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    birthDate?: Date;
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    country?: string;
+    postalCode?: string;
+  }) {
     const email = input.email.trim().toLowerCase();
     if (!email) throw new ValidationDomainException('Email is required');
 
@@ -32,7 +45,16 @@ export class AdminCreateUserUseCase {
     return this.commandPort.create({
       email,
       passwordHash,
-      roles: normalizeRoles(input.roles)
+      roles: normalizeRoles(input.roles),
+      ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
+      ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
+      ...(input.phone !== undefined ? { phone: input.phone } : {}),
+      ...(input.birthDate !== undefined ? { birthDate: input.birthDate } : {}),
+      ...(input.addressLine1 !== undefined ? { addressLine1: input.addressLine1 } : {}),
+      ...(input.addressLine2 !== undefined ? { addressLine2: input.addressLine2 } : {}),
+      ...(input.city !== undefined ? { city: input.city } : {}),
+      ...(input.country !== undefined ? { country: input.country } : {}),
+      ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
     });
   }
 }

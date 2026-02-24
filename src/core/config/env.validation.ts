@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString, validateSync } from 'class-validator';
+import { IsEnum, IsInt, IsNumber, IsOptional, IsString, validateSync } from 'class-validator';
 
 enum NodeEnv {
   Development = 'development',
@@ -24,6 +24,58 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   JWT_EXPIRES_IN?: string;
+
+  @IsOptional()
+  @IsString()
+  JWT_ACCESS_EXPIRES_IN?: string;
+
+  @IsOptional()
+  @IsString()
+  JWT_REFRESH_EXPIRES_IN?: string;
+
+  @IsOptional()
+  @IsString()
+  JWT_REFRESH_SECRET?: string;
+
+  @IsOptional()
+  @IsInt()
+  PASSWORD_RESET_TTL_MINUTES?: number;
+
+  @IsOptional()
+  @IsString()
+  FRONTEND_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  EMAIL_PROVIDER?: string;
+
+  @IsOptional()
+  @IsString()
+  EMAIL_FROM?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_HOST?: string;
+
+  @IsOptional()
+  @IsInt()
+  SMTP_PORT?: number;
+
+  @IsOptional()
+  @IsString()
+  SMTP_USER?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_PASS?: string;
+
+  @IsOptional()
+  @IsString()
+  ADMIN_SEED_EMAIL?: string;
+
+  @IsOptional()
+  @IsString()
+  ADMIN_SEED_PASSWORD?: string;
 
   @IsOptional()
   @IsString()

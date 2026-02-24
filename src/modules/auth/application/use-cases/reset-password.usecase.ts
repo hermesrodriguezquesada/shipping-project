@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PASSWORD_HASHER, USER_COMMAND_PORT } from 'src/shared/constants/tokens';
+import { PASSWORD_HASHER, PASSWORD_RESET_STORE, USER_COMMAND_PORT } from 'src/shared/constants/tokens';
 import { PasswordHasherPort } from '../../domain/ports/password-hasher.port';
 import { PasswordResetStorePort } from '../../domain/ports/password-reset-store.port';
 import { UserCommandPort } from 'src/modules/users/domain/ports/user-command.port';
@@ -7,7 +7,6 @@ import { UnauthorizedDomainException } from 'src/core/exceptions/domain/unauthor
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 
 import { createHash } from 'crypto';
-import { PASSWORD_RESET_STORE } from './request-password-reset.usecase';
 
 @Injectable()
 export class ResetPasswordUseCase {

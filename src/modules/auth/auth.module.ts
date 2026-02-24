@@ -22,6 +22,11 @@ import { NotificationsModule } from 'src/core/notifications/notifications.module
 import { PrismaPasswordResetStoreAdapter } from './infrastructure/adapters/prisma-password-reset-store.adapter';
 import { RequestPasswordResetUseCase } from './application/use-cases/request-password-reset.usecase';
 import { ResetPasswordUseCase } from './application/use-cases/reset-password.usecase';
+import { SessionResolver } from './presentation/graphql/resolvers/session.resolver';
+import { ListMySessionsUseCase } from './application/use-cases/list-my-sessions.usecase';
+import { RevokeMySessionUseCase } from './application/use-cases/revoke-my-session.usecase';
+import { RevokeOtherMySessionsUseCase } from './application/use-cases/revoke-other-my-sessions.usecase';
+import { ChangePasswordUseCase } from './application/use-cases/change-password.usecase';
 
 @Module({
   imports: [
@@ -41,11 +46,16 @@ import { ResetPasswordUseCase } from './application/use-cases/reset-password.use
   ],
   providers: [
     AuthResolver,
+    SessionResolver,
     LoginUseCase,
     RegisterUseCase,
     GetMeUseCase,
     RefreshUseCase,
     LogoutUseCase,
+    ListMySessionsUseCase,
+    RevokeMySessionUseCase,
+    RevokeOtherMySessionsUseCase,
+    ChangePasswordUseCase,
     JwtStrategy,
     { provide: SESSION_STORE, useClass: PrismaSessionStoreAdapter },
     { provide: TOKEN_SERVICE, useClass: JwtTokenServiceAdapter },

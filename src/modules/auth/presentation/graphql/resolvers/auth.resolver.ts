@@ -24,6 +24,8 @@ import { RequestPasswordResetUseCase } from 'src/modules/auth/application/use-ca
 import { ResetPasswordUseCase } from 'src/modules/auth/application/use-cases/reset-password.usecase';
 import { RequestPasswordResetInput } from '../inputs/request-password-reset.input';
 import { ResetPasswordInput } from '../inputs/reset-password.input';
+import { ChangePasswordInput } from '../inputs/change-password.input';
+import { ChangePasswordUseCase } from 'src/modules/auth/application/use-cases/change-password.usecase';
 
 @Resolver()
 export class AuthResolver {
@@ -35,6 +37,7 @@ export class AuthResolver {
     private readonly getMeUseCase: GetMeUseCase,
     private readonly requestPasswordResetUseCase: RequestPasswordResetUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
+    private readonly changePasswordUseCase: ChangePasswordUseCase,
 
   ) {}
 
@@ -102,6 +105,19 @@ export class AuthResolver {
   @Mutation(() => Boolean)
   async resetPassword( @Args('input') input: ResetPasswordInput ): Promise<boolean> {
     return this.resetPasswordUseCase.execute({ token: input.token, newPassword: input.newPassword });
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Boolean)
+  async changePassword(
+    @CurrentUser() authUser: AuthContextUser,
+    @Args('input') input: ChangePasswordInput,
+  ): Promise<boolean> {
+    return this.changePasswordUseCase.execute({
+      userId: authUser.id,
+      oldPassword: input.oldPassword,
+      newPassword: input.newPassword,
+    });
   }
 
 }

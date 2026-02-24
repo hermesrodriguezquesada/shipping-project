@@ -15,6 +15,10 @@ export type BeneficiaryEntity = {
   documentNumber: string;
   relationship?: BeneficiaryRelationship | null;
   deliveryInstructions?: string | null ;
+  isFavorite: boolean;
+  favoriteAt?: Date | null;
+  timesUsed?: number | null;
+  lastUsedAt?: Date | null;
   isDeleted: boolean;
   deletedAt?: Date | null;
   createdAt: Date;

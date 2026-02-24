@@ -10,6 +10,7 @@ import { AdminSetUserRolesUseCase } from './application/use-cases/admin/admin-se
 import { AdminBanUserUseCase } from './application/use-cases/admin/admin-ban-user.usecase';
 import { AdminActivateUserUseCase } from './application/use-cases/admin/admin-activate-user.usecase';
 import { AdminSoftDeleteUserUseCase } from './application/use-cases/admin/admin-delete-user.usecase';
+import { AdminUpdateUserProfileUseCase } from './application/use-cases/admin/admin-update-user-profile.usecase';
 
 import { PrismaUserAuthAdapter } from './infrastructure/adapters/prisma-user-auth.adapter';
 import { PrismaUserQueryAdapter } from './infrastructure/adapters/prisma-user-query.adapter';
@@ -41,6 +42,7 @@ import { UpdateMyProfileUseCase } from './application/use-cases/update-my-profil
     AdminBanUserUseCase,
     AdminActivateUserUseCase,
     AdminSoftDeleteUserUseCase,
+    AdminUpdateUserProfileUseCase,
     UpdateMyProfileUseCase
   ],
   exports: [USER_AUTH_PORT, USER_QUERY_PORT, USER_COMMAND_PORT],

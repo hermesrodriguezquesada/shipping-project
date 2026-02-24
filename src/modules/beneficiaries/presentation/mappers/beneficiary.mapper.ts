@@ -17,6 +17,10 @@ export class BeneficiaryMapper {
       documentNumber: e.documentNumber,
       relationship: e.relationship ?? undefined,
       deliveryInstructions: e.deliveryInstructions ?? undefined,
+      isFavorite: e.isFavorite,
+      favoriteAt: e.favoriteAt ?? undefined,
+      timesUsed: e.timesUsed ?? undefined,
+      lastUsedAt: e.lastUsedAt ?? undefined,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     };

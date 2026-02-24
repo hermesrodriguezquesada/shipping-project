@@ -15,7 +15,20 @@ export type UpdateUserProfileInput = {
 };
 
 export interface UserCommandPort {
-  create(input: { email: string; passwordHash: string; roles?: Role[] }): Promise<UserEntity>;
+  create(input: {
+    email: string;
+    passwordHash: string;
+    roles?: Role[];
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    birthDate?: Date;
+    addressLine1?: string;
+    addressLine2?: string;
+    city?: string;
+    country?: string;
+    postalCode?: string;
+  }): Promise<UserEntity>;
   updateStatus(input: { id: string; isActive?: boolean; isDeleted?: boolean }): Promise<UserEntity>;
   updateRoles(input: { id: string; roles: Role[] }): Promise<UserEntity>;
   updateProfile(input: UpdateUserProfileInput): Promise<any>;

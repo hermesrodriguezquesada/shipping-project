@@ -8,9 +8,35 @@ import { UserCommandPort } from "../../domain/ports/user-command.port";
 export class PrismaUserCommandAdapter implements UserCommandPort {
   constructor(private readonly prisma: PrismaService) {}
 
-    async create(input: { email: string; passwordHash: string; roles?: Role[] }): Promise<UserEntity> {
+    async create(input: {
+      email: string;
+      passwordHash: string;
+      roles?: Role[];
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      birthDate?: Date;
+      addressLine1?: string;
+      addressLine2?: string;
+      city?: string;
+      country?: string;
+      postalCode?: string;
+    }): Promise<UserEntity> {
         const row = await this.prisma.user.create({
-        data: { email: input.email, passwordHash: input.passwordHash, roles: input.roles ?? [Role.CLIENT] },
+        data: {
+          email: input.email,
+          passwordHash: input.passwordHash,
+          roles: input.roles ?? [Role.CLIENT],
+          ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
+          ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
+          ...(input.phone !== undefined ? { phone: input.phone } : {}),
+          ...(input.birthDate !== undefined ? { birthDate: input.birthDate } : {}),
+          ...(input.addressLine1 !== undefined ? { addressLine1: input.addressLine1 } : {}),
+          ...(input.addressLine2 !== undefined ? { addressLine2: input.addressLine2 } : {}),
+          ...(input.city !== undefined ? { city: input.city } : {}),
+          ...(input.country !== undefined ? { country: input.country } : {}),
+          ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+        },
         });
         return this.toDomain(row);
     }
