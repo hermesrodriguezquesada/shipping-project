@@ -164,6 +164,15 @@ model BeneficiaryUsage {
 
 enum RemittanceStatus {
   DRAFT
+  PENDING_PAYMENT
+  PENDING_PAYMENT_CONFIRMATION
+  PAID_SENDING_TO_RECEIVER
+  SUCCESS
+  PAYMENT_ERROR
+  CANCELED_BY_CLIENT
+  CANCELED_BY_ADMIN
+
+  // legacy compatibility values
   SUBMITTED
   CANCELLED
   COMPLETED
@@ -181,22 +190,124 @@ enum Currency {
   EUR
 }
 
+enum OriginAccountType {
+  ZELLE
+  IBAN
+  STRIPE
+}
+
+enum ReceptionMethod {
+  USD_CASH
+  CUP_CASH
+  CUP_TRANSFER
+  MLC
+  USD_CLASSIC
+}
+
+enum OriginAccountHolderType {
+  PERSON
+  COMPANY
+}
+
+model PaymentMethod {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  enabled     Boolean  @default(true)
+  imgUrl      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  remittances Remittance[]
+}
+
+model ReceptionMethodCatalog {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  enabled     Boolean  @default(true)
+  imgUrl      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  remittances Remittance[]
+}
+
+model CurrencyCatalog {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  enabled     Boolean  @default(true)
+  imgUrl      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  remittancesAsPayment  Remittance[] @relation("RemittanceCurrency")
+  remittancesAsReceiving Remittance[] @relation("RemittanceReceivingCurrency")
+  exchangeRatesFrom     ExchangeRate[] @relation("ExchangeRateFromCurrency")
+  exchangeRatesTo       ExchangeRate[] @relation("ExchangeRateToCurrency")
+}
+
+model ExchangeRate {
+  id             String   @id @default(uuid())
+  fromCurrencyId String
+  toCurrencyId   String
+  rate           Decimal
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  fromCurrency CurrencyCatalog @relation("ExchangeRateFromCurrency", fields: [fromCurrencyId], references: [id], onDelete: Restrict)
+  toCurrency   CurrencyCatalog @relation("ExchangeRateToCurrency", fields: [toCurrencyId], references: [id], onDelete: Restrict)
+  remittancesUsingThisRate Remittance[]
+
+  @@index([fromCurrencyId, toCurrencyId, enabled, createdAt])
+}
+
 model Remittance {
   id            String           @id @default(uuid())
   senderUserId  String
   beneficiaryId String
   amount        Decimal
-  currency      Currency         @default(USD)
   status        RemittanceStatus @default(SUBMITTED)
+  paymentMethodId String?
+  receptionMethodId String?
+  currencyId String?
+  receivingCurrencyId String?
+  originZelleEmail String?
+  originIban String?
+  originStripePaymentMethodId String?
+  destinationCupCardNumber String?
+  originAccountHolderType OriginAccountHolderType?
+  originAccountHolderFirstName String?
+  originAccountHolderLastName String?
+  originAccountHolderCompanyName String?
+  paymentDetails String?
+  statusDescription String?
+  exchangeRateIdUsed String?
+  exchangeRateRateUsed Decimal?
+  exchangeRateUsedAt DateTime?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
   sender      User        @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
   beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
+  receptionMethodCatalog ReceptionMethodCatalog? @relation(fields: [receptionMethodId], references: [id], onDelete: SetNull)
+  paymentCurrency CurrencyCatalog? @relation("RemittanceCurrency", fields: [currencyId], references: [id], onDelete: SetNull)
+  receivingCurrency CurrencyCatalog? @relation("RemittanceReceivingCurrency", fields: [receivingCurrencyId], references: [id], onDelete: SetNull)
+  exchangeRateUsed ExchangeRate? @relation(fields: [exchangeRateIdUsed], references: [id], onDelete: SetNull)
   transfer Transfer?
 
   @@index([senderUserId, createdAt])
   @@index([beneficiaryId])
+  @@index([paymentMethodId])
+  @@index([receptionMethodId])
+  @@index([currencyId])
+  @@index([receivingCurrencyId])
 }
 
 model Transfer {

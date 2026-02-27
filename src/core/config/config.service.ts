@@ -93,4 +93,12 @@ export class AppConfigService {
     return this.configService.get<string>('SMTP_PASS');
   }
 
+  get remittanceAmountMin(): number {
+    return this.configService.get<number>('REMITTANCE_AMOUNT_MIN', 1);
+  }
+
+  get remittanceAmountMax(): number {
+    return this.configService.get<number>('REMITTANCE_AMOUNT_MAX', 10000);
+  }
+
 }

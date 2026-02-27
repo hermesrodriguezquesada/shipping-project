@@ -12,6 +12,8 @@ export const IDENTITY_COMMAND_PORT = 'IdentityCommandPort';
 export const IDENTITY_QUERY_PORT = 'IdentityQueryPort';
 export const BENEFICIARY_COMMAND_PORT = 'BeneficiaryCommandPort';
 export const BENEFICIARY_QUERY_PORT = 'BeneficiaryQueryPort';
+export const REMITTANCE_QUERY_PORT = 'RemittanceQueryPort';
+export const REMITTANCE_COMMAND_PORT = 'RemittanceCommandPort';
 
 
 

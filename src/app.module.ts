@@ -12,6 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CryptoModule } from './core/crypto/crypto.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { BeneficiariesModule } from './modules/beneficiaries/beneficiaries.module';
+import { RemittancesModule } from './modules/remittances/remittances.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { BeneficiariesModule } from './modules/beneficiaries/beneficiaries.modul
     UsersModule,
     AuthModule,
     IdentityModule,
-    BeneficiariesModule
+    BeneficiariesModule,
+    RemittancesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -84,6 +84,14 @@ class EnvironmentVariables {
   @IsOptional()
   @IsNumber()
   REDIS_PORT?: number;
+
+  @IsOptional()
+  @IsNumber()
+  REMITTANCE_AMOUNT_MIN?: number;
+
+  @IsOptional()
+  @IsNumber()
+  REMITTANCE_AMOUNT_MAX?: number;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
