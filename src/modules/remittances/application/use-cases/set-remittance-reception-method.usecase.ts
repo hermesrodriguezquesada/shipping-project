@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ReceptionMethod, RemittanceStatus } from '@prisma/client';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
-import { REMITTANCE_COMMAND_PORT, REMITTANCE_QUERY_PORT } from 'src/shared/constants/tokens';
+import { RECEPTION_METHOD_AVAILABILITY_PORT, REMITTANCE_COMMAND_PORT, REMITTANCE_QUERY_PORT } from 'src/shared/constants/tokens';
 import { RemittanceCommandPort } from '../../domain/ports/remittance-command.port';
+import { ReceptionMethodAvailabilityPort } from '../../domain/ports/reception-method-availability.port';
 import { RemittanceQueryPort } from '../../domain/ports/remittance-query.port';
 
 @Injectable()
@@ -13,6 +14,8 @@ export class SetRemittanceReceptionMethodUseCase {
     private readonly remittanceQuery: RemittanceQueryPort,
     @Inject(REMITTANCE_COMMAND_PORT)
     private readonly remittanceCommand: RemittanceCommandPort,
+    @Inject(RECEPTION_METHOD_AVAILABILITY_PORT)
+    private readonly receptionMethodAvailability: ReceptionMethodAvailabilityPort,
   ) {}
 
   async execute(input: {
@@ -33,11 +36,11 @@ export class SetRemittanceReceptionMethodUseCase {
       throw new ValidationDomainException('Only DRAFT remittances can be updated');
     }
 
-    const receptionMethod = await this.remittanceQuery.findReceptionMethodByCode({
+    const receptionMethod = await this.receptionMethodAvailability.findEnabledReceptionMethodByCode({
       code: input.receptionMethod,
     });
 
-    if (!receptionMethod || !receptionMethod.enabled) {
+    if (!receptionMethod) {
       throw new ValidationDomainException('receptionMethod is not enabled');
     }
 

@@ -2,7 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { OriginAccountType } from '@prisma/client';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
-import { REMITTANCE_COMMAND_PORT, REMITTANCE_QUERY_PORT } from 'src/shared/constants/tokens';
+import { PAYMENT_METHOD_AVAILABILITY_PORT, REMITTANCE_COMMAND_PORT, REMITTANCE_QUERY_PORT } from 'src/shared/constants/tokens';
+import { PaymentMethodAvailabilityPort } from '../../domain/ports/payment-method-availability.port';
 import { RemittanceCommandPort } from '../../domain/ports/remittance-command.port';
 import { RemittanceQueryPort } from '../../domain/ports/remittance-query.port';
 
@@ -13,6 +14,8 @@ export class SetRemittanceOriginAccountUseCase {
     private readonly remittanceQuery: RemittanceQueryPort,
     @Inject(REMITTANCE_COMMAND_PORT)
     private readonly remittanceCommand: RemittanceCommandPort,
+    @Inject(PAYMENT_METHOD_AVAILABILITY_PORT)
+    private readonly paymentMethodAvailability: PaymentMethodAvailabilityPort,
   ) {}
 
   async execute(input: {
@@ -32,8 +35,8 @@ export class SetRemittanceOriginAccountUseCase {
       throw new NotFoundDomainException('Remittance not found');
     }
 
-    const paymentMethod = await this.remittanceQuery.findPaymentMethodByCode({ code: input.originAccountType });
-    if (!paymentMethod || !paymentMethod.enabled) {
+    const paymentMethod = await this.paymentMethodAvailability.findEnabledPaymentMethodByCode({ code: input.originAccountType });
+    if (!paymentMethod) {
       throw new ValidationDomainException('originAccountType is not enabled');
     }
 

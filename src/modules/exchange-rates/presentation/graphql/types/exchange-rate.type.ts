@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { CurrencyCatalogType } from './currency-catalog.type';
+import { CurrencyCatalogType } from 'src/modules/catalogs/presentation/graphql/types/currency-catalog.type';
 
 @ObjectType()
 export class ExchangeRateType {

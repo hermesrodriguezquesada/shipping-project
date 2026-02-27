@@ -9,7 +9,14 @@ import {
 import { AppConfigService } from 'src/core/config/config.service';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
-import { REMITTANCE_COMMAND_PORT, REMITTANCE_QUERY_PORT } from 'src/shared/constants/tokens';
+import {
+  CURRENCY_AVAILABILITY_PORT,
+  EXCHANGE_RATE_SNAPSHOT_PORT,
+  REMITTANCE_COMMAND_PORT,
+  REMITTANCE_QUERY_PORT,
+} from 'src/shared/constants/tokens';
+import { CurrencyAvailabilityPort } from '../../domain/ports/currency-availability.port';
+import { ExchangeRateSnapshotPort } from '../../domain/ports/exchange-rate-snapshot.port';
 import { RemittanceCommandPort } from '../../domain/ports/remittance-command.port';
 import { RemittanceQueryPort } from '../../domain/ports/remittance-query.port';
 
@@ -20,6 +27,10 @@ export class SubmitRemittanceUseCase {
     private readonly remittanceQuery: RemittanceQueryPort,
     @Inject(REMITTANCE_COMMAND_PORT)
     private readonly remittanceCommand: RemittanceCommandPort,
+    @Inject(CURRENCY_AVAILABILITY_PORT)
+    private readonly currencyAvailability: CurrencyAvailabilityPort,
+    @Inject(EXCHANGE_RATE_SNAPSHOT_PORT)
+    private readonly exchangeRateSnapshot: ExchangeRateSnapshotPort,
     private readonly config: AppConfigService,
   ) {}
 
@@ -160,14 +171,14 @@ export class SubmitRemittanceUseCase {
       throw new ValidationDomainException('receiving currency is required');
     }
 
-    const fromCurrency = await this.remittanceQuery.findCurrencyById({ id: currencyId });
-    const toCurrency = await this.remittanceQuery.findCurrencyById({ id: receivingCurrencyId });
+    const fromCurrency = await this.currencyAvailability.findCurrencyById({ id: currencyId });
+    const toCurrency = await this.currencyAvailability.findCurrencyById({ id: receivingCurrencyId });
 
     if (!fromCurrency || !toCurrency) {
       throw new ValidationDomainException('Remittance currency is invalid');
     }
 
-    const rate = await this.remittanceQuery.getLatestExchangeRate({
+    const rate = await this.exchangeRateSnapshot.getLatestEnabledRate({
       fromCode: fromCurrency.code,
       toCode: toCurrency.code,
     });

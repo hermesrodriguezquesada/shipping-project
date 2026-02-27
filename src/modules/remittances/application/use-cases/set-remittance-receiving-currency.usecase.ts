@@ -2,7 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { RemittanceStatus } from '@prisma/client';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
-import { REMITTANCE_COMMAND_PORT, REMITTANCE_QUERY_PORT } from 'src/shared/constants/tokens';
+import { CURRENCY_AVAILABILITY_PORT, REMITTANCE_COMMAND_PORT, REMITTANCE_QUERY_PORT } from 'src/shared/constants/tokens';
+import { CurrencyAvailabilityPort } from '../../domain/ports/currency-availability.port';
 import { RemittanceCommandPort } from '../../domain/ports/remittance-command.port';
 import { RemittanceQueryPort } from '../../domain/ports/remittance-query.port';
 
@@ -13,6 +14,8 @@ export class SetRemittanceReceivingCurrencyUseCase {
     private readonly remittanceQuery: RemittanceQueryPort,
     @Inject(REMITTANCE_COMMAND_PORT)
     private readonly remittanceCommand: RemittanceCommandPort,
+    @Inject(CURRENCY_AVAILABILITY_PORT)
+    private readonly currencyAvailability: CurrencyAvailabilityPort,
   ) {}
 
   async execute(input: { remittanceId: string; senderUserId: string; currencyCode: string }): Promise<boolean> {
@@ -34,8 +37,8 @@ export class SetRemittanceReceivingCurrencyUseCase {
       throw new ValidationDomainException('currencyCode is required');
     }
 
-    const currency = await this.remittanceQuery.findCurrencyByCode({ code });
-    if (!currency || !currency.enabled) {
+    const currency = await this.currencyAvailability.findEnabledCurrencyByCode({ code });
+    if (!currency) {
       throw new ValidationDomainException('currencyCode is not enabled');
     }
 

@@ -4,9 +4,9 @@ import {
   RemittanceStatus,
 } from '@prisma/client';
 import { BeneficiaryType } from 'src/modules/beneficiaries/presentation/graphql/types/beneficiary.type';
-import { CurrencyCatalogType } from './currency-catalog.type';
-import { PaymentMethodType } from './payment-method.type';
-import { ReceptionMethodType } from './reception-method.type';
+import { CurrencyCatalogType } from 'src/modules/catalogs/presentation/graphql/types/currency-catalog.type';
+import { PaymentMethodType } from 'src/modules/catalogs/presentation/graphql/types/payment-method.type';
+import { ReceptionMethodType } from 'src/modules/catalogs/presentation/graphql/types/reception-method.type';
 import { TransferType } from './transfer.type';
 
 @ObjectType()

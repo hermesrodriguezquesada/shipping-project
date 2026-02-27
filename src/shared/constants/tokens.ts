@@ -14,6 +14,14 @@ export const BENEFICIARY_COMMAND_PORT = 'BeneficiaryCommandPort';
 export const BENEFICIARY_QUERY_PORT = 'BeneficiaryQueryPort';
 export const REMITTANCE_QUERY_PORT = 'RemittanceQueryPort';
 export const REMITTANCE_COMMAND_PORT = 'RemittanceCommandPort';
+export const PAYMENT_METHOD_AVAILABILITY_PORT = 'PaymentMethodAvailabilityPort';
+export const RECEPTION_METHOD_AVAILABILITY_PORT = 'ReceptionMethodAvailabilityPort';
+export const CURRENCY_AVAILABILITY_PORT = 'CurrencyAvailabilityPort';
+export const EXCHANGE_RATE_SNAPSHOT_PORT = 'ExchangeRateSnapshotPort';
+export const CATALOGS_QUERY_PORT = 'CatalogsQueryPort';
+export const CATALOGS_COMMAND_PORT = 'CatalogsCommandPort';
+export const EXCHANGE_RATES_QUERY_PORT = 'ExchangeRatesQueryPort';
+export const EXCHANGE_RATES_COMMAND_PORT = 'ExchangeRatesCommandPort';
 
 
 

@@ -6,6 +6,12 @@ import {
   TransferStatus,
   DocumentType,
 } from '@prisma/client';
+import {
+  CurrencyCatalogReadModel,
+  PaymentMethodReadModel,
+  ReceptionMethodCatalogReadModel,
+} from 'src/modules/catalogs/domain/ports/catalogs-query.port';
+import { ExchangeRateReadModel } from 'src/modules/exchange-rates/domain/ports/exchange-rates-query.port';
 
 export interface RemittanceForSubmit {
   id: string;
@@ -53,51 +59,6 @@ export interface RemittanceTransferReadModel {
   updatedAt: Date;
 }
 
-export interface PaymentMethodReadModel {
-  id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  enabled: boolean;
-  imgUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ReceptionMethodCatalogReadModel {
-  id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  enabled: boolean;
-  imgUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CurrencyCatalogReadModel {
-  id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  enabled: boolean;
-  imgUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ExchangeRateReadModel {
-  id: string;
-  fromCurrencyId: string;
-  toCurrencyId: string;
-  rate: Prisma.Decimal;
-  enabled: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  fromCurrency: CurrencyCatalogReadModel;
-  toCurrency: CurrencyCatalogReadModel;
-}
-
 export interface RemittanceReadModel {
   id: string;
   status: RemittanceStatus;
@@ -136,17 +97,4 @@ export interface RemittanceQueryPort {
   listRemittancesByUser(input: { userId: string; limit?: number; offset?: number }): Promise<RemittanceReadModel[]>;
   findRemittanceById(input: { id: string }): Promise<RemittanceReadModel | null>;
   beneficiaryBelongsToUser(input: { beneficiaryId: string; ownerUserId: string }): Promise<boolean>;
-
-  listPaymentMethods(input: { enabledOnly?: boolean }): Promise<PaymentMethodReadModel[]>;
-  findPaymentMethodByCode(input: { code: string }): Promise<PaymentMethodReadModel | null>;
-
-  listReceptionMethods(input: { enabledOnly?: boolean }): Promise<ReceptionMethodCatalogReadModel[]>;
-  findReceptionMethodByCode(input: { code: string }): Promise<ReceptionMethodCatalogReadModel | null>;
-
-  listCurrencies(input: { enabledOnly?: boolean }): Promise<CurrencyCatalogReadModel[]>;
-  findCurrencyByCode(input: { code: string }): Promise<CurrencyCatalogReadModel | null>;
-  findCurrencyById(input: { id: string }): Promise<CurrencyCatalogReadModel | null>;
-
-  getLatestExchangeRate(input: { fromCode: string; toCode: string }): Promise<ExchangeRateReadModel | null>;
-  listExchangeRates(input: { fromCode?: string; toCode?: string; limit?: number; offset?: number }): Promise<ExchangeRateReadModel[]>;
 }

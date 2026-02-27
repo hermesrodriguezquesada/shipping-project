@@ -13,6 +13,8 @@ import { CryptoModule } from './core/crypto/crypto.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { BeneficiariesModule } from './modules/beneficiaries/beneficiaries.module';
 import { RemittancesModule } from './modules/remittances/remittances.module';
+import { CatalogsModule } from './modules/catalogs/catalogs.module';
+import { ExchangeRatesModule } from './modules/exchange-rates/exchange-rates.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { RemittancesModule } from './modules/remittances/remittances.module';
     AuthModule,
     IdentityModule,
     BeneficiariesModule,
+    CatalogsModule,
+    ExchangeRatesModule,
     RemittancesModule,
   ],
   controllers: [AppController],

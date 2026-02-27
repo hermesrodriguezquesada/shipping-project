@@ -43,18 +43,4 @@ export interface RemittanceCommandPort {
   cancelByClient(input: { id: string }): Promise<void>;
   cancelByAdmin(input: { id: string; statusDescription: string }): Promise<void>;
   markDelivered(input: { id: string }): Promise<void>;
-
-  updatePaymentMethodDescription(input: { code: string; description: string | null }): Promise<void>;
-  setPaymentMethodEnabled(input: { code: string; enabled: boolean }): Promise<void>;
-
-  updateReceptionMethodDescription(input: { code: string; description: string | null }): Promise<void>;
-  setReceptionMethodEnabled(input: { code: string; enabled: boolean }): Promise<void>;
-
-  createCurrency(input: { code: string; name: string; description: string | null; imgUrl: string | null }): Promise<void>;
-  updateCurrency(input: { code: string; name: string; description: string | null; imgUrl: string | null }): Promise<void>;
-  setCurrencyEnabled(input: { code: string; enabled: boolean }): Promise<void>;
-
-  createExchangeRate(input: { fromCurrencyId: string; toCurrencyId: string; rate: Prisma.Decimal; enabled: boolean }): Promise<string>;
-  updateExchangeRate(input: { id: string; rate: Prisma.Decimal; enabled?: boolean }): Promise<void>;
-  deleteExchangeRate(input: { id: string }): Promise<void>;
 }

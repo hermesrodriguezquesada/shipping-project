@@ -1,9 +1,17 @@
 import { Module } from '@nestjs/common';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { AppConfigModule } from 'src/core/config/config.module';
-import { REMITTANCE_COMMAND_PORT, REMITTANCE_QUERY_PORT } from 'src/shared/constants/tokens';
+import { CatalogsModule } from '../catalogs/catalogs.module';
+import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
+import {
+  CURRENCY_AVAILABILITY_PORT,
+  EXCHANGE_RATE_SNAPSHOT_PORT,
+  PAYMENT_METHOD_AVAILABILITY_PORT,
+  RECEPTION_METHOD_AVAILABILITY_PORT,
+  REMITTANCE_COMMAND_PORT,
+  REMITTANCE_QUERY_PORT,
+} from 'src/shared/constants/tokens';
 import { AdminRemittancesUseCase } from './application/use-cases/admin-remittances.usecase';
-import { CatalogsAndFxUseCase } from './application/use-cases/catalogs-and-fx.usecase';
 import { CreateRemittanceDraftV2UseCase } from './application/use-cases/create-remittance-draft-v2.usecase';
 import { CreateRemittanceDraftUseCase } from './application/use-cases/create-remittance-draft.usecase';
 import { GetMyRemittanceUseCase } from './application/use-cases/get-my-remittance.usecase';
@@ -16,19 +24,26 @@ import { SetRemittanceOriginAccountUseCase } from './application/use-cases/set-r
 import { SetRemittanceReceivingCurrencyUseCase } from './application/use-cases/set-remittance-receiving-currency.usecase';
 import { SetRemittanceReceptionMethodUseCase } from './application/use-cases/set-remittance-reception-method.usecase';
 import { SubmitRemittanceUseCase } from './application/use-cases/submit-remittance.usecase';
+import { CurrencyAvailabilityBridgeAdapter } from './infrastructure/adapters/currency-availability.bridge.adapter';
+import { ExchangeRateSnapshotBridgeAdapter } from './infrastructure/adapters/exchange-rate-snapshot.bridge.adapter';
+import { PaymentMethodAvailabilityBridgeAdapter } from './infrastructure/adapters/payment-method-availability.bridge.adapter';
 import { PrismaRemittanceCommandAdapter } from './infrastructure/adapters/prisma-remittance-command.adapter';
 import { PrismaRemittanceQueryAdapter } from './infrastructure/adapters/prisma-remittance-query.adapter';
+import { ReceptionMethodAvailabilityBridgeAdapter } from './infrastructure/adapters/reception-method-availability.bridge.adapter';
 import { RemittancesResolver } from './presentation/graphql/resolvers/remittances.resolver';
 
 @Module({
-  imports: [AppConfigModule],
+  imports: [AppConfigModule, CatalogsModule, ExchangeRatesModule],
   providers: [
     PrismaRemittanceCommandAdapter,
     PrismaRemittanceQueryAdapter,
     { provide: REMITTANCE_COMMAND_PORT, useExisting: PrismaRemittanceCommandAdapter },
     { provide: REMITTANCE_QUERY_PORT, useExisting: PrismaRemittanceQueryAdapter },
+    { provide: PAYMENT_METHOD_AVAILABILITY_PORT, useClass: PaymentMethodAvailabilityBridgeAdapter },
+    { provide: RECEPTION_METHOD_AVAILABILITY_PORT, useClass: ReceptionMethodAvailabilityBridgeAdapter },
+    { provide: CURRENCY_AVAILABILITY_PORT, useClass: CurrencyAvailabilityBridgeAdapter },
+    { provide: EXCHANGE_RATE_SNAPSHOT_PORT, useClass: ExchangeRateSnapshotBridgeAdapter },
     AdminRemittancesUseCase,
-    CatalogsAndFxUseCase,
     CreateRemittanceDraftV2UseCase,
     CreateRemittanceDraftUseCase,
     GetMyRemittanceUseCase,

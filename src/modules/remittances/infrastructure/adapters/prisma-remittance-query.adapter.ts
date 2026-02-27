@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import {
-  CurrencyCatalogReadModel,
-  ExchangeRateReadModel,
-  PaymentMethodReadModel,
-  ReceptionMethodCatalogReadModel,
   RemittanceForSubmit,
   RemittanceQueryPort,
   RemittanceReadModel,
@@ -156,93 +152,6 @@ export class PrismaRemittanceQueryAdapter implements RemittanceQueryPort {
     });
 
     return !!beneficiary;
-  }
-
-  async listPaymentMethods(input: { enabledOnly?: boolean }): Promise<PaymentMethodReadModel[]> {
-    return this.prisma.paymentMethod.findMany({
-      where: input.enabledOnly === true ? { enabled: true } : undefined,
-      orderBy: { code: 'asc' },
-    });
-  }
-
-  async findPaymentMethodByCode(input: { code: string }): Promise<PaymentMethodReadModel | null> {
-    return this.prisma.paymentMethod.findUnique({
-      where: {
-        code: input.code,
-      },
-    });
-  }
-
-  async listReceptionMethods(input: { enabledOnly?: boolean }): Promise<ReceptionMethodCatalogReadModel[]> {
-    return this.prisma.receptionMethodCatalog.findMany({
-      where: input.enabledOnly === true ? { enabled: true } : undefined,
-      orderBy: { code: 'asc' },
-    });
-  }
-
-  async findReceptionMethodByCode(input: { code: string }): Promise<ReceptionMethodCatalogReadModel | null> {
-    return this.prisma.receptionMethodCatalog.findUnique({
-      where: { code: input.code },
-    });
-  }
-
-  async listCurrencies(input: { enabledOnly?: boolean }): Promise<CurrencyCatalogReadModel[]> {
-    return this.prisma.currencyCatalog.findMany({
-      where: input.enabledOnly === true ? { enabled: true } : undefined,
-      orderBy: { code: 'asc' },
-    });
-  }
-
-  async findCurrencyByCode(input: { code: string }): Promise<CurrencyCatalogReadModel | null> {
-    return this.prisma.currencyCatalog.findUnique({
-      where: { code: input.code },
-    });
-  }
-
-  async findCurrencyById(input: { id: string }): Promise<CurrencyCatalogReadModel | null> {
-    return this.prisma.currencyCatalog.findUnique({
-      where: { id: input.id },
-    });
-  }
-
-  async getLatestExchangeRate(input: { fromCode: string; toCode: string }): Promise<ExchangeRateReadModel | null> {
-    return this.prisma.exchangeRate.findFirst({
-      where: {
-        enabled: true,
-        fromCurrency: { code: input.fromCode },
-        toCurrency: { code: input.toCode },
-      },
-      include: {
-        fromCurrency: true,
-        toCurrency: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-  }
-
-  async listExchangeRates(input: {
-    fromCode?: string;
-    toCode?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<ExchangeRateReadModel[]> {
-    return this.prisma.exchangeRate.findMany({
-      where: {
-        fromCurrency: input.fromCode ? { code: input.fromCode } : undefined,
-        toCurrency: input.toCode ? { code: input.toCode } : undefined,
-      },
-      include: {
-        fromCurrency: true,
-        toCurrency: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: input.limit,
-      skip: input.offset,
-    });
   }
 
   private toRemittanceReadModel(remittance: any): RemittanceReadModel {
