@@ -3,10 +3,15 @@ import { UserType } from '../graphql/types/user.type';
 
 export class UserMapper {
   static toGraphQL(user: UserEntity): UserType {
+    const role = user.roles?.[0];
+    if (!role) {
+      throw new Error(`User ${user.id} has no role`);
+    }
+
     return {
       id: user.id,
       email: user.email,
-      roles: user.roles,
+      role,
       isActive: user.isActive,
       isDeleted: user.isDeleted,
             firstName: user.firstName ?? undefined,

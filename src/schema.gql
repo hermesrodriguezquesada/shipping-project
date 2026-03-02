@@ -562,6 +562,6 @@ type UserType {
   lastName: String
   phone: String
   postalCode: String
-  roles: [Role!]!
+  role: String!
   updatedAt: DateTime!
 }

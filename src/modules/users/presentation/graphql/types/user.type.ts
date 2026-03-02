@@ -1,5 +1,4 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
 import { GraphQLISODateTime } from '@nestjs/graphql';
 
 @ObjectType()
@@ -10,8 +9,8 @@ export class UserType {
   @Field()
   email: string;
 
-  @Field(() => [Role])
-  roles: Role[];
+  @Field(() => String)
+  role: string;
 
   @Field()
   isActive: boolean;
