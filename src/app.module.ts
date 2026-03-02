@@ -15,6 +15,9 @@ import { BeneficiariesModule } from './modules/beneficiaries/beneficiaries.modul
 import { RemittancesModule } from './modules/remittances/remittances.module';
 import { CatalogsModule } from './modules/catalogs/catalogs.module';
 import { ExchangeRatesModule } from './modules/exchange-rates/exchange-rates.module';
+import { CommissionRulesModule } from './modules/commission-rules/commission-rules.module';
+import { DeliveryFeesModule } from './modules/delivery-fees/delivery-fees.module';
+import { PricingModule } from './modules/pricing/pricing.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { ExchangeRatesModule } from './modules/exchange-rates/exchange-rates.mod
     BeneficiariesModule,
     CatalogsModule,
     ExchangeRatesModule,
+    CommissionRulesModule,
+    DeliveryFeesModule,
+    PricingModule,
     RemittancesModule,
   ],
   controllers: [AppController],

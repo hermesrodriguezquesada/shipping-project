@@ -8,7 +8,6 @@ import {
 
 const remittanceReadInclude = {
   beneficiary: true,
-  transfer: true,
   paymentMethod: true,
   receptionMethodCatalog: true,
   paymentCurrency: true,
@@ -104,38 +103,7 @@ export class PrismaRemittanceQueryAdapter implements RemittanceQueryPort {
       select: {
         id: true,
         status: true,
-        amount: true,
-        currencyId: true,
-        receivingCurrencyId: true,
-        paymentMethod: {
-          select: {
-            code: true,
-          },
-        },
-        originZelleEmail: true,
-        originIban: true,
-        originStripePaymentMethodId: true,
-        receptionMethodCatalog: {
-          select: {
-            code: true,
-          },
-        },
-        destinationCupCardNumber: true,
-        originAccountHolderType: true,
-        originAccountHolderFirstName: true,
-        originAccountHolderLastName: true,
-        originAccountHolderCompanyName: true,
       },
-    }).then((remittance) => {
-      if (!remittance) {
-        return null;
-      }
-
-      return {
-        ...remittance,
-        paymentMethodCode: remittance.paymentMethod?.code ?? null,
-        receptionMethodCode: remittance.receptionMethodCatalog?.code ?? null,
-      };
     });
   }
 
@@ -157,8 +125,8 @@ export class PrismaRemittanceQueryAdapter implements RemittanceQueryPort {
   private toRemittanceReadModel(remittance: any): RemittanceReadModel {
     return {
       ...remittance,
-      paymentMethodCode: remittance.paymentMethod?.code ?? null,
-      receptionMethodCode: remittance.receptionMethodCatalog?.code ?? null,
+      feesBreakdownJson: remittance.feesBreakdownJson ?? null,
+      netReceivingAmount: remittance.netReceivingAmount ?? null,
     };
   }
 }

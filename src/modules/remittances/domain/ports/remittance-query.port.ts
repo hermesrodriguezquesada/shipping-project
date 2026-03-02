@@ -3,7 +3,6 @@ import {
   OriginAccountHolderType,
   Prisma,
   RemittanceStatus,
-  TransferStatus,
   DocumentType,
 } from '@prisma/client';
 import {
@@ -16,19 +15,6 @@ import { ExchangeRateReadModel } from 'src/modules/exchange-rates/domain/ports/e
 export interface RemittanceForSubmit {
   id: string;
   status: RemittanceStatus;
-  amount: Prisma.Decimal;
-  currencyId: string | null;
-  receivingCurrencyId: string | null;
-  paymentMethodCode: string | null;
-  originZelleEmail: string | null;
-  originIban: string | null;
-  originStripePaymentMethodId: string | null;
-  receptionMethodCode: string | null;
-  destinationCupCardNumber: string | null;
-  originAccountHolderType: OriginAccountHolderType | null;
-  originAccountHolderFirstName: string | null;
-  originAccountHolderLastName: string | null;
-  originAccountHolderCompanyName: string | null;
 }
 
 export interface RemittanceBeneficiaryReadModel {
@@ -51,23 +37,15 @@ export interface RemittanceBeneficiaryReadModel {
   updatedAt: Date;
 }
 
-export interface RemittanceTransferReadModel {
-  status: TransferStatus;
-  providerRef: string | null;
-  failureReason: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface RemittanceReadModel {
   id: string;
   status: RemittanceStatus;
   amount: Prisma.Decimal;
-  paymentMethodCode: string | null;
+  feesBreakdownJson: string | null;
+  netReceivingAmount: Prisma.Decimal | null;
   originZelleEmail: string | null;
   originIban: string | null;
   originStripePaymentMethodId: string | null;
-  receptionMethodCode: string | null;
   destinationCupCardNumber: string | null;
   originAccountHolderType: OriginAccountHolderType | null;
   originAccountHolderFirstName: string | null;
@@ -84,7 +62,6 @@ export interface RemittanceReadModel {
   receivingCurrency: CurrencyCatalogReadModel | null;
   exchangeRateUsed: ExchangeRateReadModel | null;
   beneficiary: RemittanceBeneficiaryReadModel;
-  transfer: RemittanceTransferReadModel | null;
   createdAt: Date;
   updatedAt: Date;
 }

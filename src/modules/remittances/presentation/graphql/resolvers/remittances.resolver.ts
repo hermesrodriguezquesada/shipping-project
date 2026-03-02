@@ -7,45 +7,23 @@ import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/cu
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { AdminRemittancesUseCase } from 'src/modules/remittances/application/use-cases/admin-remittances.usecase';
-import { CreateRemittanceDraftV2UseCase } from 'src/modules/remittances/application/use-cases/create-remittance-draft-v2.usecase';
-import { CreateRemittanceDraftUseCase } from 'src/modules/remittances/application/use-cases/create-remittance-draft.usecase';
 import { GetMyRemittanceUseCase } from 'src/modules/remittances/application/use-cases/get-my-remittance.usecase';
 import { ListMyRemittancesUseCase } from 'src/modules/remittances/application/use-cases/list-my-remittances.usecase';
 import { RemittanceLifecycleUseCase } from 'src/modules/remittances/application/use-cases/remittance-lifecycle.usecase';
-import { SetRemittanceAmountUseCase } from 'src/modules/remittances/application/use-cases/set-remittance-amount.usecase';
-import { SetRemittanceDestinationCupCardUseCase } from 'src/modules/remittances/application/use-cases/set-remittance-destination-cup-card.usecase';
-import { SetRemittanceOriginAccountHolderUseCase } from 'src/modules/remittances/application/use-cases/set-remittance-origin-account-holder.usecase';
-import { SetRemittanceOriginAccountUseCase } from 'src/modules/remittances/application/use-cases/set-remittance-origin-account.usecase';
-import { SetRemittanceReceptionMethodUseCase } from 'src/modules/remittances/application/use-cases/set-remittance-reception-method.usecase';
-import { SetRemittanceReceivingCurrencyUseCase } from 'src/modules/remittances/application/use-cases/set-remittance-receiving-currency.usecase';
-import { SubmitRemittanceUseCase } from 'src/modules/remittances/application/use-cases/submit-remittance.usecase';
+import { SubmitRemittanceV2UseCase } from 'src/modules/remittances/application/use-cases/submit-remittance-v2.usecase';
 import { RemittanceReadModel } from 'src/modules/remittances/domain/ports/remittance-query.port';
-import { CreateRemittanceDraftInput } from '../inputs/create-remittance-draft.input';
-import { SetRemittanceAmountInput } from '../inputs/set-remittance-amount.input';
-import { SetRemittanceDestinationCupCardInput } from '../inputs/set-remittance-destination-cup-card.input';
-import { SetRemittanceOriginAccountHolderInput } from '../inputs/set-remittance-origin-account-holder.input';
-import { SetRemittanceOriginAccountInput } from '../inputs/set-remittance-origin-account.input';
-import { SetRemittanceReceptionMethodInput } from '../inputs/set-remittance-reception-method.input';
-import { SetRemittanceReceivingCurrencyInput } from '../inputs/set-remittance-receiving-currency.input';
+import { SubmitRemittanceV2Input } from '../inputs/submit-remittance-v2.input';
 import { RemittanceType } from '../types/remittance.type';
 
 @UseGuards(GqlAuthGuard)
 @Resolver()
 export class RemittancesResolver {
   constructor(
-    private readonly createDraft: CreateRemittanceDraftUseCase,
-    private readonly createDraftV2: CreateRemittanceDraftV2UseCase,
     private readonly adminRemittancesUseCase: AdminRemittancesUseCase,
     private readonly remittanceLifecycleUseCase: RemittanceLifecycleUseCase,
     private readonly getMyRemittanceUseCase: GetMyRemittanceUseCase,
     private readonly listMyRemittancesUseCase: ListMyRemittancesUseCase,
-    private readonly setOriginAccount: SetRemittanceOriginAccountUseCase,
-    private readonly setAmount: SetRemittanceAmountUseCase,
-    private readonly setReceptionMethod: SetRemittanceReceptionMethodUseCase,
-    private readonly setDestinationCupCard: SetRemittanceDestinationCupCardUseCase,
-    private readonly setOriginAccountHolder: SetRemittanceOriginAccountHolderUseCase,
-    private readonly setReceivingCurrency: SetRemittanceReceivingCurrencyUseCase,
-    private readonly submitRemittanceUseCase: SubmitRemittanceUseCase,
+    private readonly submitRemittanceV2UseCase: SubmitRemittanceV2UseCase,
   ) {}
 
   @Query(() => RemittanceType, { nullable: true })
@@ -111,117 +89,25 @@ export class RemittancesResolver {
     return remittance ? this.toRemittanceType(remittance) : null;
   }
 
-  @Mutation(() => ID)
-  async createRemittanceDraft(
-    @Args('beneficiaryId', { type: () => ID }) beneficiaryId: string,
-    @CurrentUser() user: AuthContextUser,
-  ): Promise<string> {
-    return this.createDraft.execute({
-      senderUserId: user.id,
-      beneficiaryId,
-    });
-  }
-
   @Mutation(() => RemittanceType)
-  async createRemittanceDraftV2(
-    @Args('input') input: CreateRemittanceDraftInput,
+  async submitRemittanceV2(
+    @Args('input') input: SubmitRemittanceV2Input,
     @CurrentUser() user: AuthContextUser,
   ): Promise<RemittanceType> {
-    const remittance = await this.createDraftV2.execute({
+    const remittance = await this.submitRemittanceV2UseCase.execute({
       senderUserId: user.id,
       beneficiaryId: input.beneficiaryId,
+      paymentAmount: input.paymentAmount,
+      paymentCurrencyCode: input.paymentCurrencyCode,
+      receivingCurrencyCode: input.receivingCurrencyCode,
+      receptionMethod: input.receptionMethod,
+      destinationCupCardNumber: input.destinationCupCardNumber,
+      originAccountHolder: input.originAccountHolder,
+      originAccount: input.originAccount,
+      deliveryLocation: input.deliveryLocation,
     });
 
     return this.toRemittanceType(remittance);
-  }
-
-  @Mutation(() => Boolean)
-  async setRemittanceOriginAccount(
-    @Args('input') input: SetRemittanceOriginAccountInput,
-    @CurrentUser() user: AuthContextUser,
-  ): Promise<boolean> {
-    return this.setOriginAccount.execute({
-      remittanceId: input.remittanceId,
-      senderUserId: user.id,
-      originAccountType: input.originAccountType,
-      zelleEmail: input.zelleEmail,
-      iban: input.iban,
-      stripePaymentMethodId: input.stripePaymentMethodId,
-    });
-  }
-
-  @Mutation(() => Boolean)
-  async setRemittanceAmount(
-    @Args('input') input: SetRemittanceAmountInput,
-    @CurrentUser() user: AuthContextUser,
-  ): Promise<boolean> {
-    return this.setAmount.execute({
-      remittanceId: input.remittanceId,
-      senderUserId: user.id,
-      amount: input.amount,
-    });
-  }
-
-  @Mutation(() => Boolean)
-  async setRemittanceReceptionMethod(
-    @Args('input') input: SetRemittanceReceptionMethodInput,
-    @CurrentUser() user: AuthContextUser,
-  ): Promise<boolean> {
-    return this.setReceptionMethod.execute({
-      remittanceId: input.remittanceId,
-      senderUserId: user.id,
-      receptionMethod: input.receptionMethod,
-    });
-  }
-
-  @Mutation(() => Boolean)
-  async setRemittanceDestinationCupCard(
-    @Args('input') input: SetRemittanceDestinationCupCardInput,
-    @CurrentUser() user: AuthContextUser,
-  ): Promise<boolean> {
-    return this.setDestinationCupCard.execute({
-      remittanceId: input.remittanceId,
-      senderUserId: user.id,
-      destinationCupCardNumber: input.destinationCupCardNumber,
-    });
-  }
-
-  @Mutation(() => Boolean)
-  async setRemittanceOriginAccountHolder(
-    @Args('input') input: SetRemittanceOriginAccountHolderInput,
-    @CurrentUser() user: AuthContextUser,
-  ): Promise<boolean> {
-    return this.setOriginAccountHolder.execute({
-      remittanceId: input.remittanceId,
-      senderUserId: user.id,
-      holderType: input.holderType,
-      firstName: input.firstName,
-      lastName: input.lastName,
-      companyName: input.companyName,
-    });
-  }
-
-  @Mutation(() => Boolean)
-  async setRemittanceReceivingCurrency(
-    @Args('input') input: SetRemittanceReceivingCurrencyInput,
-    @CurrentUser() user: AuthContextUser,
-  ): Promise<boolean> {
-    return this.setReceivingCurrency.execute({
-      remittanceId: input.remittanceId,
-      senderUserId: user.id,
-      currencyCode: input.currencyCode,
-    });
-  }
-
-  @Mutation(() => Boolean)
-  async submitRemittance(
-    @Args('remittanceId', { type: () => ID }) remittanceId: string,
-    @CurrentUser() user: AuthContextUser,
-  ): Promise<boolean> {
-    return this.submitRemittanceUseCase.execute({
-      remittanceId,
-      senderUserId: user.id,
-    });
   }
 
   @Mutation(() => Boolean)
@@ -304,8 +190,9 @@ export class RemittancesResolver {
     return {
       id: remittance.id,
       status: remittance.status,
-      amount: remittance.amount.toString(),
-      currency: remittance.paymentCurrency,
+      paymentAmount: remittance.amount.toString(),
+      receivingAmount: remittance.netReceivingAmount?.toString() ?? null,
+      feesBreakdownJson: remittance.feesBreakdownJson,
       originZelleEmail: remittance.originZelleEmail,
       originIban: remittance.originIban,
       originStripePaymentMethodId: remittance.originStripePaymentMethodId,
@@ -316,17 +203,12 @@ export class RemittancesResolver {
       originAccountHolderLastName: remittance.originAccountHolderLastName,
       originAccountHolderCompanyName: remittance.originAccountHolderCompanyName,
       paymentMethod: remittance.paymentMethod,
-      receptionMethodCatalog: remittance.receptionMethodCatalog,
       paymentCurrency: remittance.paymentCurrency,
       receivingCurrency: remittance.receivingCurrency,
-      paymentMethodCode: remittance.paymentMethodCode,
-      receptionMethodCode: remittance.receptionMethodCode,
       paymentDetails: remittance.paymentDetails,
       statusDescription: remittance.statusDescription,
       exchangeRateRateUsed: remittance.exchangeRateRateUsed?.toString() ?? null,
-      exchangeRateUsedAt: remittance.exchangeRateUsedAt,
       beneficiary,
-      transfer: remittance.transfer,
       createdAt: remittance.createdAt,
       updatedAt: remittance.updatedAt,
     };

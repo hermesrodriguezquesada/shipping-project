@@ -7,7 +7,6 @@ import { BeneficiaryType } from 'src/modules/beneficiaries/presentation/graphql/
 import { CurrencyCatalogType } from 'src/modules/catalogs/presentation/graphql/types/currency-catalog.type';
 import { PaymentMethodType } from 'src/modules/catalogs/presentation/graphql/types/payment-method.type';
 import { ReceptionMethodType } from 'src/modules/catalogs/presentation/graphql/types/reception-method.type';
-import { TransferType } from './transfer.type';
 
 @ObjectType()
 export class RemittanceType {
@@ -18,10 +17,13 @@ export class RemittanceType {
   status!: RemittanceStatus;
 
   @Field()
-  amount!: string;
+  paymentAmount!: string;
 
-  @Field(() => CurrencyCatalogType, { nullable: true })
-  currency?: CurrencyCatalogType | null;
+  @Field(() => String, { nullable: true })
+  receivingAmount?: string | null;
+
+  @Field(() => String, { nullable: true })
+  feesBreakdownJson?: string | null;
 
   @Field(() => String, { nullable: true })
   originZelleEmail?: string | null;
@@ -53,26 +55,14 @@ export class RemittanceType {
   @Field(() => BeneficiaryType)
   beneficiary!: BeneficiaryType;
 
-  @Field(() => TransferType, { nullable: true })
-  transfer?: TransferType | null;
-
   @Field(() => PaymentMethodType, { nullable: true })
   paymentMethod?: PaymentMethodType | null;
-
-  @Field(() => ReceptionMethodType, { nullable: true })
-  receptionMethodCatalog?: ReceptionMethodType | null;
 
   @Field(() => CurrencyCatalogType, { nullable: true })
   paymentCurrency?: CurrencyCatalogType | null;
 
   @Field(() => CurrencyCatalogType, { nullable: true })
   receivingCurrency?: CurrencyCatalogType | null;
-
-  @Field(() => String, { nullable: true })
-  paymentMethodCode?: string | null;
-
-  @Field(() => String, { nullable: true })
-  receptionMethodCode?: string | null;
 
   @Field(() => String, { nullable: true })
   paymentDetails?: string | null;
@@ -82,9 +72,6 @@ export class RemittanceType {
 
   @Field(() => String, { nullable: true })
   exchangeRateRateUsed?: string | null;
-
-  @Field(() => Date, { nullable: true })
-  exchangeRateUsedAt?: Date | null;
 
   @Field()
   createdAt!: Date;

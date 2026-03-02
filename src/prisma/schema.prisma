@@ -163,7 +163,6 @@ model BeneficiaryUsage {
 }
 
 enum RemittanceStatus {
-  DRAFT
   PENDING_PAYMENT
   PENDING_PAYMENT_CONFIRMATION
   PAID_SENDING_TO_RECEIVER
@@ -175,13 +174,6 @@ enum RemittanceStatus {
   // legacy compatibility values
   SUBMITTED
   CANCELLED
-  COMPLETED
-}
-
-enum TransferStatus {
-  PENDING
-  PROCESSING
-  FAILED
   COMPLETED
 }
 
@@ -247,8 +239,49 @@ model CurrencyCatalog {
 
   remittancesAsPayment  Remittance[] @relation("RemittanceCurrency")
   remittancesAsReceiving Remittance[] @relation("RemittanceReceivingCurrency")
+  remittancesAsCommissionCurrency Remittance[] @relation("RemittanceCommissionCurrency")
+  remittancesAsDeliveryFeeCurrency Remittance[] @relation("RemittanceDeliveryFeeCurrency")
+  remittancesAsNetReceivingCurrency Remittance[] @relation("RemittanceNetReceivingCurrency")
   exchangeRatesFrom     ExchangeRate[] @relation("ExchangeRateFromCurrency")
   exchangeRatesTo       ExchangeRate[] @relation("ExchangeRateToCurrency")
+  commissionRules       CommissionRule[]
+  deliveryFeeRules      DeliveryFeeRule[]
+}
+
+model CommissionRule {
+  id               String                  @id @default(uuid())
+  currencyId       String
+  holderType       OriginAccountHolderType
+  version          Int
+  thresholdAmount  Decimal
+  percentRate      Decimal
+  flatFee          Decimal
+  enabled          Boolean                 @default(true)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  currency         CurrencyCatalog         @relation(fields: [currencyId], references: [id], onDelete: Restrict)
+  remittancesUsingThisRule Remittance[]    @relation("RemittanceCommissionRuleUsed")
+
+  @@unique([currencyId, holderType, version])
+  @@index([currencyId, holderType, enabled, version])
+}
+
+model DeliveryFeeRule {
+  id               String           @id @default(uuid())
+  currencyId       String
+  country          String
+  region           String?
+  city             String?
+  amount           Decimal
+  enabled          Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  currency         CurrencyCatalog  @relation(fields: [currencyId], references: [id], onDelete: Restrict)
+  remittancesUsingThisRule Remittance[] @relation("RemittanceDeliveryFeeRuleUsed")
+
+  @@index([currencyId, country, region, city, enabled])
 }
 
 model ExchangeRate {
@@ -290,6 +323,16 @@ model Remittance {
   exchangeRateIdUsed String?
   exchangeRateRateUsed Decimal?
   exchangeRateUsedAt DateTime?
+  commissionRuleIdUsed String?
+  commissionRuleVersionUsed Int?
+  commissionAmount Decimal?
+  commissionCurrencyIdUsed String?
+  deliveryFeeRuleIdUsed String?
+  deliveryFeeAmount Decimal?
+  deliveryFeeCurrencyIdUsed String?
+  netReceivingAmount Decimal?
+  netReceivingCurrencyIdUsed String?
+  feesBreakdownJson String?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
@@ -299,8 +342,12 @@ model Remittance {
   receptionMethodCatalog ReceptionMethodCatalog? @relation(fields: [receptionMethodId], references: [id], onDelete: SetNull)
   paymentCurrency CurrencyCatalog? @relation("RemittanceCurrency", fields: [currencyId], references: [id], onDelete: SetNull)
   receivingCurrency CurrencyCatalog? @relation("RemittanceReceivingCurrency", fields: [receivingCurrencyId], references: [id], onDelete: SetNull)
+  commissionCurrencyUsed CurrencyCatalog? @relation("RemittanceCommissionCurrency", fields: [commissionCurrencyIdUsed], references: [id], onDelete: SetNull)
+  deliveryFeeCurrencyUsed CurrencyCatalog? @relation("RemittanceDeliveryFeeCurrency", fields: [deliveryFeeCurrencyIdUsed], references: [id], onDelete: SetNull)
+  netReceivingCurrencyUsed CurrencyCatalog? @relation("RemittanceNetReceivingCurrency", fields: [netReceivingCurrencyIdUsed], references: [id], onDelete: SetNull)
   exchangeRateUsed ExchangeRate? @relation(fields: [exchangeRateIdUsed], references: [id], onDelete: SetNull)
-  transfer Transfer?
+  commissionRuleUsed CommissionRule? @relation("RemittanceCommissionRuleUsed", fields: [commissionRuleIdUsed], references: [id], onDelete: SetNull)
+  deliveryFeeRuleUsed DeliveryFeeRule? @relation("RemittanceDeliveryFeeRuleUsed", fields: [deliveryFeeRuleIdUsed], references: [id], onDelete: SetNull)
 
   @@index([senderUserId, createdAt])
   @@index([beneficiaryId])
@@ -308,16 +355,9 @@ model Remittance {
   @@index([receptionMethodId])
   @@index([currencyId])
   @@index([receivingCurrencyId])
-}
-
-model Transfer {
-  id          String         @id @default(uuid())
-  remittanceId String        @unique
-  status      TransferStatus @default(PENDING)
-  providerRef String?
-  failureReason String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  remittance Remittance @relation(fields: [remittanceId], references: [id], onDelete: Cascade)
+  @@index([commissionRuleIdUsed])
+  @@index([deliveryFeeRuleIdUsed])
+  @@index([commissionCurrencyIdUsed])
+  @@index([deliveryFeeCurrencyIdUsed])
+  @@index([netReceivingCurrencyIdUsed])
 }

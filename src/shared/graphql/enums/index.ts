@@ -7,4 +7,3 @@ import './reception-method.enum';
 import './origin-account-holder-type.enum';
 import './remittance-status.enum';
 import './currency.enum';
-import './transfer-status.enum';

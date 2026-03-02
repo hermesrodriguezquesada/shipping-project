@@ -2,11 +2,29 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AdminCreateCommissionRuleInput {
+  currencyCode: String!
+  enabled: Boolean
+  flatFee: String!
+  holderType: OriginAccountHolderType!
+  percentRate: String!
+  thresholdAmount: String!
+}
+
 input AdminCreateCurrencyInput {
   code: String!
   description: String
   imgUrl: String
   name: String!
+}
+
+input AdminCreateDeliveryFeeRuleInput {
+  amount: String!
+  city: String
+  country: String!
+  currencyCode: String!
+  enabled: Boolean
+  region: String
 }
 
 input AdminCreateExchangeRateInput {
@@ -52,11 +70,28 @@ input AdminSetUserRolesInput {
   userId: String!
 }
 
+input AdminUpdateCommissionRuleInput {
+  enabled: Boolean
+  flatFee: String
+  id: ID!
+  percentRate: String
+  thresholdAmount: String
+}
+
 input AdminUpdateCurrencyInput {
   code: String!
   description: String
   imgUrl: String
   name: String!
+}
+
+input AdminUpdateDeliveryFeeRuleInput {
+  amount: String
+  city: String
+  country: String
+  enabled: Boolean
+  id: ID!
+  region: String
 }
 
 input AdminUpdateExchangeRateInput {
@@ -119,6 +154,19 @@ input ChangePasswordInput {
   oldPassword: String!
 }
 
+type CommissionRuleType {
+  createdAt: DateTime!
+  currency: CurrencyType!
+  enabled: Boolean!
+  flatFee: String!
+  holderType: OriginAccountHolderType!
+  id: ID!
+  percentRate: String!
+  thresholdAmount: String!
+  updatedAt: DateTime!
+  version: Float!
+}
+
 input CreateBeneficiaryInput {
   addressLine1: String!
   addressLine2: String
@@ -132,10 +180,6 @@ input CreateBeneficiaryInput {
   phone: String!
   postalCode: String
   relationship: BeneficiaryRelationship
-}
-
-input CreateRemittanceDraftInput {
-  beneficiaryId: ID!
 }
 
 type CurrencyType {
@@ -153,6 +197,18 @@ type CurrencyType {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type DeliveryFeeRuleType {
+  amount: String!
+  city: String
+  country: String!
+  createdAt: DateTime!
+  currency: CurrencyType!
+  enabled: Boolean!
+  id: ID!
+  region: String
+  updatedAt: DateTime!
+}
 
 enum DocumentType {
   DRIVER_LICENSE
@@ -214,18 +270,24 @@ type Mutation {
   adminBanUser(userId: ID!): UserType!
   adminCancelRemittance(remittanceId: ID!, statusDescription: String!): Boolean!
   adminConfirmRemittancePayment(remittanceId: ID!): Boolean!
+  adminCreateCommissionRule(input: AdminCreateCommissionRuleInput!): CommissionRuleType!
   adminCreateCurrency(input: AdminCreateCurrencyInput!): CurrencyType!
+  adminCreateDeliveryFeeRule(input: AdminCreateDeliveryFeeRuleInput!): DeliveryFeeRuleType!
   adminCreateExchangeRate(input: AdminCreateExchangeRateInput!): ExchangeRateType!
   adminCreateUser(input: AdminCreateUserInput!): UserType!
   adminDeleteExchangeRate(id: ID!): Boolean!
   adminDeleteUser(userId: ID!): UserType!
   adminMarkRemittanceDelivered(remittanceId: ID!): Boolean!
   adminReviewIdentityVerification(input: AdminReviewIdentityInput!): Boolean!
+  adminSetCommissionRuleEnabled(enabled: Boolean!, id: ID!): CommissionRuleType!
   adminSetCurrencyEnabled(code: String!, enabled: Boolean!): CurrencyType!
+  adminSetDeliveryFeeRuleEnabled(enabled: Boolean!, id: ID!): DeliveryFeeRuleType!
   adminSetPaymentMethodEnabled(code: String!, enabled: Boolean!): PaymentMethodType!
   adminSetReceptionMethodEnabled(code: String!, enabled: Boolean!): ReceptionMethodType!
   adminSetUserRoles(input: AdminSetUserRolesInput!): UserType!
+  adminUpdateCommissionRule(input: AdminUpdateCommissionRuleInput!): CommissionRuleType!
   adminUpdateCurrency(input: AdminUpdateCurrencyInput!): CurrencyType!
+  adminUpdateDeliveryFeeRule(input: AdminUpdateDeliveryFeeRuleInput!): DeliveryFeeRuleType!
   adminUpdateExchangeRate(input: AdminUpdateExchangeRateInput!): ExchangeRateType!
   adminUpdatePaymentMethodDescription(code: String!, description: String): PaymentMethodType!
   adminUpdateReceptionMethodDescription(code: String!, description: String): ReceptionMethodType!
@@ -233,8 +295,6 @@ type Mutation {
   cancelMyRemittance(remittanceId: ID!): Boolean!
   changePassword(input: ChangePasswordInput!): Boolean!
   createBeneficiary(input: CreateBeneficiaryInput!): BeneficiaryType!
-  createRemittanceDraft(beneficiaryId: ID!): ID!
-  createRemittanceDraftV2(input: CreateRemittanceDraftInput!): RemittanceType!
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
@@ -245,14 +305,8 @@ type Mutation {
   resetPassword(input: ResetPasswordInput!): Boolean!
   revokeMySession(sessionId: String!): Boolean!
   revokeOtherMySessions(currentSessionId: String!): Boolean!
-  setRemittanceAmount(input: SetRemittanceAmountInput!): Boolean!
-  setRemittanceDestinationCupCard(input: SetRemittanceDestinationCupCardInput!): Boolean!
-  setRemittanceOriginAccount(input: SetRemittanceOriginAccountInput!): Boolean!
-  setRemittanceOriginAccountHolder(input: SetRemittanceOriginAccountHolderInput!): Boolean!
-  setRemittanceReceivingCurrency(input: SetRemittanceReceivingCurrencyInput!): Boolean!
-  setRemittanceReceptionMethod(input: SetRemittanceReceptionMethodInput!): Boolean!
   submitIdentityVerification(input: SubmitIdentityInput!): Boolean!
-  submitRemittance(remittanceId: ID!): Boolean!
+  submitRemittanceV2(input: SubmitRemittanceV2Input!): RemittanceType!
   updateBeneficiary(input: UpdateBeneficiaryInput!): BeneficiaryType!
   updateMyProfile(input: UpdateMyProfileInput!): UserType!
 }
@@ -279,7 +333,33 @@ type PaymentMethodType {
   updatedAt: DateTime!
 }
 
+input PricingPreviewInput {
+  amount: String!
+  city: String
+  country: String!
+  holderType: OriginAccountHolderType
+  paymentCurrencyCode: String!
+  receivingCurrencyCode: String!
+  region: String
+}
+
+type PricingPreviewType {
+  commissionAmount: String!
+  commissionCurrencyCode: String!
+  commissionRuleId: String!
+  commissionRuleVersion: Float!
+  deliveryFeeAmount: String!
+  deliveryFeeCurrencyCode: String!
+  deliveryFeeRuleId: String
+  exchangeRateId: String!
+  exchangeRateRate: String!
+  netReceivingAmount: String!
+  netReceivingCurrencyCode: String!
+}
+
 type Query {
+  adminCommissionRules(currencyCode: String, enabled: Boolean, holderType: OriginAccountHolderType): [CommissionRuleType!]!
+  adminDeliveryFeeRules(country: String, currencyCode: String, enabled: Boolean): [DeliveryFeeRuleType!]!
   adminExchangeRates(from: String, limit: Int, offset: Int, to: String): [ExchangeRateType!]!
   adminPendingVerifications(limit: Int, offset: Int): [IdentityVerificationType!]!
   adminRemittance(id: ID!): RemittanceType
@@ -297,6 +377,7 @@ type Query {
   myRemittances(limit: Int, offset: Int): [RemittanceType!]!
   mySessions(limit: Int, offset: Int): [SessionType!]!
   paymentMethods(enabledOnly: Boolean): [PaymentMethodType!]!
+  pricingPreview(input: PricingPreviewInput!): PricingPreviewType!
   receptionMethods(enabledOnly: Boolean): [ReceptionMethodType!]!
   user(id: ID!): UserType
 }
@@ -334,7 +415,6 @@ enum RemittanceStatus {
   CANCELED_BY_CLIENT
   CANCELLED
   COMPLETED
-  DRAFT
   PAID_SENDING_TO_RECEIVER
   PAYMENT_ERROR
   PENDING_PAYMENT
@@ -344,13 +424,11 @@ enum RemittanceStatus {
 }
 
 type RemittanceType {
-  amount: String!
   beneficiary: BeneficiaryType!
   createdAt: DateTime!
-  currency: CurrencyType
   destinationCupCardNumber: String
   exchangeRateRateUsed: String
-  exchangeRateUsedAt: DateTime
+  feesBreakdownJson: String
   id: ID!
   originAccountHolderCompanyName: String
   originAccountHolderFirstName: String
@@ -359,17 +437,15 @@ type RemittanceType {
   originIban: String
   originStripePaymentMethodId: String
   originZelleEmail: String
+  paymentAmount: String!
   paymentCurrency: CurrencyType
   paymentDetails: String
   paymentMethod: PaymentMethodType
-  paymentMethodCode: String
+  receivingAmount: String
   receivingCurrency: CurrencyType
   receptionMethod: ReceptionMethodType
-  receptionMethodCatalog: ReceptionMethodType
-  receptionMethodCode: String
   status: RemittanceStatus!
   statusDescription: String
-  transfer: TransferType
   updatedAt: DateTime!
 }
 
@@ -397,42 +473,6 @@ type SessionType {
   userId: String!
 }
 
-input SetRemittanceAmountInput {
-  amount: String!
-  remittanceId: ID!
-}
-
-input SetRemittanceDestinationCupCardInput {
-  destinationCupCardNumber: String!
-  remittanceId: ID!
-}
-
-input SetRemittanceOriginAccountHolderInput {
-  companyName: String
-  firstName: String
-  holderType: OriginAccountHolderType!
-  lastName: String
-  remittanceId: ID!
-}
-
-input SetRemittanceOriginAccountInput {
-  iban: String
-  originAccountType: OriginAccountType!
-  remittanceId: ID!
-  stripePaymentMethodId: String
-  zelleEmail: String
-}
-
-input SetRemittanceReceivingCurrencyInput {
-  currencyCode: String!
-  remittanceId: ID!
-}
-
-input SetRemittanceReceptionMethodInput {
-  receptionMethod: ReceptionMethod!
-  remittanceId: ID!
-}
-
 input SubmitIdentityInput {
   addressLine1: String
   birthDate: DateTime
@@ -446,19 +486,36 @@ input SubmitIdentityInput {
   selfieUrl: String
 }
 
-enum TransferStatus {
-  COMPLETED
-  FAILED
-  PENDING
-  PROCESSING
+input SubmitRemittanceV2DeliveryLocationInput {
+  city: String
+  country: String!
+  region: String
 }
 
-type TransferType {
-  createdAt: DateTime!
-  failureReason: String
-  providerRef: String
-  status: TransferStatus!
-  updatedAt: DateTime!
+input SubmitRemittanceV2Input {
+  beneficiaryId: ID!
+  deliveryLocation: SubmitRemittanceV2DeliveryLocationInput!
+  destinationCupCardNumber: String
+  originAccount: SubmitRemittanceV2OriginAccountInput!
+  originAccountHolder: SubmitRemittanceV2OriginAccountHolderInput!
+  paymentAmount: String!
+  paymentCurrencyCode: String!
+  receivingCurrencyCode: String!
+  receptionMethod: ReceptionMethod!
+}
+
+input SubmitRemittanceV2OriginAccountHolderInput {
+  companyName: String
+  firstName: String
+  holderType: OriginAccountHolderType!
+  lastName: String
+}
+
+input SubmitRemittanceV2OriginAccountInput {
+  iban: String
+  originAccountType: OriginAccountType!
+  stripePaymentMethodId: String
+  zelleEmail: String
 }
 
 input UpdateBeneficiaryInput {

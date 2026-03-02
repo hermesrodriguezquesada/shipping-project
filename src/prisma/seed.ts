@@ -67,6 +67,82 @@ async function main() {
       });
     }
 
+    const usdCurrency = await prisma.currencyCatalog.findUnique({ where: { code: 'USD' }, select: { id: true } });
+    const eurCurrency = await prisma.currencyCatalog.findUnique({ where: { code: 'EUR' }, select: { id: true } });
+
+    if (usdCurrency) {
+      const usdPersonV1 = await prisma.commissionRule.findFirst({
+        where: {
+          currencyId: usdCurrency.id,
+          holderType: 'PERSON',
+          version: 1,
+        },
+        select: { id: true },
+      });
+
+      if (!usdPersonV1) {
+        await prisma.commissionRule.create({
+          data: {
+            currencyId: usdCurrency.id,
+            holderType: 'PERSON',
+            version: 1,
+            thresholdAmount: '100',
+            percentRate: '0.05',
+            flatFee: '5',
+            enabled: true,
+          },
+        });
+      }
+    }
+
+    if (eurCurrency) {
+      const eurPersonV1 = await prisma.commissionRule.findFirst({
+        where: {
+          currencyId: eurCurrency.id,
+          holderType: 'PERSON',
+          version: 1,
+        },
+        select: { id: true },
+      });
+
+      if (!eurPersonV1) {
+        await prisma.commissionRule.create({
+          data: {
+            currencyId: eurCurrency.id,
+            holderType: 'PERSON',
+            version: 1,
+            thresholdAmount: '100',
+            percentRate: '0.05',
+            flatFee: '5',
+            enabled: true,
+          },
+        });
+      }
+    }
+
+    if (usdCurrency) {
+      const disabledDeliveryExample = await prisma.deliveryFeeRule.findFirst({
+        where: {
+          currencyId: usdCurrency.id,
+          country: 'CU',
+          region: null,
+          city: null,
+        },
+        select: { id: true },
+      });
+
+      if (!disabledDeliveryExample) {
+        await prisma.deliveryFeeRule.create({
+          data: {
+            currencyId: usdCurrency.id,
+            country: 'CU',
+            amount: '0',
+            enabled: false,
+          },
+        });
+      }
+    }
+
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       console.log('ℹ️ Admin already exists, skipping seed');

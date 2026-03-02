@@ -22,6 +22,10 @@ export const CATALOGS_QUERY_PORT = 'CatalogsQueryPort';
 export const CATALOGS_COMMAND_PORT = 'CatalogsCommandPort';
 export const EXCHANGE_RATES_QUERY_PORT = 'ExchangeRatesQueryPort';
 export const EXCHANGE_RATES_COMMAND_PORT = 'ExchangeRatesCommandPort';
+export const COMMISSION_RULES_QUERY_PORT = 'CommissionRulesQueryPort';
+export const COMMISSION_RULES_COMMAND_PORT = 'CommissionRulesCommandPort';
+export const DELIVERY_FEES_QUERY_PORT = 'DeliveryFeesQueryPort';
+export const DELIVERY_FEES_COMMAND_PORT = 'DeliveryFeesCommandPort';
 
 
 
