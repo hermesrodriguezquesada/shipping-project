@@ -394,12 +394,19 @@ enum ReceptionMethod {
 type ReceptionMethodType {
   code: String!
   createdAt: DateTime!
+  currency: CurrencyType!
   description: String
   enabled: Boolean!
   id: ID!
   imgUrl: String
+  method: ReceptionPayoutMethod!
   name: String!
   updatedAt: DateTime!
+}
+
+enum ReceptionPayoutMethod {
+  CASH
+  TRANSFER
 }
 
 input RefreshInput {
@@ -501,7 +508,7 @@ input SubmitRemittanceV2Input {
   originAccountHolder: SubmitRemittanceV2OriginAccountHolderInput!
   paymentAmount: String!
   paymentCurrencyCode: String!
-  receivingCurrencyCode: String!
+  receivingCurrencyCode: String
   receptionMethod: ReceptionMethod!
 }
 

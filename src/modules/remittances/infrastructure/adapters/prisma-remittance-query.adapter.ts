@@ -9,7 +9,11 @@ import {
 const remittanceReadInclude = {
   beneficiary: true,
   paymentMethod: true,
-  receptionMethodCatalog: true,
+  receptionMethodCatalog: {
+    include: {
+      currency: true,
+    },
+  },
   paymentCurrency: true,
   receivingCurrency: true,
   exchangeRateUsed: {

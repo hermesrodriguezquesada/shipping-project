@@ -16,6 +16,11 @@ export class ReceptionMethodAvailabilityBridgeAdapter implements ReceptionMethod
       return null;
     }
 
-    return { id: receptionMethod.id, code: receptionMethod.code, enabled: receptionMethod.enabled };
+    return {
+      id: receptionMethod.id,
+      code: receptionMethod.code,
+      enabled: receptionMethod.enabled,
+      currencyCode: receptionMethod.currency.code,
+    };
   }
 }

@@ -196,6 +196,11 @@ enum ReceptionMethod {
   USD_CLASSIC
 }
 
+enum ReceptionPayoutMethod {
+  CASH
+  TRANSFER
+}
+
 enum OriginAccountHolderType {
   PERSON
   COMPANY
@@ -218,13 +223,18 @@ model ReceptionMethodCatalog {
   id          String   @id @default(uuid())
   code        String   @unique
   name        String
+  currencyId  String
+  method      ReceptionPayoutMethod
   description String?
   enabled     Boolean  @default(true)
   imgUrl      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  currency    CurrencyCatalog @relation(fields: [currencyId], references: [id], onDelete: Restrict)
   remittances Remittance[]
+
+  @@index([currencyId])
 }
 
 model CurrencyCatalog {
@@ -246,6 +256,7 @@ model CurrencyCatalog {
   exchangeRatesTo       ExchangeRate[] @relation("ExchangeRateToCurrency")
   commissionRules       CommissionRule[]
   deliveryFeeRules      DeliveryFeeRule[]
+  receptionMethods      ReceptionMethodCatalog[]
 }
 
 model CommissionRule {

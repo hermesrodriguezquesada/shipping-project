@@ -22,6 +22,9 @@ export class PrismaCatalogsQueryAdapter implements CatalogsQueryPort {
   async listReceptionMethods(input: { enabledOnly?: boolean }): Promise<ReceptionMethodCatalogReadModel[]> {
     return this.prisma.receptionMethodCatalog.findMany({
       where: input.enabledOnly === true ? { enabled: true } : undefined,
+      include: {
+        currency: true,
+      },
       orderBy: { code: 'asc' },
     });
   }
@@ -29,6 +32,9 @@ export class PrismaCatalogsQueryAdapter implements CatalogsQueryPort {
   async findReceptionMethodByCode(input: { code: string }): Promise<ReceptionMethodCatalogReadModel | null> {
     return this.prisma.receptionMethodCatalog.findUnique({
       where: { code: input.code },
+      include: {
+        currency: true,
+      },
     });
   }
 

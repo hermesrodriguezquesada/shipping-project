@@ -36,22 +36,6 @@ async function main() {
       create: { code: 'STRIPE', name: 'Stripe', enabled: true },
     });
 
-    const receptionMethods = [
-      ['USD_CASH', 'USD Cash'],
-      ['CUP_CASH', 'CUP Cash'],
-      ['CUP_TRANSFER', 'CUP Transfer'],
-      ['MLC', 'MLC'],
-      ['USD_CLASSIC', 'USD Classic'],
-    ] as const;
-
-    for (const [code, name] of receptionMethods) {
-      await prisma.receptionMethodCatalog.upsert({
-        where: { code },
-        update: { enabled: true, name },
-        create: { code, name, enabled: true },
-      });
-    }
-
     const currencies = [
       ['USD', 'US Dollar'],
       ['EUR', 'Euro'],
@@ -64,6 +48,33 @@ async function main() {
         where: { code },
         update: { enabled: true, name },
         create: { code, name, enabled: true },
+      });
+    }
+
+    const receptionMethods = [
+      ['USD_CASH', 'USD Cash', 'USD', 'CASH'],
+      ['CUP_CASH', 'CUP Cash', 'CUP', 'CASH'],
+      ['CUP_TRANSFER', 'CUP Transfer', 'CUP', 'TRANSFER'],
+      ['MLC', 'MLC', 'MLC', 'TRANSFER'],
+      ['USD_CLASSIC', 'USD Classic', 'USD', 'TRANSFER'],
+    ] as const;
+
+    for (const [code, name, currencyCode, method] of receptionMethods) {
+      await prisma.receptionMethodCatalog.upsert({
+        where: { code },
+        update: {
+          enabled: true,
+          name,
+          method,
+          currency: { connect: { code: currencyCode } },
+        },
+        create: {
+          code,
+          name,
+          enabled: true,
+          method,
+          currency: { connect: { code: currencyCode } },
+        },
       });
     }
 

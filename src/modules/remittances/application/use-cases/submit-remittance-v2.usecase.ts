@@ -44,7 +44,7 @@ export class SubmitRemittanceV2UseCase {
     beneficiaryId: string;
     paymentAmount: string;
     paymentCurrencyCode: string;
-    receivingCurrencyCode: string;
+    receivingCurrencyCode?: string;
     receptionMethod: ReceptionMethod;
     destinationCupCardNumber?: string | null;
     originAccountHolder: {
@@ -101,7 +101,17 @@ export class SubmitRemittanceV2UseCase {
     }
 
     const paymentCurrencyCode = input.paymentCurrencyCode.trim().toUpperCase();
-    const receivingCurrencyCode = input.receivingCurrencyCode.trim().toUpperCase();
+    const configuredReceivingCurrencyCode = receptionMethod.currencyCode.trim().toUpperCase();
+
+    let effectiveReceivingCurrencyCode = configuredReceivingCurrencyCode;
+    if (input.receivingCurrencyCode?.trim()) {
+      const requestedReceivingCurrencyCode = input.receivingCurrencyCode.trim().toUpperCase();
+      if (requestedReceivingCurrencyCode !== configuredReceivingCurrencyCode) {
+        throw new ValidationDomainException('receivingCurrencyCode must match receptionMethod currency');
+      }
+
+      effectiveReceivingCurrencyCode = requestedReceivingCurrencyCode;
+    }
 
     const paymentCurrency = await this.currencyAvailability.findEnabledCurrencyByCode({
       code: paymentCurrencyCode,
@@ -111,7 +121,7 @@ export class SubmitRemittanceV2UseCase {
     }
 
     const receivingCurrency = await this.currencyAvailability.findEnabledCurrencyByCode({
-      code: receivingCurrencyCode,
+      code: effectiveReceivingCurrencyCode,
     });
     if (!receivingCurrency) {
       throw new ValidationDomainException('receivingCurrencyCode is not enabled');
@@ -131,7 +141,7 @@ export class SubmitRemittanceV2UseCase {
     const pricing = await this.pricingCalculator.calculate({
       amount,
       paymentCurrencyCode,
-      receivingCurrencyCode,
+      receivingCurrencyCode: effectiveReceivingCurrencyCode,
       holderType: input.originAccountHolder.holderType,
       country,
       city,
@@ -156,10 +166,10 @@ export class SubmitRemittanceV2UseCase {
         id: pricing.exchangeRateId,
         rate: pricing.exchangeRateValue.toString(),
         from: paymentCurrencyCode,
-        to: receivingCurrencyCode,
+        to: effectiveReceivingCurrencyCode,
       },
       receivingAmount: pricing.netReceivingAmount.toString(),
-      receivingCurrencyCode,
+      receivingCurrencyCode: effectiveReceivingCurrencyCode,
     });
 
     const remittanceId = await this.remittanceCommand.createPendingPayment({

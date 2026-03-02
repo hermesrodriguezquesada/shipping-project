@@ -84,9 +84,10 @@ export class SubmitRemittanceV2Input {
   @IsString()
   paymentCurrencyCode!: string;
 
-  @Field()
+  @Field({ nullable: true })
+  @IsOptional()
   @IsString()
-  receivingCurrencyCode!: string;
+  receivingCurrencyCode?: string;
 
   @Field(() => ReceptionMethod)
   @IsEnum(ReceptionMethod)

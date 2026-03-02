@@ -1,4 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { ReceptionPayoutMethod } from '@prisma/client';
+import { CurrencyCatalogType } from './currency-catalog.type';
 
 @ObjectType()
 export class ReceptionMethodType {
@@ -10,6 +12,12 @@ export class ReceptionMethodType {
 
   @Field()
   name!: string;
+
+  @Field(() => CurrencyCatalogType)
+  currency!: CurrencyCatalogType;
+
+  @Field(() => ReceptionPayoutMethod)
+  method!: ReceptionPayoutMethod;
 
   @Field(() => String, { nullable: true })
   description?: string | null;

@@ -4,6 +4,7 @@ import './document-type.enum';
 import './beneficiary-relationship.enum';
 import './origin-account-type.enum';
 import './reception-method.enum';
+import './reception-payout-method.enum';
 import './origin-account-holder-type.enum';
 import './remittance-status.enum';
 import './currency.enum';
