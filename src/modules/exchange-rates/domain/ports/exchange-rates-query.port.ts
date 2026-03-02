@@ -16,4 +16,11 @@ export interface ExchangeRateReadModel {
 export interface ExchangeRatesQueryPort {
   getLatestExchangeRate(input: { fromCode: string; toCode: string }): Promise<ExchangeRateReadModel | null>;
   listExchangeRates(input: { fromCode?: string; toCode?: string; limit?: number; offset?: number }): Promise<ExchangeRateReadModel[]>;
+  listPublicExchangeRates(input: {
+    from?: string;
+    to?: string;
+    enabledOnly?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<ExchangeRateReadModel[]>;
 }

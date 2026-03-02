@@ -6,6 +6,7 @@ import { AdminDeleteExchangeRateUseCase } from './application/use-cases/admin-de
 import { AdminListExchangeRatesUseCase } from './application/use-cases/admin-list-exchange-rates.usecase';
 import { AdminUpdateExchangeRateUseCase } from './application/use-cases/admin-update-exchange-rate.usecase';
 import { GetLatestExchangeRateUseCase } from './application/use-cases/get-latest-exchange-rate.usecase';
+import { ListExchangeRatesPublicUseCase } from './application/use-cases/list-exchange-rates-public.usecase';
 import { PrismaExchangeRatesCommandAdapter } from './infrastructure/adapters/prisma-exchange-rates-command.adapter';
 import { PrismaExchangeRatesQueryAdapter } from './infrastructure/adapters/prisma-exchange-rates-query.adapter';
 import { ExchangeRatesResolver } from './presentation/graphql/resolvers/exchange-rates.resolver';
@@ -18,6 +19,7 @@ import { ExchangeRatesResolver } from './presentation/graphql/resolvers/exchange
     { provide: EXCHANGE_RATES_QUERY_PORT, useExisting: PrismaExchangeRatesQueryAdapter },
     { provide: EXCHANGE_RATES_COMMAND_PORT, useExisting: PrismaExchangeRatesCommandAdapter },
     GetLatestExchangeRateUseCase,
+    ListExchangeRatesPublicUseCase,
     AdminListExchangeRatesUseCase,
     AdminCreateExchangeRateUseCase,
     AdminUpdateExchangeRateUseCase,

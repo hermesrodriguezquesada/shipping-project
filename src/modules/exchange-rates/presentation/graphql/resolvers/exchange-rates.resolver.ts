@@ -9,16 +9,17 @@ import { AdminDeleteExchangeRateUseCase } from 'src/modules/exchange-rates/appli
 import { AdminListExchangeRatesUseCase } from 'src/modules/exchange-rates/application/use-cases/admin-list-exchange-rates.usecase';
 import { AdminUpdateExchangeRateUseCase } from 'src/modules/exchange-rates/application/use-cases/admin-update-exchange-rate.usecase';
 import { GetLatestExchangeRateUseCase } from 'src/modules/exchange-rates/application/use-cases/get-latest-exchange-rate.usecase';
+import { ListExchangeRatesPublicUseCase } from 'src/modules/exchange-rates/application/use-cases/list-exchange-rates-public.usecase';
 import { ExchangeRateReadModel } from 'src/modules/exchange-rates/domain/ports/exchange-rates-query.port';
 import { AdminCreateExchangeRateInput } from '../inputs/admin-create-exchange-rate.input';
 import { AdminUpdateExchangeRateInput } from '../inputs/admin-update-exchange-rate.input';
 import { ExchangeRateType } from '../types/exchange-rate.type';
 
-@UseGuards(GqlAuthGuard)
 @Resolver()
 export class ExchangeRatesResolver {
   constructor(
     private readonly getLatestExchangeRateUseCase: GetLatestExchangeRateUseCase,
+    private readonly listExchangeRatesPublicUseCase: ListExchangeRatesPublicUseCase,
     private readonly adminListExchangeRatesUseCase: AdminListExchangeRatesUseCase,
     private readonly adminCreateExchangeRateUseCase: AdminCreateExchangeRateUseCase,
     private readonly adminUpdateExchangeRateUseCase: AdminUpdateExchangeRateUseCase,
@@ -32,6 +33,18 @@ export class ExchangeRatesResolver {
   ): Promise<ExchangeRateType | null> {
     const rate = await this.getLatestExchangeRateUseCase.execute(from, to);
     return rate ? this.toExchangeRateType(rate) : null;
+  }
+
+  @Query(() => [ExchangeRateType])
+  async exchangeRates(
+    @Args('from', { nullable: true }) from?: string,
+    @Args('to', { nullable: true }) to?: string,
+    @Args('enabledOnly', { type: () => Boolean, defaultValue: true }) enabledOnly?: boolean,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
+  ): Promise<ExchangeRateType[]> {
+    const rates = await this.listExchangeRatesPublicUseCase.execute({ from, to, enabledOnly, limit, offset });
+    return rates.map((rate) => this.toExchangeRateType(rate));
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard)

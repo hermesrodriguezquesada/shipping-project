@@ -45,4 +45,31 @@ export class PrismaExchangeRatesQueryAdapter implements ExchangeRatesQueryPort {
       skip: input.offset,
     });
   }
+
+  async listPublicExchangeRates(input: {
+    from?: string;
+    to?: string;
+    enabledOnly?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<ExchangeRateReadModel[]> {
+    const enabledOnly = input.enabledOnly ?? true;
+
+    return this.prisma.exchangeRate.findMany({
+      where: {
+        ...(enabledOnly ? { enabled: true } : {}),
+        ...(input.from ? { fromCurrency: { code: input.from } } : {}),
+        ...(input.to ? { toCurrency: { code: input.to } } : {}),
+      },
+      include: {
+        fromCurrency: true,
+        toCurrency: true,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      skip: input.offset,
+      take: input.limit,
+    });
+  }
 }
