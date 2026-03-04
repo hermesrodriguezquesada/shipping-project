@@ -265,6 +265,21 @@ input LogoutInput {
   refreshToken: String!
 }
 
+input ManualBeneficiaryInput {
+  addressLine1: String!
+  addressLine2: String
+  city: String
+  country: String!
+  deliveryInstructions: String
+  documentNumber: String!
+  documentType: DocumentType
+  email: String
+  fullName: String!
+  phone: String!
+  postalCode: String
+  relationship: BeneficiaryRelationship
+}
+
 type Mutation {
   adminActivateUser(userId: ID!): UserType!
   adminBanUser(userId: ID!): UserType!
@@ -418,6 +433,21 @@ input RegisterInput {
   password: String!
 }
 
+type RemittanceRecipientType {
+  addressLine1: String!
+  addressLine2: String
+  city: String
+  country: String!
+  deliveryInstructions: String
+  documentNumber: String!
+  documentType: DocumentType
+  email: String
+  fullName: String!
+  phone: String!
+  postalCode: String
+  relationship: BeneficiaryRelationship
+}
+
 enum RemittanceStatus {
   CANCELED_BY_ADMIN
   CANCELED_BY_CLIENT
@@ -452,6 +482,7 @@ type RemittanceType {
   receivingAmount: String
   receivingCurrency: CurrencyType
   receptionMethod: ReceptionMethodType
+  recipient: RemittanceRecipientType!
   status: RemittanceStatus!
   statusDescription: String
   updatedAt: DateTime!
@@ -501,9 +532,10 @@ input SubmitRemittanceV2DeliveryLocationInput {
 }
 
 input SubmitRemittanceV2Input {
-  beneficiaryId: ID!
+  beneficiaryId: ID
   deliveryLocation: SubmitRemittanceV2DeliveryLocationInput!
   destinationCupCardNumber: String
+  manualBeneficiary: ManualBeneficiaryInput
   originAccount: SubmitRemittanceV2OriginAccountInput!
   originAccountHolder: SubmitRemittanceV2OriginAccountHolderInput!
   paymentAmount: String!

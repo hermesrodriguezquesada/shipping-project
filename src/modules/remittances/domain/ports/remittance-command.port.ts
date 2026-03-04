@@ -1,10 +1,28 @@
-import { OriginAccountHolderType, OriginAccountType, ReceptionMethod } from '@prisma/client';
+import {
+  BeneficiaryRelationship,
+  DocumentType,
+  OriginAccountHolderType,
+  OriginAccountType,
+  ReceptionMethod,
+} from '@prisma/client';
 import { Prisma } from '@prisma/client';
 
 export interface RemittanceCommandPort {
   createPendingPayment(input: {
     senderUserId: string;
     beneficiaryId: string;
+    recipientFullName: string;
+    recipientPhone: string;
+    recipientCountry: string;
+    recipientAddressLine1: string;
+    recipientDocumentNumber: string;
+    recipientEmail: string | null;
+    recipientCity: string | null;
+    recipientAddressLine2: string | null;
+    recipientPostalCode: string | null;
+    recipientDocumentType: DocumentType | null;
+    recipientRelationship: BeneficiaryRelationship | null;
+    recipientDeliveryInstructions: string | null;
     paymentAmount: Prisma.Decimal;
     originAccountType: OriginAccountType;
     paymentCurrencyId: string;

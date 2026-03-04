@@ -1,6 +1,7 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
 import { OriginAccountHolderType, OriginAccountType, ReceptionMethod } from '@prisma/client';
 import {
+  IsEmail,
   IsEnum,
   IsOptional,
   IsString,
@@ -8,6 +9,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { BeneficiaryRelationship, DocumentType } from '@prisma/client';
 
 @InputType()
 export class SubmitRemittanceV2OriginAccountHolderInput {
@@ -71,10 +73,75 @@ export class SubmitRemittanceV2DeliveryLocationInput {
 }
 
 @InputType()
+export class ManualBeneficiaryInput {
+  @Field()
+  @IsString()
+  fullName!: string;
+
+  @Field()
+  @IsString()
+  phone!: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @Field()
+  @IsString()
+  country!: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @Field()
+  @IsString()
+  addressLine1!: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  addressLine2?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  postalCode?: string;
+
+  @Field(() => DocumentType, { nullable: true })
+  @IsOptional()
+  @IsEnum(DocumentType)
+  documentType?: DocumentType;
+
+  @Field()
+  @IsString()
+  documentNumber!: string;
+
+  @Field(() => BeneficiaryRelationship, { nullable: true })
+  @IsOptional()
+  @IsEnum(BeneficiaryRelationship)
+  relationship?: BeneficiaryRelationship;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  deliveryInstructions?: string;
+}
+
+@InputType()
 export class SubmitRemittanceV2Input {
-  @Field(() => ID)
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
   @IsUUID()
-  beneficiaryId!: string;
+  beneficiaryId?: string;
+
+  @Field(() => ManualBeneficiaryInput, { nullable: true })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ManualBeneficiaryInput)
+  manualBeneficiary?: ManualBeneficiaryInput;
 
   @Field()
   @IsString()

@@ -315,6 +315,18 @@ model Remittance {
   id            String           @id @default(uuid())
   senderUserId  String
   beneficiaryId String
+  recipientFullName String
+  recipientPhone String
+  recipientCountry String
+  recipientAddressLine1 String
+  recipientDocumentNumber String
+  recipientEmail String?
+  recipientCity String?
+  recipientAddressLine2 String?
+  recipientPostalCode String?
+  recipientDocumentType DocumentType?
+  recipientRelationship BeneficiaryRelationship?
+  recipientDeliveryInstructions String?
   amount        Decimal
   status        RemittanceStatus @default(SUBMITTED)
   paymentMethodId String?

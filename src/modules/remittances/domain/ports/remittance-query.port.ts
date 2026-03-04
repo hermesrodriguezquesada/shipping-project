@@ -40,6 +40,18 @@ export interface RemittanceBeneficiaryReadModel {
 export interface RemittanceReadModel {
   id: string;
   status: RemittanceStatus;
+  recipientFullName: string;
+  recipientPhone: string;
+  recipientCountry: string;
+  recipientAddressLine1: string;
+  recipientDocumentNumber: string;
+  recipientEmail: string | null;
+  recipientCity: string | null;
+  recipientAddressLine2: string | null;
+  recipientPostalCode: string | null;
+  recipientDocumentType: DocumentType | null;
+  recipientRelationship: BeneficiaryRelationship | null;
+  recipientDeliveryInstructions: string | null;
   amount: Prisma.Decimal;
   feesBreakdownJson: string | null;
   netReceivingAmount: Prisma.Decimal | null;

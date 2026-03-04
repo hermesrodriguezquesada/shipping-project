@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { AppConfigModule } from 'src/core/config/config.module';
+import { BeneficiariesModule } from '../beneficiaries/beneficiaries.module';
 import { CatalogsModule } from '../catalogs/catalogs.module';
 import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
 import { PricingModule } from '../pricing/pricing.module';
@@ -24,7 +25,7 @@ import { ReceptionMethodAvailabilityBridgeAdapter } from './infrastructure/adapt
 import { RemittancesResolver } from './presentation/graphql/resolvers/remittances.resolver';
 
 @Module({
-  imports: [AppConfigModule, CatalogsModule, ExchangeRatesModule, PricingModule],
+  imports: [AppConfigModule, BeneficiariesModule, CatalogsModule, ExchangeRatesModule, PricingModule],
   providers: [
     PrismaRemittanceCommandAdapter,
     PrismaRemittanceQueryAdapter,

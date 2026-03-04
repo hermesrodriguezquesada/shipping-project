@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
+  BeneficiaryRelationship,
+  DocumentType,
   OriginAccountHolderType,
   OriginAccountType,
   Prisma,
@@ -10,6 +12,8 @@ import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.ex
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import { PricingCalculatorService } from 'src/modules/pricing/application/services/pricing-calculator.service';
 import {
+  BENEFICIARY_COMMAND_PORT,
+  BENEFICIARY_QUERY_PORT,
   CURRENCY_AVAILABILITY_PORT,
   PAYMENT_METHOD_AVAILABILITY_PORT,
   RECEPTION_METHOD_AVAILABILITY_PORT,
@@ -21,10 +25,17 @@ import { PaymentMethodAvailabilityPort } from '../../domain/ports/payment-method
 import { ReceptionMethodAvailabilityPort } from '../../domain/ports/reception-method-availability.port';
 import { RemittanceCommandPort } from '../../domain/ports/remittance-command.port';
 import { RemittanceQueryPort, RemittanceReadModel } from '../../domain/ports/remittance-query.port';
+import { BeneficiaryCommandPort } from 'src/modules/beneficiaries/domain/ports/beneficiary-command.port';
+import { BeneficiaryQueryPort } from 'src/modules/beneficiaries/domain/ports/beneficiary-query.port';
+import { BeneficiaryEntity } from 'src/modules/beneficiaries/domain/entities/beneficiary.entity';
 
 @Injectable()
 export class SubmitRemittanceV2UseCase {
   constructor(
+    @Inject(BENEFICIARY_COMMAND_PORT)
+    private readonly beneficiaryCommand: BeneficiaryCommandPort,
+    @Inject(BENEFICIARY_QUERY_PORT)
+    private readonly beneficiaryQuery: BeneficiaryQueryPort,
     @Inject(REMITTANCE_QUERY_PORT)
     private readonly remittanceQuery: RemittanceQueryPort,
     @Inject(REMITTANCE_COMMAND_PORT)
@@ -41,7 +52,21 @@ export class SubmitRemittanceV2UseCase {
 
   async execute(input: {
     senderUserId: string;
-    beneficiaryId: string;
+    beneficiaryId?: string;
+    manualBeneficiary?: {
+      fullName: string;
+      phone: string;
+      email?: string;
+      country: string;
+      city?: string;
+      addressLine1: string;
+      addressLine2?: string;
+      postalCode?: string;
+      documentType?: DocumentType;
+      documentNumber: string;
+      relationship?: BeneficiaryRelationship;
+      deliveryInstructions?: string;
+    };
     paymentAmount: string;
     paymentCurrencyCode: string;
     receivingCurrencyCode?: string;
@@ -65,13 +90,43 @@ export class SubmitRemittanceV2UseCase {
       city?: string;
     };
   }): Promise<RemittanceReadModel> {
-    const beneficiaryBelongsToUser = await this.remittanceQuery.beneficiaryBelongsToUser({
-      beneficiaryId: input.beneficiaryId,
-      ownerUserId: input.senderUserId,
-    });
+    const hasBeneficiaryId = !!input.beneficiaryId;
+    const hasManualBeneficiary = !!input.manualBeneficiary;
 
-    if (!beneficiaryBelongsToUser) {
-      throw new NotFoundDomainException('Beneficiary not found');
+    if (hasBeneficiaryId === hasManualBeneficiary) {
+      throw new ValidationDomainException('Exactly one of beneficiaryId or manualBeneficiary must be provided');
+    }
+
+    let beneficiary: BeneficiaryEntity;
+
+    if (input.beneficiaryId) {
+      const existingBeneficiary = await this.beneficiaryQuery.findById({
+        id: input.beneficiaryId,
+        ownerUserId: input.senderUserId,
+      });
+
+      if (!existingBeneficiary) {
+        throw new NotFoundDomainException('Beneficiary not found');
+      }
+
+      beneficiary = existingBeneficiary;
+    } else {
+      const manualBeneficiary = input.manualBeneficiary!;
+      beneficiary = await this.beneficiaryCommand.create({
+        ownerUserId: input.senderUserId,
+        fullName: manualBeneficiary.fullName,
+        phone: manualBeneficiary.phone,
+        email: manualBeneficiary.email,
+        country: manualBeneficiary.country,
+        city: manualBeneficiary.city,
+        addressLine1: manualBeneficiary.addressLine1,
+        addressLine2: manualBeneficiary.addressLine2,
+        postalCode: manualBeneficiary.postalCode,
+        documentType: manualBeneficiary.documentType,
+        documentNumber: manualBeneficiary.documentNumber,
+        relationship: manualBeneficiary.relationship,
+        deliveryInstructions: manualBeneficiary.deliveryInstructions,
+      });
     }
 
     const amount = this.parseAmount(input.paymentAmount);
@@ -174,7 +229,19 @@ export class SubmitRemittanceV2UseCase {
 
     const remittanceId = await this.remittanceCommand.createPendingPayment({
       senderUserId: input.senderUserId,
-      beneficiaryId: input.beneficiaryId,
+      beneficiaryId: beneficiary.id,
+      recipientFullName: beneficiary.fullName,
+      recipientPhone: beneficiary.phone,
+      recipientCountry: beneficiary.country,
+      recipientAddressLine1: beneficiary.addressLine1,
+      recipientDocumentNumber: beneficiary.documentNumber,
+      recipientEmail: beneficiary.email ?? null,
+      recipientCity: beneficiary.city ?? null,
+      recipientAddressLine2: beneficiary.addressLine2 ?? null,
+      recipientPostalCode: beneficiary.postalCode ?? null,
+      recipientDocumentType: beneficiary.documentType ?? null,
+      recipientRelationship: beneficiary.relationship ?? null,
+      recipientDeliveryInstructions: beneficiary.deliveryInstructions ?? null,
       paymentAmount: amount,
       originAccountType: input.originAccount.originAccountType,
       paymentCurrencyId: paymentCurrency.id,

@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { RemittanceCommandPort } from '../../domain/ports/remittance-command.port';
 import {
+  BeneficiaryRelationship,
+  DocumentType,
   OriginAccountHolderType,
   OriginAccountType,
   Prisma,
@@ -16,6 +18,18 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
   async createPendingPayment(input: {
     senderUserId: string;
     beneficiaryId: string;
+    recipientFullName: string;
+    recipientPhone: string;
+    recipientCountry: string;
+    recipientAddressLine1: string;
+    recipientDocumentNumber: string;
+    recipientEmail: string | null;
+    recipientCity: string | null;
+    recipientAddressLine2: string | null;
+    recipientPostalCode: string | null;
+    recipientDocumentType: DocumentType | null;
+    recipientRelationship: BeneficiaryRelationship | null;
+    recipientDeliveryInstructions: string | null;
     paymentAmount: Prisma.Decimal;
     originAccountType: OriginAccountType;
     paymentCurrencyId: string;
@@ -57,6 +71,18 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
       data: {
         senderUserId: input.senderUserId,
         beneficiaryId: input.beneficiaryId,
+        recipientFullName: input.recipientFullName,
+        recipientPhone: input.recipientPhone,
+        recipientCountry: input.recipientCountry,
+        recipientAddressLine1: input.recipientAddressLine1,
+        recipientDocumentNumber: input.recipientDocumentNumber,
+        recipientEmail: input.recipientEmail,
+        recipientCity: input.recipientCity,
+        recipientAddressLine2: input.recipientAddressLine2,
+        recipientPostalCode: input.recipientPostalCode,
+        recipientDocumentType: input.recipientDocumentType,
+        recipientRelationship: input.recipientRelationship,
+        recipientDeliveryInstructions: input.recipientDeliveryInstructions,
         amount: input.paymentAmount,
         status: RemittanceStatus.PENDING_PAYMENT,
         paymentMethodId: paymentMethod?.id,

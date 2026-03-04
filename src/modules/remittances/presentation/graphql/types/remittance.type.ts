@@ -7,6 +7,7 @@ import { BeneficiaryType } from 'src/modules/beneficiaries/presentation/graphql/
 import { CurrencyCatalogType } from 'src/modules/catalogs/presentation/graphql/types/currency-catalog.type';
 import { PaymentMethodType } from 'src/modules/catalogs/presentation/graphql/types/payment-method.type';
 import { ReceptionMethodType } from 'src/modules/catalogs/presentation/graphql/types/reception-method.type';
+import { RemittanceRecipientType } from './remittance-recipient.type';
 
 @ObjectType()
 export class RemittanceType {
@@ -54,6 +55,9 @@ export class RemittanceType {
 
   @Field(() => BeneficiaryType)
   beneficiary!: BeneficiaryType;
+
+  @Field(() => RemittanceRecipientType)
+  recipient!: RemittanceRecipientType;
 
   @Field(() => PaymentMethodType, { nullable: true })
   paymentMethod?: PaymentMethodType | null;

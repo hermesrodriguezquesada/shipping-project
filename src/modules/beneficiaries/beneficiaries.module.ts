@@ -27,5 +27,6 @@ import { BeneficiariesResolver } from './presentation/graphql/resolvers/benefici
 
     BeneficiariesResolver,
   ],
+  exports: [BENEFICIARY_COMMAND_PORT, BENEFICIARY_QUERY_PORT],
 })
 export class BeneficiariesModule {}

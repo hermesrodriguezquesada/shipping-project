@@ -97,6 +97,7 @@ export class RemittancesResolver {
     const remittance = await this.submitRemittanceV2UseCase.execute({
       senderUserId: user.id,
       beneficiaryId: input.beneficiaryId,
+      manualBeneficiary: input.manualBeneficiary,
       paymentAmount: input.paymentAmount,
       paymentCurrencyCode: input.paymentCurrencyCode,
       receivingCurrencyCode: input.receivingCurrencyCode,
@@ -190,6 +191,20 @@ export class RemittancesResolver {
     return {
       id: remittance.id,
       status: remittance.status,
+      recipient: {
+        fullName: remittance.recipientFullName,
+        phone: remittance.recipientPhone,
+        country: remittance.recipientCountry,
+        addressLine1: remittance.recipientAddressLine1,
+        documentNumber: remittance.recipientDocumentNumber,
+        email: remittance.recipientEmail,
+        city: remittance.recipientCity,
+        addressLine2: remittance.recipientAddressLine2,
+        postalCode: remittance.recipientPostalCode,
+        documentType: remittance.recipientDocumentType,
+        relationship: remittance.recipientRelationship,
+        deliveryInstructions: remittance.recipientDeliveryInstructions,
+      },
       paymentAmount: remittance.amount.toString(),
       receivingAmount: remittance.netReceivingAmount?.toString() ?? null,
       feesBreakdownJson: remittance.feesBreakdownJson,
