@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { ClientType, Role } from '@prisma/client';
 import { ConflictDomainException } from 'src/core/exceptions/domain/conflict.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import { PASSWORD_HASHER, USER_AUTH_PORT, USER_COMMAND_PORT } from 'src/shared/constants/tokens';
@@ -33,6 +33,8 @@ export class AdminCreateUserUseCase {
     city?: string;
     country?: string;
     postalCode?: string;
+    clientType?: ClientType;
+    companyName?: string;
   }) {
     const email = input.email.trim().toLowerCase();
     if (!email) throw new ValidationDomainException('Email is required');
@@ -41,6 +43,11 @@ export class AdminCreateUserUseCase {
     if (existing) throw new ConflictDomainException('Email already in use');
 
     const passwordHash = await this.hasher.hash(input.password);
+    const clientType = input.clientType ?? ClientType.PERSON;
+    const companyNameCandidate = input.companyName?.trim() || null;
+    if (clientType === ClientType.COMPANY && !companyNameCandidate) {
+      throw new ValidationDomainException('companyName is required for COMPANY');
+    }
 
     return this.commandPort.create({
       email,
@@ -55,6 +62,8 @@ export class AdminCreateUserUseCase {
       ...(input.city !== undefined ? { city: input.city } : {}),
       ...(input.country !== undefined ? { country: input.country } : {}),
       ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+      clientType,
+      companyName: clientType === ClientType.COMPANY ? companyNameCandidate : null,
     });
   }
 }

@@ -7,6 +7,7 @@ import {
 } from '../../domain/ports/remittance-query.port';
 
 const remittanceReadInclude = {
+  sender: true,
   beneficiary: true,
   paymentMethod: true,
   receptionMethodCatalog: {

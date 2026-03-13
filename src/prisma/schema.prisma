@@ -12,6 +12,11 @@ enum Role {
   ADMIN
 }
 
+enum ClientType {
+  PERSON
+  COMPANY
+}
+
 model User {
   id           String  @id @default(uuid())
   email        String  @unique
@@ -29,6 +34,8 @@ model User {
   city         String?
   country      String?
   postalCode   String?
+  clientType   ClientType @default(PERSON)
+  companyName  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -143,7 +150,7 @@ model Beneficiary {
   usage BeneficiaryUsage?
   remittances Remittance[]
 
-  @@unique([ownerUserId, documentNumber])
+  @@index([ownerUserId, documentNumber])
   @@index([ownerUserId])
   @@index([ownerUserId, isDeleted])
   @@index([ownerUserId, isFavorite])
@@ -206,11 +213,18 @@ enum OriginAccountHolderType {
   COMPANY
 }
 
+enum PaymentMethodType {
+  PLATFORM
+  MANUAL
+}
+
 model PaymentMethod {
   id          String   @id @default(uuid())
   code        String   @unique
   name        String
   description String?
+  type        PaymentMethodType @default(MANUAL)
+  additionalData String?
   enabled     Boolean  @default(true)
   imgUrl      String?
   createdAt   DateTime @default(now())

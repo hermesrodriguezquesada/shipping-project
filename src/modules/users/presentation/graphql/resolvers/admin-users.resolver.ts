@@ -77,6 +77,8 @@ async adminUsers(
       city: input.city,
       country: input.country,
       postalCode: input.postalCode,
+      clientType: input.clientType,
+      companyName: input.companyName,
     });
     return UserMapper.toGraphQL(created);
   }
@@ -131,6 +133,8 @@ async adminUsers(
       city: input.city,
       country: input.country,
       postalCode: input.postalCode,
+      clientType: input.clientType,
+      companyName: input.companyName,
     });
     return UserMapper.toGraphQL(updated);
   }

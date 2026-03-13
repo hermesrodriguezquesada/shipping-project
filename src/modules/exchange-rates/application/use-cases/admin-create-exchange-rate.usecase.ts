@@ -20,6 +20,7 @@ export class AdminCreateExchangeRateUseCase {
   async execute(input: { from: string; to: string; rate: string; enabled?: boolean }): Promise<ExchangeRateReadModel> {
     const fromCode = input.from.trim().toUpperCase();
     const toCode = input.to.trim().toUpperCase();
+    const shouldCreateActive = input.enabled ?? true;
 
     const fromCurrency = await this.catalogsQuery.findCurrencyByCode({ code: fromCode });
     const toCurrency = await this.catalogsQuery.findCurrencyByCode({ code: toCode });
@@ -27,11 +28,21 @@ export class AdminCreateExchangeRateUseCase {
     if (!fromCurrency || !fromCurrency.enabled) throw new ValidationDomainException('from currency is not enabled');
     if (!toCurrency || !toCurrency.enabled) throw new ValidationDomainException('to currency is not enabled');
 
+    if (shouldCreateActive) {
+      const existingActive = await this.exchangeRatesQuery.getLatestExchangeRate({
+        fromCode,
+        toCode,
+      });
+      if (existingActive) {
+        throw new ValidationDomainException('Active exchange rate already exists for this currency pair');
+      }
+    }
+
     const id = await this.exchangeRatesCommand.createExchangeRate({
       fromCurrencyId: fromCurrency.id,
       toCurrencyId: toCurrency.id,
       rate: this.parseRate(input.rate),
-      enabled: input.enabled ?? true,
+      enabled: shouldCreateActive,
     });
 
     const rates = await this.exchangeRatesQuery.listExchangeRates({ limit: 500, offset: 0 });

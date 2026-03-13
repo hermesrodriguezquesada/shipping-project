@@ -7,6 +7,7 @@ import { BeneficiaryType } from 'src/modules/beneficiaries/presentation/graphql/
 import { CurrencyCatalogType } from 'src/modules/catalogs/presentation/graphql/types/currency-catalog.type';
 import { PaymentMethodType } from 'src/modules/catalogs/presentation/graphql/types/payment-method.type';
 import { ReceptionMethodType } from 'src/modules/catalogs/presentation/graphql/types/reception-method.type';
+import { UserType } from 'src/modules/users/presentation/graphql/types/user.type';
 import { RemittanceRecipientType } from './remittance-recipient.type';
 
 @ObjectType()
@@ -16,6 +17,9 @@ export class RemittanceType {
 
   @Field(() => RemittanceStatus)
   status!: RemittanceStatus;
+
+  @Field(() => UserType)
+  owner!: UserType;
 
   @Field()
   paymentAmount!: string;
@@ -39,7 +43,7 @@ export class RemittanceType {
   receptionMethod?: ReceptionMethodType | null;
 
   @Field(() => String, { nullable: true })
-  destinationCupCardNumber?: string | null;
+  destinationAccountNumber?: string | null;
 
   @Field(() => OriginAccountHolderType, { nullable: true })
   originAccountHolderType?: OriginAccountHolderType | null;
@@ -75,7 +79,7 @@ export class RemittanceType {
   statusDescription?: string | null;
 
   @Field(() => String, { nullable: true })
-  exchangeRateRateUsed?: string | null;
+  appliedExchangeRate?: string | null;
 
   @Field()
   createdAt!: Date;

@@ -1,9 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ClientType } from '@prisma/client';
 import { USER_COMMAND_PORT, USER_QUERY_PORT } from 'src/shared/constants/tokens';
 import { UserCommandPort } from '../../domain/ports/user-command.port';
 import { UserQueryPort } from '../../domain/ports/user-query.port';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
 import { UnauthorizedDomainException } from 'src/core/exceptions/domain/unauthorized.exception';
+import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import { UpdateMyProfileDto } from '../dto/update-my-profile.dto';
 import { UserEntity } from '../../domain/entities/user.entity';
 
@@ -21,6 +23,20 @@ export class UpdateMyProfileUseCase {
     if (!user) throw new NotFoundDomainException('User not found');
     if (!user.isActive || user.isDeleted) throw new UnauthorizedDomainException('User is disabled');
 
-    return this.commands.updateProfile({ id: userId, ...input });
+    const effectiveClientType = input.clientType ?? user.clientType;
+    const effectiveCompanyName = input.companyName !== undefined
+      ? input.companyName?.trim() ?? null
+      : user.companyName ?? null;
+
+    if (effectiveClientType === ClientType.COMPANY && !effectiveCompanyName) {
+      throw new ValidationDomainException('companyName is required for COMPANY');
+    }
+
+    return this.commands.updateProfile({
+      id: userId,
+      ...input,
+      clientType: effectiveClientType,
+      companyName: effectiveClientType === ClientType.COMPANY ? effectiveCompanyName : null,
+    });
   }
 }

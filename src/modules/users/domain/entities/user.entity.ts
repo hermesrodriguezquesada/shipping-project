@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { ClientType, Role } from '@prisma/client';
 
 export type UserEntity = {
   id: string;
@@ -17,6 +17,8 @@ export type UserEntity = {
   city?: string | null;
   country?: string | null;
   postalCode?: string | null;
+  clientType: ClientType;
+  companyName?: string | null;
 
   createdAt: Date;
   updatedAt: Date;

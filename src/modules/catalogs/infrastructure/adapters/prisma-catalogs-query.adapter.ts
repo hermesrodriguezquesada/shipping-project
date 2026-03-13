@@ -2,6 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { CatalogsQueryPort, CurrencyCatalogReadModel, PaymentMethodReadModel, ReceptionMethodCatalogReadModel } from '../../domain/ports/catalogs-query.port';
 
+const paymentMethodSelect = {
+  id: true,
+  code: true,
+  name: true,
+  description: true,
+  type: true,
+  additionalData: true,
+  enabled: true,
+  imgUrl: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 @Injectable()
 export class PrismaCatalogsQueryAdapter implements CatalogsQueryPort {
   constructor(private readonly prisma: PrismaService) {}
@@ -9,6 +22,7 @@ export class PrismaCatalogsQueryAdapter implements CatalogsQueryPort {
   async listPaymentMethods(input: { enabledOnly?: boolean }): Promise<PaymentMethodReadModel[]> {
     return this.prisma.paymentMethod.findMany({
       where: input.enabledOnly === true ? { enabled: true } : undefined,
+      select: paymentMethodSelect,
       orderBy: { code: 'asc' },
     });
   }
@@ -16,6 +30,7 @@ export class PrismaCatalogsQueryAdapter implements CatalogsQueryPort {
   async findPaymentMethodByCode(input: { code: string }): Promise<PaymentMethodReadModel | null> {
     return this.prisma.paymentMethod.findUnique({
       where: { code: input.code },
+      select: paymentMethodSelect,
     });
   }
 

@@ -1,5 +1,8 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { ClientType as UserClientType } from '@prisma/client';
 import { GraphQLISODateTime } from '@nestjs/graphql';
+
+registerEnumType(UserClientType, { name: 'ClientType' });
 
 @ObjectType()
 export class UserType {
@@ -44,6 +47,12 @@ export class UserType {
 
   @Field({ nullable: true }) 
   postalCode?: string;
+
+  @Field(() => UserClientType)
+  clientType: UserClientType;
+
+  @Field({ nullable: true })
+  companyName?: string;
 
   @Field()
   createdAt: Date;

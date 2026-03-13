@@ -12,6 +12,7 @@ import { ListMyRemittancesUseCase } from 'src/modules/remittances/application/us
 import { RemittanceLifecycleUseCase } from 'src/modules/remittances/application/use-cases/remittance-lifecycle.usecase';
 import { SubmitRemittanceV2UseCase } from 'src/modules/remittances/application/use-cases/submit-remittance-v2.usecase';
 import { RemittanceReadModel } from 'src/modules/remittances/domain/ports/remittance-query.port';
+import { UserMapper } from 'src/modules/users/presentation/mappers/user.mapper';
 import { SubmitRemittanceV2Input } from '../inputs/submit-remittance-v2.input';
 import { RemittanceType } from '../types/remittance.type';
 
@@ -191,6 +192,7 @@ export class RemittancesResolver {
     return {
       id: remittance.id,
       status: remittance.status,
+      owner: UserMapper.toGraphQL(remittance.sender),
       recipient: {
         fullName: remittance.recipientFullName,
         phone: remittance.recipientPhone,
@@ -212,7 +214,7 @@ export class RemittancesResolver {
       originIban: remittance.originIban,
       originStripePaymentMethodId: remittance.originStripePaymentMethodId,
       receptionMethod: remittance.receptionMethodCatalog,
-      destinationCupCardNumber: remittance.destinationCupCardNumber,
+      destinationAccountNumber: remittance.destinationCupCardNumber,
       originAccountHolderType: remittance.originAccountHolderType,
       originAccountHolderFirstName: remittance.originAccountHolderFirstName,
       originAccountHolderLastName: remittance.originAccountHolderLastName,
@@ -222,7 +224,7 @@ export class RemittancesResolver {
       receivingCurrency: remittance.receivingCurrency,
       paymentDetails: remittance.paymentDetails,
       statusDescription: remittance.statusDescription,
-      exchangeRateRateUsed: remittance.exchangeRateRateUsed?.toString() ?? null,
+      appliedExchangeRate: remittance.exchangeRateRateUsed?.toString() ?? null,
       beneficiary,
       createdAt: remittance.createdAt,
       updatedAt: remittance.updatedAt,

@@ -23,6 +23,8 @@ export class UserMapper {
       city: user.city ?? undefined,
       country: user.country ?? undefined,
       postalCode: user.postalCode ?? undefined,
+      clientType: user.clientType,
+      companyName: user.companyName ?? undefined,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

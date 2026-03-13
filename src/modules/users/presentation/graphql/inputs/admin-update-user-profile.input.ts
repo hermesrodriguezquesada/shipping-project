@@ -1,10 +1,12 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
+import { ClientType } from '@prisma/client';
 import { GraphQLISODateTime } from '@nestjs/graphql';
-import { IsOptional, MinLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
 @InputType()
 export class AdminUpdateUserProfileInput {
   @Field(() => ID)
+  @IsUUID()
   userId!: string;
 
   @Field({ nullable: true })
@@ -44,4 +46,14 @@ export class AdminUpdateUserProfileInput {
   @Field({ nullable: true })
   @IsOptional()
   postalCode?: string;
+
+  @Field(() => ClientType, { nullable: true })
+  @IsOptional()
+  @IsEnum(ClientType)
+  clientType?: ClientType;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  companyName?: string;
 }

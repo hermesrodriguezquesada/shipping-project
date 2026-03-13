@@ -39,11 +39,8 @@ export class PrismaExchangeRatesCommandAdapter implements ExchangeRatesCommandPo
   }
 
   async deleteExchangeRate(input: { id: string }): Promise<void> {
-    await this.prisma.exchangeRate.update({
+    await this.prisma.exchangeRate.delete({
       where: { id: input.id },
-      data: {
-        enabled: false,
-      },
     });
   }
 }

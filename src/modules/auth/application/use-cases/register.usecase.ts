@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { ClientType, Role } from '@prisma/client';
 import {
   USER_AUTH_PORT,
   USER_COMMAND_PORT,
@@ -8,6 +8,7 @@ import {
   SESSION_STORE,
 } from 'src/shared/constants/tokens';
 import { ConflictDomainException } from 'src/core/exceptions/domain/conflict.exception';
+import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 
 import { UserAuthPort } from 'src/modules/users/domain/ports/user-auth.port';
 import { UserCommandPort } from 'src/modules/users/domain/ports/user-command.port';
@@ -44,11 +45,18 @@ export class RegisterUseCase {
     if (existing) throw new ConflictDomainException('Email already in use');
 
     const passwordHash = await this.passwordHasher.hash(creds.password);
+    const clientType = input.clientType ?? ClientType.PERSON;
+    const companyNameCandidate = input.companyName?.trim() ?? null;
+    if (clientType === ClientType.COMPANY && !companyNameCandidate) {
+      throw new ValidationDomainException('companyName is required for COMPANY');
+    }
 
     const user = await this.userCommands.create({
       email,
       passwordHash,
       roles: normalizeRoles(undefined),
+      clientType,
+      companyName: clientType === ClientType.COMPANY ? companyNameCandidate : null,
     });
 
     const expiresAt = this.computeRefreshExpiresAt(this.config.jwtRefreshExpiresIn);

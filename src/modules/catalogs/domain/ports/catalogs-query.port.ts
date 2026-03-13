@@ -1,10 +1,12 @@
-import { ReceptionPayoutMethod } from '@prisma/client';
+import { PaymentMethodType, ReceptionPayoutMethod } from '@prisma/client';
 
 export interface PaymentMethodReadModel {
   id: string;
   code: string;
   name: string;
   description: string | null;
+  type: PaymentMethodType;
+  additionalData: string | null;
   enabled: boolean;
   imgUrl: string | null;
   createdAt: Date;

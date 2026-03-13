@@ -11,6 +11,7 @@ import {
   ReceptionMethodCatalogReadModel,
 } from 'src/modules/catalogs/domain/ports/catalogs-query.port';
 import { ExchangeRateReadModel } from 'src/modules/exchange-rates/domain/ports/exchange-rates-query.port';
+import { UserEntity } from 'src/modules/users/domain/entities/user.entity';
 
 export interface RemittanceForSubmit {
   id: string;
@@ -73,6 +74,7 @@ export interface RemittanceReadModel {
   paymentCurrency: CurrencyCatalogReadModel | null;
   receivingCurrency: CurrencyCatalogReadModel | null;
   exchangeRateUsed: ExchangeRateReadModel | null;
+  sender: UserEntity;
   beneficiary: RemittanceBeneficiaryReadModel;
   createdAt: Date;
   updatedAt: Date;

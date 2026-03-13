@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/core/database/prisma.service";
 import { UserEntity } from "../../domain/entities/user.entity";
-import { Role, User as PrismaUser } from '@prisma/client';
+import { ClientType, Role, User as PrismaUser } from '@prisma/client';
 import { UserCommandPort } from "../../domain/ports/user-command.port";
 
 @Injectable()
@@ -21,12 +21,16 @@ export class PrismaUserCommandAdapter implements UserCommandPort {
       city?: string;
       country?: string;
       postalCode?: string;
+      clientType?: ClientType;
+      companyName?: string | null;
     }): Promise<UserEntity> {
         const row = await this.prisma.user.create({
         data: {
           email: input.email,
           passwordHash: input.passwordHash,
           roles: input.roles ?? [Role.CLIENT],
+          clientType: input.clientType ?? ClientType.PERSON,
+          ...(input.companyName !== undefined ? { companyName: input.companyName } : {}),
           ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
           ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
           ...(input.phone !== undefined ? { phone: input.phone } : {}),
@@ -78,6 +82,8 @@ private toDomain(row: PrismaUser): UserEntity {
     city: row.city ?? null,
     country: row.country ?? null,
     postalCode: row.postalCode ?? null,
+    clientType: row.clientType,
+    companyName: row.companyName ?? null,
 
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -96,6 +102,8 @@ async updateProfile(input: {
   city?: string | null;
   country?: string | null;
   postalCode?: string | null;
+  clientType?: ClientType;
+  companyName?: string | null;
 }): Promise<UserEntity> {
   const row = await this.prisma.user.update({
     where: { id: input.id },
@@ -109,6 +117,8 @@ async updateProfile(input: {
       ...(input.city !== undefined ? { city: input.city } : {}),
       ...(input.country !== undefined ? { country: input.country } : {}),
       ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+      ...(input.clientType !== undefined ? { clientType: input.clientType } : {}),
+      ...(input.companyName !== undefined ? { companyName: input.companyName } : {}),
     },
   });
 

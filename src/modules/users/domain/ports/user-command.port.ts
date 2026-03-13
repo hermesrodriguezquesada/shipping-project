@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { ClientType, Role } from '@prisma/client';
 import { UserEntity } from '../entities/user.entity';
 
 export type UpdateUserProfileInput = {
@@ -12,6 +12,8 @@ export type UpdateUserProfileInput = {
   city?: string | null;
   country?: string | null;
   postalCode?: string | null;
+  clientType?: ClientType;
+  companyName?: string | null;
 };
 
 export interface UserCommandPort {
@@ -28,6 +30,8 @@ export interface UserCommandPort {
     city?: string;
     country?: string;
     postalCode?: string;
+    clientType?: ClientType;
+    companyName?: string | null;
   }): Promise<UserEntity>;
   updateStatus(input: { id: string; isActive?: boolean; isDeleted?: boolean }): Promise<UserEntity>;
   updateRoles(input: { id: string; roles: Role[] }): Promise<UserEntity>;

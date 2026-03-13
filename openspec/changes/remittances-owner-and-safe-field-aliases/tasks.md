@@ -1,0 +1,7 @@
+- [x] Extend remittance read model/query adapter to include sender relation required to expose `owner`.
+- [x] Add `owner`, `destinationAccountNumber`, and `appliedExchangeRate` fields to `RemittanceType` in code-first GraphQL types.
+- [x] Update remittance mapping path(s) to populate new fields: `owner` from sender, aliases from existing values.
+- [x] Ensure legacy fields `destinationCupCardNumber` and `exchangeRateRateUsed` remain unchanged and still mapped.
+- [x] Regenerate/verify GraphQL schema and run build to confirm no contract breakage.
+- [x] Add/update smoke GraphQL queries (`myRemittance`, `myRemittances`, `adminRemittance`, `adminRemittances`) validating new fields and alias consistency.
+- [x] Document deprecation candidates for later cleanup change (do not remove in this change).

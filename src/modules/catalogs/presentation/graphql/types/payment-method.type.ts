@@ -1,4 +1,7 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { PaymentMethodType as PaymentMethodKind } from '@prisma/client';
+
+registerEnumType(PaymentMethodKind, { name: 'PaymentMethodKind' });
 
 @ObjectType()
 export class PaymentMethodType {
@@ -13,6 +16,12 @@ export class PaymentMethodType {
 
   @Field(() => String, { nullable: true })
   description?: string | null;
+
+  @Field(() => PaymentMethodKind)
+  type!: PaymentMethodKind;
+
+  @Field(() => String, { nullable: true })
+  additionalData?: string | null;
 
   @Field()
   enabled!: boolean;

@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ClientType } from '@prisma/client';
 import { USER_COMMAND_PORT, USER_QUERY_PORT } from 'src/shared/constants/tokens';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
+import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import { UserQueryPort } from 'src/modules/users/domain/ports/user-query.port';
 import { UserCommandPort } from 'src/modules/users/domain/ports/user-command.port';
 
@@ -24,9 +26,20 @@ export class AdminUpdateUserProfileUseCase {
     city?: string;
     country?: string;
     postalCode?: string;
+    clientType?: ClientType;
+    companyName?: string;
   }) {
     const existing = await this.usersQuery.findById(input.userId);
     if (!existing) throw new NotFoundDomainException('User not found');
+
+    const effectiveClientType = input.clientType ?? existing.clientType;
+    const effectiveCompanyName = input.companyName !== undefined
+      ? input.companyName?.trim() || null
+      : existing.companyName ?? null;
+
+    if (effectiveClientType === ClientType.COMPANY && !effectiveCompanyName) {
+      throw new ValidationDomainException('companyName is required for COMPANY');
+    }
 
     return this.usersCmd.updateProfile({
       id: input.userId,
@@ -39,6 +52,8 @@ export class AdminUpdateUserProfileUseCase {
       ...(input.city !== undefined ? { city: input.city } : {}),
       ...(input.country !== undefined ? { country: input.country } : {}),
       ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+      clientType: effectiveClientType,
+      companyName: effectiveClientType === ClientType.COMPANY ? effectiveCompanyName : null,
     });
   }
 }

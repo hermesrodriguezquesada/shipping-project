@@ -34,11 +34,32 @@ input AdminCreateExchangeRateInput {
   to: String!
 }
 
+input AdminCreatePaymentMethodInput {
+  additionalData: String
+  code: String!
+  description: String
+  enabled: Boolean
+  imgUrl: String
+  name: String!
+}
+
+input AdminCreateReceptionMethodInput {
+  code: String!
+  currencyCode: String!
+  description: String
+  enabled: Boolean
+  imgUrl: String
+  method: ReceptionPayoutMethod!
+  name: String!
+}
+
 input AdminCreateUserInput {
   addressLine1: String
   addressLine2: String
   birthDate: DateTime
   city: String
+  clientType: ClientType
+  companyName: String
   country: String
   email: String!
   firstName: String
@@ -100,11 +121,18 @@ input AdminUpdateExchangeRateInput {
   rate: String!
 }
 
+input AdminUpdatePaymentMethodAdditionalDataInput {
+  additionalData: String
+  code: String!
+}
+
 input AdminUpdateUserProfileInput {
   addressLine1: String
   addressLine2: String
   birthDate: DateTime
   city: String
+  clientType: ClientType
+  companyName: String
   country: String
   firstName: String
   lastName: String
@@ -152,6 +180,11 @@ type BeneficiaryType {
 input ChangePasswordInput {
   newPassword: String!
   oldPassword: String!
+}
+
+enum ClientType {
+  COMPANY
+  PERSON
 }
 
 type CommissionRuleType {
@@ -289,6 +322,8 @@ type Mutation {
   adminCreateCurrency(input: AdminCreateCurrencyInput!): CurrencyType!
   adminCreateDeliveryFeeRule(input: AdminCreateDeliveryFeeRuleInput!): DeliveryFeeRuleType!
   adminCreateExchangeRate(input: AdminCreateExchangeRateInput!): ExchangeRateType!
+  adminCreatePaymentMethod(input: AdminCreatePaymentMethodInput!): PaymentMethodType!
+  adminCreateReceptionMethod(input: AdminCreateReceptionMethodInput!): ReceptionMethodType!
   adminCreateUser(input: AdminCreateUserInput!): UserType!
   adminDeleteExchangeRate(id: ID!): Boolean!
   adminDeleteUser(userId: ID!): UserType!
@@ -304,6 +339,7 @@ type Mutation {
   adminUpdateCurrency(input: AdminUpdateCurrencyInput!): CurrencyType!
   adminUpdateDeliveryFeeRule(input: AdminUpdateDeliveryFeeRuleInput!): DeliveryFeeRuleType!
   adminUpdateExchangeRate(input: AdminUpdateExchangeRateInput!): ExchangeRateType!
+  adminUpdatePaymentMethodAdditionalData(input: AdminUpdatePaymentMethodAdditionalDataInput!): PaymentMethodType!
   adminUpdatePaymentMethodDescription(code: String!, description: String): PaymentMethodType!
   adminUpdateReceptionMethodDescription(code: String!, description: String): ReceptionMethodType!
   adminUpdateUserProfile(input: AdminUpdateUserProfileInput!): UserType!
@@ -337,7 +373,13 @@ enum OriginAccountType {
   ZELLE
 }
 
+enum PaymentMethodKind {
+  MANUAL
+  PLATFORM
+}
+
 type PaymentMethodType {
+  additionalData: String
   code: String!
   createdAt: DateTime!
   description: String
@@ -345,6 +387,7 @@ type PaymentMethodType {
   id: ID!
   imgUrl: String
   name: String!
+  type: PaymentMethodKind!
   updatedAt: DateTime!
 }
 
@@ -429,6 +472,8 @@ input RefreshInput {
 }
 
 input RegisterInput {
+  clientType: ClientType
+  companyName: String
   email: String!
   password: String!
 }
@@ -462,10 +507,10 @@ enum RemittanceStatus {
 }
 
 type RemittanceType {
+  appliedExchangeRate: String
   beneficiary: BeneficiaryType!
   createdAt: DateTime!
-  destinationCupCardNumber: String
-  exchangeRateRateUsed: String
+  destinationAccountNumber: String
   feesBreakdownJson: String
   id: ID!
   originAccountHolderCompanyName: String
@@ -475,6 +520,7 @@ type RemittanceType {
   originIban: String
   originStripePaymentMethodId: String
   originZelleEmail: String
+  owner: UserType!
   paymentAmount: String!
   paymentCurrency: CurrencyType
   paymentDetails: String
@@ -579,6 +625,8 @@ input UpdateMyProfileInput {
   addressLine2: String
   birthDate: DateTime
   city: String
+  clientType: ClientType
+  companyName: String
   country: String
   firstName: String
   lastName: String
@@ -591,6 +639,8 @@ type UserType {
   addressLine2: String
   birthDate: DateTime
   city: String
+  clientType: ClientType!
+  companyName: String
   country: String
   createdAt: DateTime!
   email: String!

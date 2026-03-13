@@ -43,7 +43,9 @@ export class AuthResolver {
 
   @Mutation(() => AuthPayload)
   async register(@Args('input') input: RegisterInput): Promise<AuthPayload> {
-    const { accessToken, refreshToken, sessionId, user } = await this.registerUseCase.execute(new RegisterInputDto(input.email, input.password));
+    const { accessToken, refreshToken, sessionId, user } = await this.registerUseCase.execute(
+      new RegisterInputDto(input.email, input.password, input.clientType, input.companyName),
+    );
 
     const fullUser = await this.getMeUseCase.execute(user.id);
 

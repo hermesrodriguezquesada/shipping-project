@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { CATALOGS_COMMAND_PORT, CATALOGS_QUERY_PORT } from 'src/shared/constants/tokens';
+import { AdminCreatePaymentMethodUseCase } from './application/use-cases/admin-create-payment-method.usecase';
+import { AdminCreateReceptionMethodUseCase } from './application/use-cases/admin-create-reception-method.usecase';
 import { AdminCreateCurrencyUseCase } from './application/use-cases/admin-create-currency.usecase';
 import { AdminSetCurrencyEnabledUseCase } from './application/use-cases/admin-set-currency-enabled.usecase';
 import { AdminSetPaymentMethodEnabledUseCase } from './application/use-cases/admin-set-payment-method-enabled.usecase';
 import { AdminSetReceptionMethodEnabledUseCase } from './application/use-cases/admin-set-reception-method-enabled.usecase';
 import { AdminUpdateCurrencyUseCase } from './application/use-cases/admin-update-currency.usecase';
+import { AdminUpdatePaymentMethodAdditionalDataUseCase } from './application/use-cases/admin-update-payment-method-additional-data.usecase';
 import { AdminUpdatePaymentMethodDescriptionUseCase } from './application/use-cases/admin-update-payment-method-description.usecase';
 import { AdminUpdateReceptionMethodDescriptionUseCase } from './application/use-cases/admin-update-reception-method-description.usecase';
 import { ListCurrenciesUseCase } from './application/use-cases/list-currencies.usecase';
@@ -21,9 +24,12 @@ import { CatalogsResolver } from './presentation/graphql/resolvers/catalogs.reso
     { provide: CATALOGS_QUERY_PORT, useExisting: PrismaCatalogsQueryAdapter },
     { provide: CATALOGS_COMMAND_PORT, useExisting: PrismaCatalogsCommandAdapter },
     ListPaymentMethodsUseCase,
+    AdminCreatePaymentMethodUseCase,
     AdminUpdatePaymentMethodDescriptionUseCase,
+    AdminUpdatePaymentMethodAdditionalDataUseCase,
     AdminSetPaymentMethodEnabledUseCase,
     ListReceptionMethodsUseCase,
+    AdminCreateReceptionMethodUseCase,
     AdminUpdateReceptionMethodDescriptionUseCase,
     AdminSetReceptionMethodEnabledUseCase,
     ListCurrenciesUseCase,

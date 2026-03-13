@@ -1,3 +1,5 @@
+import { ClientType } from '@prisma/client';
+
 export class UpdateMyProfileDto {
   firstName?: string | null;
   lastName?: string | null;
@@ -8,4 +10,6 @@ export class UpdateMyProfileDto {
   city?: string | null;
   country?: string | null;
   postalCode?: string | null;
+  clientType?: ClientType;
+  companyName?: string | null;
 }

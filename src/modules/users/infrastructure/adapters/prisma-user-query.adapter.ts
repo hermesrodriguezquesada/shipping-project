@@ -48,6 +48,8 @@ export class PrismaUserQueryAdapter implements UserQueryPort {
       city: row.city ?? null,
       country: row.country ?? null,
       postalCode: row.postalCode ?? null,
+      clientType: row.clientType,
+      companyName: row.companyName ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

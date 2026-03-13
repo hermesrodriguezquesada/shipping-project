@@ -1,7 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { ClientType, Role } from '@prisma/client';
 import { GraphQLISODateTime } from '@nestjs/graphql';
-import { IsEmail, IsOptional, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 
 @InputType()
 export class AdminCreateUserInput {
@@ -54,4 +54,14 @@ export class AdminCreateUserInput {
   @Field({ nullable: true })
   @IsOptional()
   postalCode?: string;
+
+  @Field(() => ClientType, { nullable: true })
+  @IsOptional()
+  @IsEnum(ClientType)
+  clientType?: ClientType;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  companyName?: string;
 }
