@@ -100,16 +100,31 @@ export class PrismaRemittanceQueryAdapter implements RemittanceQueryPort {
   }
 
   async findByIdAndSenderUser(input: { id: string; senderUserId: string }): Promise<RemittanceForSubmit | null> {
-    return this.prisma.remittance.findFirst({
-      where: {
-        id: input.id,
-        senderUserId: input.senderUserId,
-      },
-      select: {
-        id: true,
-        status: true,
-      },
-    });
+    return this.prisma.remittance
+      .findFirst({
+        where: {
+          id: input.id,
+          senderUserId: input.senderUserId,
+        },
+        select: {
+          id: true,
+          status: true,
+          sender: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      })
+      .then((remittance) =>
+        remittance
+          ? {
+              id: remittance.id,
+              status: remittance.status,
+              senderEmail: remittance.sender.email,
+            }
+          : null,
+      );
   }
 
   async beneficiaryBelongsToUser(input: { beneficiaryId: string; ownerUserId: string }): Promise<boolean> {

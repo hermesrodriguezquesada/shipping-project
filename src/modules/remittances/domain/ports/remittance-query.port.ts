@@ -16,6 +16,7 @@ import { UserEntity } from 'src/modules/users/domain/entities/user.entity';
 export interface RemittanceForSubmit {
   id: string;
   status: RemittanceStatus;
+  senderEmail: string;
 }
 
 export interface RemittanceBeneficiaryReadModel {
