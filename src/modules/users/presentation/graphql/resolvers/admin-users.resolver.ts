@@ -67,6 +67,7 @@ async adminUsers(
     const created = await this.createUser.execute({
       email: input.email,
       password: input.password,
+      role: input.role,
       roles: input.roles,
       firstName: input.firstName,
       lastName: input.lastName,

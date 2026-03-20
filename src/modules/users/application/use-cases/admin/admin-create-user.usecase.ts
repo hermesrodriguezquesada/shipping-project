@@ -23,6 +23,7 @@ export class AdminCreateUserUseCase {
   async execute(input: {
     email: string;
     password: string;
+    role?: Role;
     roles?: Role[];
     firstName?: string;
     lastName?: string;
@@ -49,10 +50,18 @@ export class AdminCreateUserUseCase {
       throw new ValidationDomainException('companyName is required for COMPANY');
     }
 
+    const hasRole = input.role !== undefined && input.role !== null;
+    const hasRoles = (input.roles?.length ?? 0) > 0;
+    if (hasRole === hasRoles) {
+      throw new ValidationDomainException('Exactly one of role or roles must be provided');
+    }
+
+    const effectiveRoles = hasRole ? [input.role!] : input.roles;
+
     return this.commandPort.create({
       email,
       passwordHash,
-      roles: normalizeRoles(input.roles),
+      roles: normalizeRoles(effectiveRoles),
       ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
       ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
       ...(input.phone !== undefined ? { phone: input.phone } : {}),

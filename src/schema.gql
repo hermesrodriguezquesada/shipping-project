@@ -67,6 +67,7 @@ input AdminCreateUserInput {
   password: String!
   phone: String
   postalCode: String
+  role: Role
   roles: [Role!]
 }
 

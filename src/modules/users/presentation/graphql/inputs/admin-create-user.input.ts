@@ -13,6 +13,12 @@ export class AdminCreateUserInput {
   @MinLength(6)
   password!: string;
 
+  @Field(() => Role, { nullable: true })
+  @IsOptional()
+  @IsEnum(Role)
+  role?: Role;
+
+  // Backward compatibility field. Prefer role for new clients.
   @Field(() => [Role], { nullable: true })
   @IsOptional()
   roles?: Role[];
