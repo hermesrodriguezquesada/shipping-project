@@ -28,6 +28,7 @@ export const COMMISSION_RULES_QUERY_PORT = 'CommissionRulesQueryPort';
 export const COMMISSION_RULES_COMMAND_PORT = 'CommissionRulesCommandPort';
 export const DELIVERY_FEES_QUERY_PORT = 'DeliveryFeesQueryPort';
 export const DELIVERY_FEES_COMMAND_PORT = 'DeliveryFeesCommandPort';
+export const ELTOQUE_RATES_PORT = 'ElToqueRatesPort';
 
 
 

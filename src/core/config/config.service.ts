@@ -101,4 +101,18 @@ export class AppConfigService {
     return this.configService.get<number>('REMITTANCE_AMOUNT_MAX', 10000);
   }
 
+  get elToqueApiBaseUrl(): string {
+    return this.configService.get<string>('ELTOQUE_API_BASE_URL', 'https://tasas.eltoque.com');
+  }
+
+  get elToqueApiToken(): string {
+    const token = this.configService.get<string>('ELTOQUE_API_TOKEN');
+    if (!token) throw new Error('ELTOQUE_API_TOKEN is not defined');
+    return token;
+  }
+
+  get elToqueTimeoutMs(): number {
+    return this.configService.get<number>('ELTOQUE_TIMEOUT_MS', 10000);
+  }
+
 }

@@ -427,6 +427,7 @@ type Query {
   adminUsers(input: AdminListUsersInput): [UserType!]!
   beneficiary(id: ID!): BeneficiaryType!
   currencies(enabledOnly: Boolean): [CurrencyType!]!
+  elToqueRates(dateFrom: String, dateTo: String): String!
   exchangeRate(from: String!, to: String!): ExchangeRateType
   exchangeRates(enabledOnly: Boolean! = true, from: String, limit: Int, offset: Int, to: String): [ExchangeRateType!]!
   me: UserType!

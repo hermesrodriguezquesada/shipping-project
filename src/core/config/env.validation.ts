@@ -92,6 +92,16 @@ class EnvironmentVariables {
   @IsOptional()
   @IsNumber()
   REMITTANCE_AMOUNT_MAX?: number;
+
+  @IsString()
+  ELTOQUE_API_BASE_URL: string;
+
+  @IsString()
+  ELTOQUE_API_TOKEN: string;
+
+  @IsOptional()
+  @IsInt()
+  ELTOQUE_TIMEOUT_MS?: number;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
