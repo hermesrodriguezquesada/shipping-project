@@ -9,6 +9,7 @@ import { AdminSetReceptionMethodEnabledUseCase } from './application/use-cases/a
 import { AdminUpdateCurrencyUseCase } from './application/use-cases/admin-update-currency.usecase';
 import { AdminUpdatePaymentMethodAdditionalDataUseCase } from './application/use-cases/admin-update-payment-method-additional-data.usecase';
 import { AdminUpdatePaymentMethodDescriptionUseCase } from './application/use-cases/admin-update-payment-method-description.usecase';
+import { AdminUpdatePaymentMethodUseCase } from './application/use-cases/admin-update-payment-method.usecase';
 import { AdminUpdateReceptionMethodDescriptionUseCase } from './application/use-cases/admin-update-reception-method-description.usecase';
 import { ListCurrenciesUseCase } from './application/use-cases/list-currencies.usecase';
 import { ListPaymentMethodsUseCase } from './application/use-cases/list-payment-methods.usecase';
@@ -27,6 +28,7 @@ import { CatalogsResolver } from './presentation/graphql/resolvers/catalogs.reso
     AdminCreatePaymentMethodUseCase,
     AdminUpdatePaymentMethodDescriptionUseCase,
     AdminUpdatePaymentMethodAdditionalDataUseCase,
+    AdminUpdatePaymentMethodUseCase,
     AdminSetPaymentMethodEnabledUseCase,
     ListReceptionMethodsUseCase,
     AdminCreateReceptionMethodUseCase,

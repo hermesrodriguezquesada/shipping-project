@@ -12,6 +12,7 @@ export type UpdateUserProfileInput = {
   city?: string | null;
   country?: string | null;
   postalCode?: string | null;
+  isVip?: boolean;
   clientType?: ClientType;
   companyName?: string | null;
 };
@@ -30,6 +31,7 @@ export interface UserCommandPort {
     city?: string;
     country?: string;
     postalCode?: string;
+    isVip?: boolean;
     clientType?: ClientType;
     companyName?: string | null;
   }): Promise<UserEntity>;

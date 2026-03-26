@@ -34,6 +34,7 @@ export class AdminCreateUserUseCase {
     city?: string;
     country?: string;
     postalCode?: string;
+    isVip?: boolean;
     clientType?: ClientType;
     companyName?: string;
   }) {
@@ -71,6 +72,7 @@ export class AdminCreateUserUseCase {
       ...(input.city !== undefined ? { city: input.city } : {}),
       ...(input.country !== undefined ? { country: input.country } : {}),
       ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+      ...(input.isVip !== undefined ? { isVip: input.isVip } : {}),
       clientType,
       companyName: clientType === ClientType.COMPANY ? companyNameCandidate : null,
     });

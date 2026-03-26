@@ -15,6 +15,7 @@ import { RemittanceReadModel } from 'src/modules/remittances/domain/ports/remitt
 import { UserMapper } from 'src/modules/users/presentation/mappers/user.mapper';
 import { SubmitRemittanceV2Input } from '../inputs/submit-remittance-v2.input';
 import { RemittanceType } from '../types/remittance.type';
+import { Prisma } from '@prisma/client';
 
 @UseGuards(GqlAuthGuard)
 @Resolver()
@@ -99,11 +100,12 @@ export class RemittancesResolver {
       senderUserId: user.id,
       beneficiaryId: input.beneficiaryId,
       manualBeneficiary: input.manualBeneficiary,
+      saveManualBeneficiary: input.saveManualBeneficiary,
       paymentAmount: input.paymentAmount,
       paymentCurrencyCode: input.paymentCurrencyCode,
       receivingCurrencyCode: input.receivingCurrencyCode,
       receptionMethod: input.receptionMethod,
-      destinationCupCardNumber: input.destinationCupCardNumber,
+      destinationAccountNumber: input.destinationAccountNumber,
       originAccountHolder: input.originAccountHolder,
       originAccount: input.originAccount,
       deliveryLocation: input.deliveryLocation,
@@ -169,6 +171,13 @@ export class RemittancesResolver {
 
 
   private toRemittanceType(remittance: RemittanceReadModel): RemittanceType {
+    const originAccount = remittance.paymentMethod?.code
+      ? {
+          paymentMethodCode: remittance.paymentMethod.code,
+          data: this.normalizeOriginAccountData(remittance.originAccountData),
+        }
+      : null;
+
     const beneficiary = {
       id: remittance.beneficiary.id,
       fullName: remittance.beneficiary.fullName,
@@ -210,11 +219,9 @@ export class RemittancesResolver {
       paymentAmount: remittance.amount.toString(),
       receivingAmount: remittance.netReceivingAmount?.toString() ?? null,
       feesBreakdownJson: remittance.feesBreakdownJson,
-      originZelleEmail: remittance.originZelleEmail,
-      originIban: remittance.originIban,
-      originStripePaymentMethodId: remittance.originStripePaymentMethodId,
+      originAccount,
       receptionMethod: remittance.receptionMethodCatalog,
-      destinationAccountNumber: remittance.destinationCupCardNumber,
+      destinationAccountNumber: remittance.destinationAccountNumber,
       originAccountHolderType: remittance.originAccountHolderType,
       originAccountHolderFirstName: remittance.originAccountHolderFirstName,
       originAccountHolderLastName: remittance.originAccountHolderLastName,
@@ -229,6 +236,14 @@ export class RemittancesResolver {
       createdAt: remittance.createdAt,
       updatedAt: remittance.updatedAt,
     };
+  }
+
+  private normalizeOriginAccountData(data: Prisma.JsonValue | null): Prisma.JsonValue {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return {};
+    }
+
+    return data;
   }
 
 }

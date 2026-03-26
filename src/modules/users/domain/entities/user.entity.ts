@@ -1,4 +1,4 @@
-import { ClientType, Role } from '@prisma/client';
+import { ClientType, Prisma, Role } from '@prisma/client';
 
 export type UserEntity = {
   id: string;
@@ -7,6 +7,8 @@ export type UserEntity = {
   roles: Role[];
   isActive: boolean;
   isDeleted: boolean;
+  isVip: boolean;
+  totalGeneratedAmount: Prisma.Decimal;
 
   firstName?: string | null;
   lastName?: string | null;

@@ -39,6 +39,8 @@ export class PrismaUserQueryAdapter implements UserQueryPort {
       roles: row.roles,
       isActive: row.isActive,
       isDeleted: row.isDeleted,
+      isVip: row.isVip,
+      totalGeneratedAmount: row.totalGeneratedAmount,
       firstName: row.firstName ?? null,
       lastName: row.lastName ?? null,
       phone: row.phone ?? null,

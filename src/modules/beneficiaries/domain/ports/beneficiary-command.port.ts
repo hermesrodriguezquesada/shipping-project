@@ -15,6 +15,7 @@ export type CreateBeneficiaryData = {
   documentNumber: string;
   relationship?: BeneficiaryRelationship;
   deliveryInstructions?: string;
+  isVisibleToOwner?: boolean;
 };
 
 export type UpdateBeneficiaryData = {

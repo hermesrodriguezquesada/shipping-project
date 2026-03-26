@@ -21,6 +21,12 @@ export class UserType {
   @Field()
   isDeleted: boolean;
 
+  @Field()
+  isVip: boolean;
+
+  @Field(() => String)
+  totalGeneratedAmount: string;
+
   @Field({ nullable: true }) 
   firstName?: string;
 

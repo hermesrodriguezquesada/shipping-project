@@ -19,6 +19,7 @@ export class PrismaBeneficiaryQueryAdapter implements BeneficiaryQueryPort {
     const rows = await this.prisma.beneficiary.findMany({
       where: {
         ownerUserId: input.ownerUserId,
+        isVisibleToOwner: true,
         ...(input.includeDeleted ? {} : { isDeleted: false }),
       },
       skip: input.offset,

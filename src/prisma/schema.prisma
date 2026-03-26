@@ -24,6 +24,8 @@ model User {
   roles        Role[]  @default([CLIENT])
   isActive     Boolean @default(true)
   isDeleted    Boolean @default(false)
+  isVip        Boolean @default(false)
+  totalGeneratedAmount Decimal @default(0)
 
   firstName    String?
   lastName     String?
@@ -140,6 +142,7 @@ model Beneficiary {
   relationship         BeneficiaryRelationship? @default(OTHER)
   deliveryInstructions String?
   isFavorite           Boolean                  @default(false)
+  isVisibleToOwner     Boolean                  @default(true)
   favoriteAt           DateTime?
   isDeleted            Boolean                  @default(false)
   deletedAt            DateTime?
@@ -187,12 +190,6 @@ enum RemittanceStatus {
 enum Currency {
   USD
   EUR
-}
-
-enum OriginAccountType {
-  ZELLE
-  IBAN
-  STRIPE
 }
 
 enum ReceptionMethod {
@@ -347,10 +344,8 @@ model Remittance {
   receptionMethodId String?
   currencyId String?
   receivingCurrencyId String?
-  originZelleEmail String?
-  originIban String?
-  originStripePaymentMethodId String?
-  destinationCupCardNumber String?
+  originAccountData Json?
+  destinationAccountNumber String?
   originAccountHolderType OriginAccountHolderType?
   originAccountHolderFirstName String?
   originAccountHolderLastName String?

@@ -2,7 +2,6 @@ import {
   BeneficiaryRelationship,
   DocumentType,
   OriginAccountHolderType,
-  OriginAccountType,
   ReceptionMethod,
 } from '@prisma/client';
 import { Prisma } from '@prisma/client';
@@ -24,25 +23,23 @@ export interface RemittanceCommandPort {
     recipientRelationship: BeneficiaryRelationship | null;
     recipientDeliveryInstructions: string | null;
     paymentAmount: Prisma.Decimal;
-    originAccountType: OriginAccountType;
+    paymentMethodCode: string;
+    originAccountData: Prisma.InputJsonValue;
     paymentCurrencyId: string;
     receivingCurrencyId: string;
     receptionMethod: ReceptionMethod;
-    destinationCupCardNumber: string | null;
+    destinationAccountNumber: string | null;
     originAccountHolderType: OriginAccountHolderType;
     originAccountHolderFirstName: string | null;
     originAccountHolderLastName: string | null;
     originAccountHolderCompanyName: string | null;
-    originZelleEmail: string | null;
-    originIban: string | null;
-    originStripePaymentMethodId: string | null;
     exchangeRateIdUsed: string;
     exchangeRateRateUsed: Prisma.Decimal;
     exchangeRateUsedAt: Date;
-    commissionRuleIdUsed: string;
-    commissionRuleVersionUsed: number;
+    commissionRuleIdUsed: string | null;
+    commissionRuleVersionUsed: number | null;
     commissionAmount: Prisma.Decimal;
-    commissionCurrencyIdUsed: string;
+    commissionCurrencyIdUsed: string | null;
     deliveryFeeRuleIdUsed: string | null;
     deliveryFeeAmount: Prisma.Decimal;
     deliveryFeeCurrencyIdUsed: string;

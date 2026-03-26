@@ -16,6 +16,11 @@ export class PaymentMethodAvailabilityBridgeAdapter implements PaymentMethodAvai
       return null;
     }
 
-    return { id: paymentMethod.id, code: paymentMethod.code, enabled: paymentMethod.enabled };
+    return {
+      id: paymentMethod.id,
+      code: paymentMethod.code,
+      enabled: paymentMethod.enabled,
+      additionalData: paymentMethod.additionalData,
+    };
   }
 }

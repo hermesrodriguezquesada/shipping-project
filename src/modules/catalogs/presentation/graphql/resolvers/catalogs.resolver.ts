@@ -13,6 +13,7 @@ import { AdminSetReceptionMethodEnabledUseCase } from 'src/modules/catalogs/appl
 import { AdminUpdateCurrencyUseCase } from 'src/modules/catalogs/application/use-cases/admin-update-currency.usecase';
 import { AdminUpdatePaymentMethodAdditionalDataUseCase } from 'src/modules/catalogs/application/use-cases/admin-update-payment-method-additional-data.usecase';
 import { AdminUpdatePaymentMethodDescriptionUseCase } from 'src/modules/catalogs/application/use-cases/admin-update-payment-method-description.usecase';
+import { AdminUpdatePaymentMethodUseCase } from 'src/modules/catalogs/application/use-cases/admin-update-payment-method.usecase';
 import { AdminUpdateReceptionMethodDescriptionUseCase } from 'src/modules/catalogs/application/use-cases/admin-update-reception-method-description.usecase';
 import { ListCurrenciesUseCase } from 'src/modules/catalogs/application/use-cases/list-currencies.usecase';
 import { ListPaymentMethodsUseCase } from 'src/modules/catalogs/application/use-cases/list-payment-methods.usecase';
@@ -21,6 +22,7 @@ import { AdminCreatePaymentMethodInput } from '../inputs/admin-create-payment-me
 import { AdminCreateReceptionMethodInput } from '../inputs/admin-create-reception-method.input';
 import { AdminCreateCurrencyInput } from '../inputs/admin-create-currency.input';
 import { AdminUpdatePaymentMethodAdditionalDataInput } from '../inputs/admin-update-payment-method-additional-data.input';
+import { AdminUpdatePaymentMethodInput } from '../inputs/admin-update-payment-method.input';
 import { AdminUpdateCurrencyInput } from '../inputs/admin-update-currency.input';
 import { CurrencyCatalogType } from '../types/currency-catalog.type';
 import { PaymentMethodType } from '../types/payment-method.type';
@@ -36,6 +38,7 @@ export class CatalogsResolver {
     private readonly adminCreatePaymentMethodUseCase: AdminCreatePaymentMethodUseCase,
     private readonly adminUpdatePaymentMethodDescriptionUseCase: AdminUpdatePaymentMethodDescriptionUseCase,
     private readonly adminUpdatePaymentMethodAdditionalDataUseCase: AdminUpdatePaymentMethodAdditionalDataUseCase,
+    private readonly adminUpdatePaymentMethodUseCase: AdminUpdatePaymentMethodUseCase,
     private readonly adminSetPaymentMethodEnabledUseCase: AdminSetPaymentMethodEnabledUseCase,
     private readonly adminCreateReceptionMethodUseCase: AdminCreateReceptionMethodUseCase,
     private readonly adminUpdateReceptionMethodDescriptionUseCase: AdminUpdateReceptionMethodDescriptionUseCase,
@@ -92,6 +95,15 @@ export class CatalogsResolver {
     @Args('input') input: AdminUpdatePaymentMethodAdditionalDataInput,
   ): Promise<PaymentMethodType> {
     return this.adminUpdatePaymentMethodAdditionalDataUseCase.execute(input);
+  }
+
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Mutation(() => PaymentMethodType)
+  async adminUpdatePaymentMethod(
+    @Args('input') input: AdminUpdatePaymentMethodInput,
+  ): Promise<PaymentMethodType> {
+    return this.adminUpdatePaymentMethodUseCase.execute(input);
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard)

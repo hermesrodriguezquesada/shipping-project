@@ -21,6 +21,7 @@ export class ReceptionMethodAvailabilityBridgeAdapter implements ReceptionMethod
       code: receptionMethod.code,
       enabled: receptionMethod.enabled,
       currencyCode: receptionMethod.currency.code,
+      method: receptionMethod.method,
     };
   }
 }

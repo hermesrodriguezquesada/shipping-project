@@ -63,6 +63,7 @@ input AdminCreateUserInput {
   country: String
   email: String!
   firstName: String
+  isVip: Boolean
   lastName: String
   password: String!
   phone: String
@@ -90,6 +91,11 @@ input AdminReviewIdentityInput {
 input AdminSetUserRolesInput {
   roles: [Role!]!
   userId: String!
+}
+
+input AdminSetUserVipInput {
+  isVip: Boolean!
+  userId: ID!
 }
 
 input AdminUpdateCommissionRuleInput {
@@ -127,6 +133,12 @@ input AdminUpdatePaymentMethodAdditionalDataInput {
   code: String!
 }
 
+input AdminUpdatePaymentMethodInput {
+  additionalData: String
+  code: String!
+  description: String
+}
+
 input AdminUpdateUserProfileInput {
   addressLine1: String
   addressLine2: String
@@ -136,6 +148,7 @@ input AdminUpdateUserProfileInput {
   companyName: String
   country: String
   firstName: String
+  isVip: Boolean
   lastName: String
   phone: String
   postalCode: String
@@ -285,6 +298,11 @@ type IdentityVerificationType {
   userId: String!
 }
 
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 input ListBeneficiariesInput {
   limit: Int
   offset: Int
@@ -336,10 +354,12 @@ type Mutation {
   adminSetPaymentMethodEnabled(code: String!, enabled: Boolean!): PaymentMethodType!
   adminSetReceptionMethodEnabled(code: String!, enabled: Boolean!): ReceptionMethodType!
   adminSetUserRoles(input: AdminSetUserRolesInput!): UserType!
+  adminSetUserVip(input: AdminSetUserVipInput!): UserType!
   adminUpdateCommissionRule(input: AdminUpdateCommissionRuleInput!): CommissionRuleType!
   adminUpdateCurrency(input: AdminUpdateCurrencyInput!): CurrencyType!
   adminUpdateDeliveryFeeRule(input: AdminUpdateDeliveryFeeRuleInput!): DeliveryFeeRuleType!
   adminUpdateExchangeRate(input: AdminUpdateExchangeRateInput!): ExchangeRateType!
+  adminUpdatePaymentMethod(input: AdminUpdatePaymentMethodInput!): PaymentMethodType!
   adminUpdatePaymentMethodAdditionalData(input: AdminUpdatePaymentMethodAdditionalDataInput!): PaymentMethodType!
   adminUpdatePaymentMethodDescription(code: String!, description: String): PaymentMethodType!
   adminUpdateReceptionMethodDescription(code: String!, description: String): ReceptionMethodType!
@@ -366,12 +386,6 @@ type Mutation {
 enum OriginAccountHolderType {
   COMPANY
   PERSON
-}
-
-enum OriginAccountType {
-  IBAN
-  STRIPE
-  ZELLE
 }
 
 enum PaymentMethodKind {
@@ -480,6 +494,11 @@ input RegisterInput {
   password: String!
 }
 
+type RemittanceOriginAccountType {
+  data: JSON!
+  paymentMethodCode: String!
+}
+
 type RemittanceRecipientType {
   addressLine1: String!
   addressLine2: String
@@ -515,13 +534,11 @@ type RemittanceType {
   destinationAccountNumber: String
   feesBreakdownJson: String
   id: ID!
+  originAccount: RemittanceOriginAccountType
   originAccountHolderCompanyName: String
   originAccountHolderFirstName: String
   originAccountHolderLastName: String
   originAccountHolderType: OriginAccountHolderType
-  originIban: String
-  originStripePaymentMethodId: String
-  originZelleEmail: String
   owner: UserType!
   paymentAmount: String!
   paymentCurrency: CurrencyType
@@ -582,7 +599,7 @@ input SubmitRemittanceV2DeliveryLocationInput {
 input SubmitRemittanceV2Input {
   beneficiaryId: ID
   deliveryLocation: SubmitRemittanceV2DeliveryLocationInput!
-  destinationCupCardNumber: String
+  destinationAccountNumber: String
   manualBeneficiary: ManualBeneficiaryInput
   originAccount: SubmitRemittanceV2OriginAccountInput!
   originAccountHolder: SubmitRemittanceV2OriginAccountHolderInput!
@@ -590,6 +607,7 @@ input SubmitRemittanceV2Input {
   paymentCurrencyCode: String!
   receivingCurrencyCode: String
   receptionMethod: ReceptionMethod!
+  saveManualBeneficiary: Boolean
 }
 
 input SubmitRemittanceV2OriginAccountHolderInput {
@@ -600,10 +618,8 @@ input SubmitRemittanceV2OriginAccountHolderInput {
 }
 
 input SubmitRemittanceV2OriginAccountInput {
-  iban: String
-  originAccountType: OriginAccountType!
-  stripePaymentMethodId: String
-  zelleEmail: String
+  data: JSON!
+  paymentMethodCode: String!
 }
 
 input UpdateBeneficiaryInput {
@@ -650,9 +666,11 @@ type UserType {
   id: String!
   isActive: Boolean!
   isDeleted: Boolean!
+  isVip: Boolean!
   lastName: String
   phone: String
   postalCode: String
   role: String!
+  totalGeneratedAmount: String!
   updatedAt: DateTime!
 }

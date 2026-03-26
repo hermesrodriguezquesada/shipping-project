@@ -1,8 +1,10 @@
 import { Field, ID, InputType } from '@nestjs/graphql';
-import { OriginAccountHolderType, OriginAccountType, ReceptionMethod } from '@prisma/client';
+import { OriginAccountHolderType, ReceptionMethod } from '@prisma/client';
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
@@ -10,6 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { BeneficiaryRelationship, DocumentType } from '@prisma/client';
+import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class SubmitRemittanceV2OriginAccountHolderInput {
@@ -35,24 +38,13 @@ export class SubmitRemittanceV2OriginAccountHolderInput {
 
 @InputType()
 export class SubmitRemittanceV2OriginAccountInput {
-  @Field(() => OriginAccountType)
-  @IsEnum(OriginAccountType)
-  originAccountType!: OriginAccountType;
-
-  @Field({ nullable: true })
-  @IsOptional()
+  @Field()
   @IsString()
-  iban?: string;
+  paymentMethodCode!: string;
 
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  zelleEmail?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  stripePaymentMethodId?: string;
+  @Field(() => GraphQLJSON)
+  @IsObject()
+  data!: Record<string, unknown>;
 }
 
 @InputType()
@@ -143,6 +135,11 @@ export class SubmitRemittanceV2Input {
   @Type(() => ManualBeneficiaryInput)
   manualBeneficiary?: ManualBeneficiaryInput;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  saveManualBeneficiary?: boolean;
+
   @Field()
   @IsString()
   paymentAmount!: string;
@@ -163,7 +160,7 @@ export class SubmitRemittanceV2Input {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  destinationCupCardNumber?: string;
+  destinationAccountNumber?: string;
 
   @Field(() => SubmitRemittanceV2OriginAccountHolderInput)
   @ValidateNested()

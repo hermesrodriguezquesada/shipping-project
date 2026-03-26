@@ -44,10 +44,6 @@ export class PricingCalculatorService {
     const paymentCurrencyCode = input.paymentCurrencyCode.trim().toUpperCase();
     const receivingCurrencyCode = input.receivingCurrencyCode.trim().toUpperCase();
 
-    if (paymentCurrencyCode !== 'USD' && paymentCurrencyCode !== 'EUR') {
-      throw new ValidationDomainException('Commission only supports paymentCurrencyCode USD or EUR');
-    }
-
     if (input.amount.lte(0)) {
       throw new ValidationDomainException('amount must be greater than 0');
     }
@@ -96,7 +92,7 @@ export class PricingCalculatorService {
 
   private calculateCommissionAmount(amount: Prisma.Decimal, rule: CommissionRuleReadModel): Prisma.Decimal {
     if (amount.gt(rule.thresholdAmount)) {
-      return this.round2(amount.mul(rule.percentRate));
+      return this.round2(amount.mul(rule.percentRate).div(100));
     }
 
     return this.round2(rule.flatFee);

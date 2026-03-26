@@ -57,10 +57,8 @@ export interface RemittanceReadModel {
   amount: Prisma.Decimal;
   feesBreakdownJson: string | null;
   netReceivingAmount: Prisma.Decimal | null;
-  originZelleEmail: string | null;
-  originIban: string | null;
-  originStripePaymentMethodId: string | null;
-  destinationCupCardNumber: string | null;
+  originAccountData: Prisma.JsonValue | null;
+  destinationAccountNumber: string | null;
   originAccountHolderType: OriginAccountHolderType | null;
   originAccountHolderFirstName: string | null;
   originAccountHolderLastName: string | null;

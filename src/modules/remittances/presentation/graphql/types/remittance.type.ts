@@ -1,14 +1,25 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import {
   OriginAccountHolderType,
+  Prisma,
   RemittanceStatus,
 } from '@prisma/client';
+import GraphQLJSON from 'graphql-type-json';
 import { BeneficiaryType } from 'src/modules/beneficiaries/presentation/graphql/types/beneficiary.type';
 import { CurrencyCatalogType } from 'src/modules/catalogs/presentation/graphql/types/currency-catalog.type';
 import { PaymentMethodType } from 'src/modules/catalogs/presentation/graphql/types/payment-method.type';
 import { ReceptionMethodType } from 'src/modules/catalogs/presentation/graphql/types/reception-method.type';
 import { UserType } from 'src/modules/users/presentation/graphql/types/user.type';
 import { RemittanceRecipientType } from './remittance-recipient.type';
+
+@ObjectType()
+export class RemittanceOriginAccountType {
+  @Field()
+  paymentMethodCode!: string;
+
+  @Field(() => GraphQLJSON)
+  data!: Prisma.JsonValue;
+}
 
 @ObjectType()
 export class RemittanceType {
@@ -30,14 +41,8 @@ export class RemittanceType {
   @Field(() => String, { nullable: true })
   feesBreakdownJson?: string | null;
 
-  @Field(() => String, { nullable: true })
-  originZelleEmail?: string | null;
-
-  @Field(() => String, { nullable: true })
-  originIban?: string | null;
-
-  @Field(() => String, { nullable: true })
-  originStripePaymentMethodId?: string | null;
+  @Field(() => RemittanceOriginAccountType, { nullable: true })
+  originAccount?: RemittanceOriginAccountType | null;
 
   @Field(() => ReceptionMethodType, { nullable: true })
   receptionMethod?: ReceptionMethodType | null;

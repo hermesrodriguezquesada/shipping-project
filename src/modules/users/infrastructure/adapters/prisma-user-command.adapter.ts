@@ -21,6 +21,7 @@ export class PrismaUserCommandAdapter implements UserCommandPort {
       city?: string;
       country?: string;
       postalCode?: string;
+      isVip?: boolean;
       clientType?: ClientType;
       companyName?: string | null;
     }): Promise<UserEntity> {
@@ -40,6 +41,7 @@ export class PrismaUserCommandAdapter implements UserCommandPort {
           ...(input.city !== undefined ? { city: input.city } : {}),
           ...(input.country !== undefined ? { country: input.country } : {}),
           ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+          ...(input.isVip !== undefined ? { isVip: input.isVip } : {}),
         },
         });
         return this.toDomain(row);
@@ -72,6 +74,8 @@ private toDomain(row: PrismaUser): UserEntity {
     roles: row.roles,
     isActive: row.isActive,
     isDeleted: row.isDeleted,
+    isVip: row.isVip,
+    totalGeneratedAmount: row.totalGeneratedAmount,
 
     firstName: row.firstName ?? null,
     lastName: row.lastName ?? null,
@@ -102,6 +106,7 @@ async updateProfile(input: {
   city?: string | null;
   country?: string | null;
   postalCode?: string | null;
+  isVip?: boolean;
   clientType?: ClientType;
   companyName?: string | null;
 }): Promise<UserEntity> {
@@ -117,6 +122,7 @@ async updateProfile(input: {
       ...(input.city !== undefined ? { city: input.city } : {}),
       ...(input.country !== undefined ? { country: input.country } : {}),
       ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+      ...(input.isVip !== undefined ? { isVip: input.isVip } : {}),
       ...(input.clientType !== undefined ? { clientType: input.clientType } : {}),
       ...(input.companyName !== undefined ? { companyName: input.companyName } : {}),
     },

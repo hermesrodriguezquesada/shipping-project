@@ -26,6 +26,7 @@ export class AdminUpdateUserProfileUseCase {
     city?: string;
     country?: string;
     postalCode?: string;
+    isVip?: boolean;
     clientType?: ClientType;
     companyName?: string;
   }) {
@@ -52,6 +53,7 @@ export class AdminUpdateUserProfileUseCase {
       ...(input.city !== undefined ? { city: input.city } : {}),
       ...(input.country !== undefined ? { country: input.country } : {}),
       ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+      ...(input.isVip !== undefined ? { isVip: input.isVip } : {}),
       clientType: effectiveClientType,
       companyName: effectiveClientType === ClientType.COMPANY ? effectiveCompanyName : null,
     });

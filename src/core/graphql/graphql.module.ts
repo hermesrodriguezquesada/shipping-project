@@ -4,6 +4,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'node:path';
 import { APP_FILTER } from '@nestjs/core';
 import { DomainExceptionFilter } from '../exceptions/graphql/domain-exception.filter';
+import GraphQLJSON from 'graphql-type-json';
 
 @Module({
   imports: [
@@ -15,6 +16,9 @@ import { DomainExceptionFilter } from '../exceptions/graphql/domain-exception.fi
       introspection: true,
       path: '/graphql',
       context: ({ req }) => ({ req }),
+      resolvers: {
+        JSON: GraphQLJSON,
+      },
     }),
   ],
   providers: [

@@ -11,6 +11,8 @@ import { UserMapper } from '../../mappers/user.mapper';
 
 import { AdminSetUserRolesInput } from '../inputs/admin-set-user-roles.input';
 import { AdminSetUserRolesUseCase } from 'src/modules/users/application/use-cases/admin/admin-set-user-roles.usecase';
+import { AdminSetUserVipInput } from '../inputs/admin-set-user-vip.input';
+import { AdminSetUserVipUseCase } from 'src/modules/users/application/use-cases/admin/admin-set-user-vip.usecase';
 
 
 import { AdminListUsersInputDto } from 'src/modules/users/application/dto/admin-list-users.input.dto';
@@ -34,6 +36,7 @@ export class AdminUsersResolver {
     private readonly listUsers: AdminListUsersUseCase,
     private readonly createUser: AdminCreateUserUseCase,
     private readonly setRoles: AdminSetUserRolesUseCase,
+    private readonly setUserVip: AdminSetUserVipUseCase,
     private readonly banUser: AdminBanUserUseCase,
     private readonly activateUser: AdminActivateUserUseCase,
     private readonly deleteUser: AdminSoftDeleteUserUseCase,
@@ -78,6 +81,7 @@ async adminUsers(
       city: input.city,
       country: input.country,
       postalCode: input.postalCode,
+      isVip: input.isVip,
       clientType: input.clientType,
       companyName: input.companyName,
     });
@@ -92,6 +96,18 @@ async adminUsers(
       userId: input.userId,
       roles: input.roles,
     });
+    return UserMapper.toGraphQL(updated);
+  }
+
+  @Mutation(() => UserType, { name: 'adminSetUserVip' })
+  async adminSetUserVip(
+    @Args('input') input: AdminSetUserVipInput,
+  ): Promise<UserType> {
+    const updated = await this.setUserVip.execute({
+      userId: input.userId,
+      isVip: input.isVip,
+    });
+
     return UserMapper.toGraphQL(updated);
   }
 
@@ -134,6 +150,7 @@ async adminUsers(
       city: input.city,
       country: input.country,
       postalCode: input.postalCode,
+      isVip: input.isVip,
       clientType: input.clientType,
       companyName: input.companyName,
     });

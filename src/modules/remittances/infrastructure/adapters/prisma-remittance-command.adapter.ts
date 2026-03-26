@@ -5,7 +5,6 @@ import {
   BeneficiaryRelationship,
   DocumentType,
   OriginAccountHolderType,
-  OriginAccountType,
   Prisma,
   ReceptionMethod,
   RemittanceStatus,
@@ -31,25 +30,23 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
     recipientRelationship: BeneficiaryRelationship | null;
     recipientDeliveryInstructions: string | null;
     paymentAmount: Prisma.Decimal;
-    originAccountType: OriginAccountType;
+    paymentMethodCode: string;
+    originAccountData: Prisma.InputJsonValue;
     paymentCurrencyId: string;
     receivingCurrencyId: string;
     receptionMethod: ReceptionMethod;
-    destinationCupCardNumber: string | null;
+    destinationAccountNumber: string | null;
     originAccountHolderType: OriginAccountHolderType;
     originAccountHolderFirstName: string | null;
     originAccountHolderLastName: string | null;
     originAccountHolderCompanyName: string | null;
-    originZelleEmail: string | null;
-    originIban: string | null;
-    originStripePaymentMethodId: string | null;
     exchangeRateIdUsed: string;
     exchangeRateRateUsed: Prisma.Decimal;
     exchangeRateUsedAt: Date;
-    commissionRuleIdUsed: string;
-    commissionRuleVersionUsed: number;
+    commissionRuleIdUsed: string | null;
+    commissionRuleVersionUsed: number | null;
     commissionAmount: Prisma.Decimal;
-    commissionCurrencyIdUsed: string;
+    commissionCurrencyIdUsed: string | null;
     deliveryFeeRuleIdUsed: string | null;
     deliveryFeeAmount: Prisma.Decimal;
     deliveryFeeCurrencyIdUsed: string;
@@ -58,7 +55,7 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
     feesBreakdownJson: string;
   }): Promise<string> {
     const paymentMethod = await this.prisma.paymentMethod.findUnique({
-      where: { code: input.originAccountType },
+      where: { code: input.paymentMethodCode },
       select: { id: true },
     });
 
@@ -89,14 +86,12 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
         receptionMethodId: receptionMethodCatalog?.id,
         currencyId: input.paymentCurrencyId,
         receivingCurrencyId: input.receivingCurrencyId,
-        destinationCupCardNumber: input.destinationCupCardNumber,
+        destinationAccountNumber: input.destinationAccountNumber,
         originAccountHolderType: input.originAccountHolderType,
         originAccountHolderFirstName: input.originAccountHolderFirstName,
         originAccountHolderLastName: input.originAccountHolderLastName,
         originAccountHolderCompanyName: input.originAccountHolderCompanyName,
-        originZelleEmail: input.originZelleEmail,
-        originIban: input.originIban,
-        originStripePaymentMethodId: input.originStripePaymentMethodId,
+        originAccountData: input.originAccountData,
         exchangeRateIdUsed: input.exchangeRateIdUsed,
         exchangeRateRateUsed: input.exchangeRateRateUsed,
         exchangeRateUsedAt: input.exchangeRateUsedAt,
@@ -131,11 +126,41 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
   }
 
   async confirmPayment(input: { id: string }): Promise<void> {
-    await this.prisma.remittance.update({
-      where: { id: input.id },
-      data: {
-        status: RemittanceStatus.PAID_SENDING_TO_RECEIVER,
-      },
+    await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.remittance.updateMany({
+        where: {
+          id: input.id,
+          status: RemittanceStatus.PENDING_PAYMENT_CONFIRMATION,
+        },
+        data: {
+          status: RemittanceStatus.PAID_SENDING_TO_RECEIVER,
+        },
+      });
+
+      if (updated.count === 0) {
+        return;
+      }
+
+      const remittance = await tx.remittance.findUnique({
+        where: { id: input.id },
+        select: {
+          amount: true,
+          senderUserId: true,
+        },
+      });
+
+      if (!remittance) {
+        return;
+      }
+
+      await tx.user.update({
+        where: { id: remittance.senderUserId },
+        data: {
+          totalGeneratedAmount: {
+            increment: remittance.amount,
+          },
+        },
+      });
     });
   }
 

@@ -7,6 +7,7 @@ import { AdminUsersResolver } from './presentation/graphql/resolvers/admin-users
 import { GetUserByIdUseCase } from './application/use-cases/get-user-by-id.usecase';
 import { AdminListUsersUseCase } from './application/use-cases/admin/admin-list-users.usecase';
 import { AdminSetUserRolesUseCase } from './application/use-cases/admin/admin-set-user-roles.usecase';
+import { AdminSetUserVipUseCase } from './application/use-cases/admin/admin-set-user-vip.usecase';
 import { AdminBanUserUseCase } from './application/use-cases/admin/admin-ban-user.usecase';
 import { AdminActivateUserUseCase } from './application/use-cases/admin/admin-activate-user.usecase';
 import { AdminSoftDeleteUserUseCase } from './application/use-cases/admin/admin-delete-user.usecase';
@@ -39,6 +40,7 @@ import { UpdateMyProfileUseCase } from './application/use-cases/update-my-profil
     AdminListUsersUseCase,
     AdminCreateUserUseCase,
     AdminSetUserRolesUseCase,
+    AdminSetUserVipUseCase,
     AdminBanUserUseCase,
     AdminActivateUserUseCase,
     AdminSoftDeleteUserUseCase,
