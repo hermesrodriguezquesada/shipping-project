@@ -7,3 +7,5 @@ import './reception-payout-method.enum';
 import './origin-account-holder-type.enum';
 import './remittance-status.enum';
 import './currency.enum';
+import './external-payment-provider.enum';
+import './external-payment-status.enum';

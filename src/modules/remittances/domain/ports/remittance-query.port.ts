@@ -1,5 +1,7 @@
 import {
   BeneficiaryRelationship,
+  ExternalPaymentProvider,
+  ExternalPaymentStatus,
   OriginAccountHolderType,
   Prisma,
   RemittanceStatus,
@@ -39,6 +41,39 @@ export interface RemittanceBeneficiaryReadModel {
   updatedAt: Date;
 }
 
+export type TransactionsPeriodGrouping = 'DAILY' | 'WEEKLY' | 'MONTHLY';
+
+export interface ExternalPaymentSummaryReadModel {
+  id: string;
+  provider: ExternalPaymentProvider;
+  status: ExternalPaymentStatus;
+  amount: Prisma.Decimal;
+  currencyCode: string;
+  checkoutUrl: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TransactionsPeriodBucketReadModel {
+  periodStart: Date;
+  periodEnd: Date;
+  transactionCount: number;
+  timezone: string;
+}
+
+export interface TransactionsAmountStatsReadModel {
+  totalPaymentAmount: Prisma.Decimal;
+  totalReceivingAmount: Prisma.Decimal;
+  remittanceCount: number;
+}
+
+export interface PaymentMethodUsageMetricReadModel {
+  paymentMethodCode: string | null;
+  paymentMethodName: string | null;
+  usageCount: number;
+  totalPaymentAmount: Prisma.Decimal;
+}
+
 export interface RemittanceReadModel {
   id: string;
   status: RemittanceStatus;
@@ -75,6 +110,7 @@ export interface RemittanceReadModel {
   exchangeRateUsed: ExchangeRateReadModel | null;
   sender: UserEntity;
   beneficiary: RemittanceBeneficiaryReadModel;
+  latestExternalPayment: ExternalPaymentSummaryReadModel | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,6 +121,37 @@ export interface RemittanceQueryPort {
   listMyRemittances(input: { senderUserId: string; limit?: number; offset?: number }): Promise<RemittanceReadModel[]>;
   listRemittances(input: { limit?: number; offset?: number }): Promise<RemittanceReadModel[]>;
   listRemittancesByUser(input: { userId: string; limit?: number; offset?: number }): Promise<RemittanceReadModel[]>;
+  listAdminTransactions(input: {
+    status?: RemittanceStatus;
+    userId?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+    paymentMethodCode?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<RemittanceReadModel[]>;
   findRemittanceById(input: { id: string }): Promise<RemittanceReadModel | null>;
+  reportTransactionsByPeriod(input: {
+    dateFrom: Date;
+    dateTo: Date;
+    grouping: TransactionsPeriodGrouping;
+    status?: RemittanceStatus;
+    userId?: string;
+    paymentMethodCode?: string;
+  }): Promise<TransactionsPeriodBucketReadModel[]>;
+  getTransactionsAmountStats(input: {
+    dateFrom: Date;
+    dateTo: Date;
+    status?: RemittanceStatus;
+    userId?: string;
+    paymentMethodCode?: string;
+  }): Promise<TransactionsAmountStatsReadModel>;
+  getPaymentMethodUsageMetrics(input: {
+    dateFrom: Date;
+    dateTo: Date;
+    status?: RemittanceStatus;
+    userId?: string;
+    paymentMethodCode?: string;
+  }): Promise<PaymentMethodUsageMetricReadModel[]>;
   beneficiaryBelongsToUser(input: { beneficiaryId: string; ownerUserId: string }): Promise<boolean>;
 }

@@ -72,6 +72,47 @@ input AdminCreateUserInput {
   roles: [Role!]
 }
 
+type AdminDashboardKpisType {
+  totalPaymentAmount: String!
+  totalReceivingAmount: String!
+  totalTransactions: Int!
+}
+
+type AdminDashboardPeriodType {
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  grouping: AdminReportGrouping!
+}
+
+input AdminDashboardSummaryInput {
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  grouping: AdminReportGrouping!
+  paymentMethodCode: String
+  status: RemittanceStatus
+  topPaymentMethodsLimit: Int = 5
+  userId: ID
+}
+
+type AdminDashboardSummaryType {
+  kpis: AdminDashboardKpisType!
+  period: AdminDashboardPeriodType!
+  periodTrend: [AdminTransactionsPeriodBucketType!]!
+  timezone: String!
+  topPaymentMethods: [AdminPaymentMethodUsageMetricType!]!
+}
+
+type AdminExternalPaymentSummaryType {
+  amount: String!
+  checkoutUrl: String
+  createdAt: DateTime!
+  currencyCode: String!
+  id: ID!
+  provider: ExternalPaymentProvider!
+  status: ExternalPaymentStatus!
+  updatedAt: DateTime!
+}
+
 input AdminListUsersInput {
   email: String
   id: String
@@ -80,6 +121,95 @@ input AdminListUsersInput {
   limit: Int
   offset: Int
   role: Role
+}
+
+input AdminPaymentMethodUsageInput {
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  paymentMethodCode: String
+  status: RemittanceStatus
+  userId: ID
+}
+
+type AdminPaymentMethodUsageMetricType {
+  paymentMethodCode: String
+  paymentMethodName: String
+  totalPaymentAmount: String!
+  usageCount: Int!
+}
+
+enum AdminReportExportDataset {
+  AMOUNT_STATS
+  DASHBOARD_SUMMARY
+  PAYMENT_METHOD_USAGE
+  PERIOD_REPORT
+  TRANSACTIONS
+}
+
+enum AdminReportExportFormat {
+  CSV
+  EXCEL
+  PDF
+}
+
+type AdminReportExportHistoryItemType {
+  createdAt: DateTime!
+  dataset: AdminReportExportDataset!
+  downloadUrl: String
+  expiresAt: DateTime!
+  fileName: String!
+  format: AdminReportExportFormat!
+  id: ID!
+  mimeType: String!
+  sizeBytes: Int!
+  status: AdminReportExportStatus!
+}
+
+input AdminReportExportInput {
+  dataset: AdminReportExportDataset!
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  format: AdminReportExportFormat!
+  grouping: AdminReportGrouping
+  limit: Int
+  offset: Int
+  paymentMethodCode: String
+  status: RemittanceStatus
+  topPaymentMethodsLimit: Int = 5
+  userId: ID
+}
+
+type AdminReportExportPayload {
+  contentBase64: String!
+  dataset: AdminReportExportDataset!
+  downloadUrl: String!
+  expiresAt: DateTime!
+  exportId: ID!
+  fileName: String!
+  format: AdminReportExportFormat!
+  generatedAt: DateTime!
+  mimeType: String!
+  sizeBytes: Int!
+}
+
+enum AdminReportExportStatus {
+  EXPIRED
+  FAILED
+  GENERATED
+}
+
+input AdminReportExportsInput {
+  dataset: AdminReportExportDataset
+  format: AdminReportExportFormat
+  limit: Int = 20
+  offset: Int = 0
+  status: AdminReportExportStatus
+}
+
+enum AdminReportGrouping {
+  DAILY
+  MONTHLY
+  WEEKLY
 }
 
 input AdminReviewIdentityInput {
@@ -96,6 +226,64 @@ input AdminSetUserRolesInput {
 input AdminSetUserVipInput {
   isVip: Boolean!
   userId: ID!
+}
+
+type AdminTransactionType {
+  beneficiaryFullName: String!
+  beneficiaryId: String!
+  createdAt: DateTime!
+  externalPayment: AdminExternalPaymentSummaryType
+  id: ID!
+  owner: UserType!
+  paymentAmount: String!
+  paymentCurrencyCode: String
+  paymentMethodCode: String
+  paymentMethodName: String
+  receivingAmount: String
+  receivingCurrencyCode: String
+  recipient: RemittanceRecipientType!
+  status: RemittanceStatus!
+  updatedAt: DateTime!
+}
+
+input AdminTransactionsAmountStatsInput {
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  paymentMethodCode: String
+  status: RemittanceStatus
+  userId: ID
+}
+
+type AdminTransactionsAmountStatsType {
+  remittanceCount: Int!
+  totalPaymentAmount: String!
+  totalReceivingAmount: String!
+}
+
+input AdminTransactionsFilterInput {
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  limit: Int
+  offset: Int
+  paymentMethodCode: String
+  status: RemittanceStatus
+  userId: ID
+}
+
+type AdminTransactionsPeriodBucketType {
+  periodEnd: DateTime!
+  periodStart: DateTime!
+  timezone: String!
+  transactionCount: Int!
+}
+
+input AdminTransactionsPeriodReportInput {
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  grouping: AdminReportGrouping!
+  paymentMethodCode: String
+  status: RemittanceStatus
+  userId: ID
 }
 
 input AdminUpdateCommissionRuleInput {
@@ -229,6 +417,18 @@ input CreateBeneficiaryInput {
   relationship: BeneficiaryRelationship
 }
 
+input CreateExternalPaymentSessionInput {
+  remittanceId: ID!
+}
+
+type CreateExternalPaymentSessionPayload {
+  checkoutUrl: String
+  expiresAt: DateTime
+  paymentId: ID!
+  provider: ExternalPaymentProvider!
+  status: ExternalPaymentStatus!
+}
+
 type CurrencyType {
   code: String!
   createdAt: DateTime!
@@ -271,6 +471,19 @@ type ExchangeRateType {
   rate: String!
   toCurrency: CurrencyType!
   updatedAt: DateTime!
+}
+
+enum ExternalPaymentProvider {
+  STRIPE
+}
+
+enum ExternalPaymentStatus {
+  CANCELED
+  CREATED
+  EXPIRED
+  FAILED
+  PENDING
+  SUCCEEDED
 }
 
 enum IdentityStatus {
@@ -367,6 +580,7 @@ type Mutation {
   cancelMyRemittance(remittanceId: ID!): Boolean!
   changePassword(input: ChangePasswordInput!): Boolean!
   createBeneficiary(input: CreateBeneficiaryInput!): BeneficiaryType!
+  createExternalPaymentSession(input: CreateExternalPaymentSessionInput!): CreateExternalPaymentSessionPayload!
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
@@ -432,12 +646,19 @@ type PricingPreviewType {
 
 type Query {
   adminCommissionRules(currencyCode: String, enabled: Boolean, holderType: OriginAccountHolderType): [CommissionRuleType!]!
+  adminDashboardSummary(input: AdminDashboardSummaryInput!): AdminDashboardSummaryType!
   adminDeliveryFeeRules(country: String, currencyCode: String, enabled: Boolean): [DeliveryFeeRuleType!]!
   adminExchangeRates(from: String, limit: Int, offset: Int, to: String): [ExchangeRateType!]!
+  adminExportReport(input: AdminReportExportInput!): AdminReportExportPayload!
+  adminPaymentMethodUsageMetrics(input: AdminPaymentMethodUsageInput!): [AdminPaymentMethodUsageMetricType!]!
   adminPendingVerifications(limit: Int, offset: Int): [IdentityVerificationType!]!
   adminRemittance(id: ID!): RemittanceType
   adminRemittances(limit: Int, offset: Int): [RemittanceType!]!
   adminRemittancesByUser(limit: Int, offset: Int, userId: ID!): [RemittanceType!]!
+  adminReportExports(input: AdminReportExportsInput): [AdminReportExportHistoryItemType!]!
+  adminTransactions(input: AdminTransactionsFilterInput!): [AdminTransactionType!]!
+  adminTransactionsAmountStats(input: AdminTransactionsAmountStatsInput!): AdminTransactionsAmountStatsType!
+  adminTransactionsPeriodReport(input: AdminTransactionsPeriodReportInput!): [AdminTransactionsPeriodBucketType!]!
   adminUsers(input: AdminListUsersInput): [UserType!]!
   beneficiary(id: ID!): BeneficiaryType!
   currencies(enabledOnly: Boolean): [CurrencyType!]!

@@ -215,6 +215,25 @@ enum PaymentMethodType {
   MANUAL
 }
 
+enum ExternalPaymentProvider {
+  STRIPE
+}
+
+enum ExternalPaymentStatus {
+  CREATED
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+  EXPIRED
+}
+
+enum AdminReportExportStatus {
+  GENERATED
+  EXPIRED
+  FAILED
+}
+
 model PaymentMethod {
   id          String   @id @default(uuid())
   code        String   @unique
@@ -380,6 +399,7 @@ model Remittance {
   exchangeRateUsed ExchangeRate? @relation(fields: [exchangeRateIdUsed], references: [id], onDelete: SetNull)
   commissionRuleUsed CommissionRule? @relation("RemittanceCommissionRuleUsed", fields: [commissionRuleIdUsed], references: [id], onDelete: SetNull)
   deliveryFeeRuleUsed DeliveryFeeRule? @relation("RemittanceDeliveryFeeRuleUsed", fields: [deliveryFeeRuleIdUsed], references: [id], onDelete: SetNull)
+  externalPayments ExternalPayment[]
 
   @@index([senderUserId, createdAt])
   @@index([beneficiaryId])
@@ -392,4 +412,54 @@ model Remittance {
   @@index([commissionCurrencyIdUsed])
   @@index([deliveryFeeCurrencyIdUsed])
   @@index([netReceivingCurrencyIdUsed])
+}
+
+model ExternalPayment {
+  id                      String                  @id @default(uuid())
+  remittanceId            String
+  provider                ExternalPaymentProvider
+  providerPaymentId       String?
+  providerSessionId       String?
+  providerEventId         String?
+  checkoutUrl             String?
+  status                  ExternalPaymentStatus
+  amount                  Decimal
+  currencyCode            String
+  idempotencyKey          String                  @unique
+  metadataJson            Json?
+  expiresAt               DateTime?
+  lastWebhookEventId      String?
+  lastWebhookReceivedAt   DateTime?
+  acceptedAt              DateTime?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  remittance Remittance @relation(fields: [remittanceId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerPaymentId])
+  @@unique([provider, providerEventId])
+  @@index([remittanceId])
+  @@index([provider, status])
+  @@index([lastWebhookEventId])
+}
+
+model AdminReportExport {
+  id                String                  @id
+  requestedByUserId String
+  dataset           String
+  format            String
+  filtersJson       String?
+  status            AdminReportExportStatus @default(GENERATED)
+  fileName          String
+  mimeType          String
+  sizeBytes         Int
+  storagePath       String
+  expiresAt         DateTime
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@index([requestedByUserId])
+  @@index([status, createdAt])
+  @@index([expiresAt])
+  @@index([dataset, format])
 }

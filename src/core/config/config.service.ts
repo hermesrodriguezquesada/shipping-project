@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { join } from 'node:path';
 
 @Injectable()
 export class AppConfigService {
@@ -113,6 +114,21 @@ export class AppConfigService {
 
   get elToqueTimeoutMs(): number {
     return this.configService.get<number>('ELTOQUE_TIMEOUT_MS', 10000);
+  }
+
+  get adminReportExportsDir(): string {
+    return this.configService.get<string>(
+      'ADMIN_REPORT_EXPORTS_DIR',
+      join(process.cwd(), 'tmp', 'admin-report-exports'),
+    );
+  }
+
+  get adminReportExportTtlHours(): number {
+    return this.configService.get<number>('ADMIN_REPORT_EXPORT_TTL_HOURS', 24);
+  }
+
+  get backendPublicBaseUrl(): string {
+    return this.configService.get<string>('BACKEND_PUBLIC_BASE_URL', `http://localhost:${this.port}`);
   }
 
 }

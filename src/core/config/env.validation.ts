@@ -98,10 +98,30 @@ class EnvironmentVariables {
 
   @IsString()
   ELTOQUE_API_TOKEN: string;
+  
+  @IsOptional()
+  @IsString()
+  STRIPE_SECRET_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  STRIPE_WEBHOOK_SECRET?: string;
 
   @IsOptional()
   @IsInt()
   ELTOQUE_TIMEOUT_MS?: number;
+
+  @IsOptional()
+  @IsString()
+  ADMIN_REPORT_EXPORTS_DIR?: string;
+
+  @IsOptional()
+  @IsInt()
+  ADMIN_REPORT_EXPORT_TTL_HOURS?: number;
+
+  @IsOptional()
+  @IsString()
+  BACKEND_PUBLIC_BASE_URL?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {
