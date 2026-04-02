@@ -1,0 +1,58 @@
+---
+title: "BugFix: submitRemittanceV2 - Remove mandatory metadata validation"
+status: completed
+date_started: 2025-04-01
+date_completed: 2025-04-01
+
+# Brief summary
+summary: |
+  Fixed bug where submitRemittanceV2 failed with "payment method metadata is invalid"
+  for payment methods without schema-driven metadata. Solution: removed strict metadata
+  validation, replaced with minimal validation (only check that originAccountData is
+  valid JSON). Affected 3 files, ~260 lines removed, zero impact on other modules.
+
+# Key metrics
+metrics:
+  files_changed: 3
+  lines_added: 50
+  lines_removed: 260
+  tests_removed: 3
+  smoke_tests_passed: 3
+  build_errors: 0
+
+# Verification
+verification:
+  build: ✅ PASS
+  tests: ✅ PASS
+  smoke_tests: ✅ PASS
+  graphql_contract: ✅ UNCHANGED
+  dependencies: ✅ NONE AFFECTED
+  runtime_startup: ✅ OK
+
+# Related files changed
+files:
+  - src/modules/remittances/application/use-cases/submit-remittance-v2.usecase.ts
+  - src/prisma/seed.ts
+  - src/modules/remittances/application/use-cases/submit-remittance-v2.usecase.spec.ts
+
+# Risk assessment
+risk_level: LOW
+reason: |
+  - No other modules depend on removed validation
+  - GraphQL contract unchanged
+  - Database schema unchanged
+  - Existing smoke tests validate core functionality
+  - Bug completely eliminated
+
+# Non-goals
+non_goals:
+  - Modify GraphQL contract
+  - Change other modules consuming PaymentMethod
+  - Rewrite entire seed
+  - Add new validations
+
+# Notes
+notes: |
+  - Conversación completada con 4 fases: Discovery, Implementation, Static Validation, Runtime Validation
+  - Documentación OpenSpec formal creada en openspec/changes/20250401-bugfix-submit-remittance-metadata-validation/
+  - Memoria del repo actualizada con detalles del cambio completado

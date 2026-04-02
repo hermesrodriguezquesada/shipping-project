@@ -13,51 +13,6 @@ type UseCaseDeps = {
   config: { remittanceAmountMin: number; remittanceAmountMax: number };
 };
 
-const zelleMetadata = {
-  schemaVersion: 1,
-  allowedFields: ['zelleEmail'],
-  requiredFields: ['zelleEmail'],
-  fieldDefinitions: {
-    zelleEmail: {
-      type: 'string',
-      format: 'email',
-      required: true,
-      minLength: 5,
-      maxLength: 254,
-    },
-  },
-};
-
-const ibanMetadata = {
-  schemaVersion: 1,
-  allowedFields: ['iban'],
-  requiredFields: ['iban'],
-  fieldDefinitions: {
-    iban: {
-      type: 'string',
-      format: 'iban',
-      required: true,
-      minLength: 15,
-      maxLength: 34,
-    },
-  },
-};
-
-const stripeMetadata = {
-  schemaVersion: 1,
-  allowedFields: ['stripePaymentMethodId'],
-  requiredFields: ['stripePaymentMethodId'],
-  fieldDefinitions: {
-    stripePaymentMethodId: {
-      type: 'string',
-      format: 'token',
-      required: true,
-      minLength: 3,
-      maxLength: 255,
-    },
-  },
-};
-
 const buildUseCase = () => {
   const deps: UseCaseDeps = {
     beneficiaryCommand: { create: jest.fn() },
@@ -88,10 +43,9 @@ const buildUseCase = () => {
 
 const setupCommonSuccessMocks = (
   deps: UseCaseDeps,
-  input: { paymentMethodCode?: string; metadata?: unknown; receptionMethodType?: ReceptionPayoutMethod; receptionCurrency?: string } = {},
+  input: { paymentMethodCode?: string; receptionMethodType?: ReceptionPayoutMethod; receptionCurrency?: string } = {},
 ) => {
   const paymentMethodCode = input.paymentMethodCode ?? 'ZELLE';
-  const metadata = Object.prototype.hasOwnProperty.call(input, 'metadata') ? input.metadata : zelleMetadata;
 
   deps.beneficiaryQuery.findById.mockResolvedValue({
     id: 'beneficiary-1',
@@ -111,7 +65,7 @@ const setupCommonSuccessMocks = (
     id: 'pm-1',
     code: paymentMethodCode,
     enabled: true,
-    additionalData: typeof metadata === 'string' ? metadata : JSON.stringify(metadata),
+    additionalData: null,
   });
 
   deps.receptionMethodAvailability.findEnabledReceptionMethodByCode.mockResolvedValue({
@@ -263,10 +217,10 @@ describe('SubmitRemittanceV2UseCase manual beneficiary visibility control', () =
   });
 });
 
-describe('SubmitRemittanceV2UseCase canonical origin account model', () => {
-  it('accepts canonical ZELLE payload', async () => {
+describe('SubmitRemittanceV2UseCase originAccount data pass-through', () => {
+  it('accepts ZELLE payload and persists it', async () => {
     const { useCase, deps } = buildUseCase();
-    setupCommonSuccessMocks(deps, { paymentMethodCode: 'ZELLE', metadata: zelleMetadata });
+    setupCommonSuccessMocks(deps, { paymentMethodCode: 'ZELLE' });
 
     await expect(useCase.execute(baseInput())).resolves.toEqual(expect.objectContaining({ id: 'remittance-1' }));
 
@@ -278,108 +232,46 @@ describe('SubmitRemittanceV2UseCase canonical origin account model', () => {
     );
   });
 
-  it('accepts canonical IBAN payload', async () => {
+  it('accepts IBAN payload and persists it', async () => {
     const { useCase, deps } = buildUseCase();
-    setupCommonSuccessMocks(deps, { paymentMethodCode: 'IBAN', metadata: ibanMetadata });
+    setupCommonSuccessMocks(deps, { paymentMethodCode: 'IBAN' });
 
     await expect(
       useCase.execute({
         ...baseInput(),
         originAccount: {
           paymentMethodCode: 'IBAN',
-          data: {
-            iban: 'DE89370400440532013000',
-          },
+          data: { iban: 'DE89370400440532013000' },
         },
       }),
     ).resolves.toEqual(expect.objectContaining({ id: 'remittance-1' }));
   });
 
-  it('accepts canonical STRIPE payload', async () => {
+  it('accepts STRIPE payload and persists it', async () => {
     const { useCase, deps } = buildUseCase();
-    setupCommonSuccessMocks(deps, { paymentMethodCode: 'STRIPE', metadata: stripeMetadata });
+    setupCommonSuccessMocks(deps, { paymentMethodCode: 'STRIPE' });
 
     await expect(
       useCase.execute({
         ...baseInput(),
         originAccount: {
           paymentMethodCode: 'STRIPE',
-          data: {
-            stripePaymentMethodId: 'pm_123',
-          },
+          data: { stripePaymentMethodId: 'pm_123' },
         },
       }),
     ).resolves.toEqual(expect.objectContaining({ id: 'remittance-1' }));
   });
 
-  it('fails with explicit error when metadata is missing or invalid', async () => {
+  it('accepts payment method created from admin without additionalData', async () => {
     const { useCase, deps } = buildUseCase();
-    setupCommonSuccessMocks(deps, { paymentMethodCode: 'ZELLE', metadata: null });
-
-    await expect(useCase.execute(baseInput())).rejects.toThrow('payment method metadata is invalid for ZELLE');
-
-    setupCommonSuccessMocks(deps, { paymentMethodCode: 'ZELLE', metadata: '{invalid-json' });
-
-    await expect(useCase.execute(baseInput())).rejects.toThrow('payment method metadata is invalid for ZELLE');
-  });
-
-  it('fails when data contains fields not allowed by metadata', async () => {
-    const { useCase, deps } = buildUseCase();
-    setupCommonSuccessMocks(deps, { paymentMethodCode: 'ZELLE', metadata: zelleMetadata });
-
-    await expect(
-      useCase.execute({
-        ...baseInput(),
-        originAccount: {
-          paymentMethodCode: 'ZELLE',
-          data: {
-            zelleEmail: 'ana@example.com',
-            iban: 'DE89370400440532013000',
-          },
-        },
-      }),
-    ).rejects.toThrow('originAccount.data.iban is not allowed for ZELLE');
-  });
-
-  it('fails when required field is missing', async () => {
-    const { useCase, deps } = buildUseCase();
-    setupCommonSuccessMocks(deps, { paymentMethodCode: 'IBAN', metadata: ibanMetadata });
-
-    await expect(
-      useCase.execute({
-        ...baseInput(),
-        originAccount: {
-          paymentMethodCode: 'IBAN',
-          data: {},
-        },
-      }),
-    ).rejects.toThrow('originAccount.data.iban is required for IBAN');
-  });
-
-  it('accepts new methods configured only via metadata', async () => {
-    const { useCase, deps } = buildUseCase();
-
-    const achMetadata = {
-      schemaVersion: 1,
-      allowedFields: ['routingNumber', 'accountNumber'],
-      requiredFields: ['routingNumber', 'accountNumber'],
-      fieldDefinitions: {
-        routingNumber: { type: 'string', pattern: '^\\d{9}$', required: true },
-        accountNumber: { type: 'string', minLength: 4, maxLength: 17, required: true },
-      },
-    };
-
-    setupCommonSuccessMocks(deps, { paymentMethodCode: 'ACH', metadata: achMetadata });
+    setupCommonSuccessMocks(deps, { paymentMethodCode: 'ACH' });
 
     await expect(
       useCase.execute({
         ...baseInput(),
         originAccount: {
           paymentMethodCode: 'ACH',
-          data: {
-            routingNumber: '123456789',
-            accountNumber: '0001234567',
-          },
+          data: { routingNumber: '123456789', accountNumber: '0001234567' },
         },
       }),
     ).resolves.toEqual(expect.objectContaining({ id: 'remittance-1' }));
@@ -387,10 +279,7 @@ describe('SubmitRemittanceV2UseCase canonical origin account model', () => {
     expect(deps.remittanceCommand.createPendingPayment).toHaveBeenCalledWith(
       expect.objectContaining({
         paymentMethodCode: 'ACH',
-        originAccountData: {
-          routingNumber: '123456789',
-          accountNumber: '0001234567',
-        },
+        originAccountData: { routingNumber: '123456789', accountNumber: '0001234567' },
       }),
     );
   });

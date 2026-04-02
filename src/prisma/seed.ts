@@ -22,123 +22,18 @@ async function main() {
   try {
     await prisma.paymentMethod.upsert({
       where: { code: 'ZELLE' },
-      update: {
-        enabled: true,
-        name: 'Zelle',
-        additionalData: JSON.stringify({
-          schemaVersion: 1,
-          allowedFields: ['zelleEmail'],
-          requiredFields: ['zelleEmail'],
-          fieldDefinitions: {
-            zelleEmail: {
-              type: 'string',
-              format: 'email',
-              required: true,
-              minLength: 5,
-              maxLength: 254,
-            },
-          },
-        }),
-      },
-      create: {
-        code: 'ZELLE',
-        name: 'Zelle',
-        enabled: true,
-        additionalData: JSON.stringify({
-          schemaVersion: 1,
-          allowedFields: ['zelleEmail'],
-          requiredFields: ['zelleEmail'],
-          fieldDefinitions: {
-            zelleEmail: {
-              type: 'string',
-              format: 'email',
-              required: true,
-              minLength: 5,
-              maxLength: 254,
-            },
-          },
-        }),
-      },
+      update: { enabled: true, name: 'Zelle' },
+      create: { code: 'ZELLE', name: 'Zelle', enabled: true },
     });
     await prisma.paymentMethod.upsert({
       where: { code: 'IBAN' },
-      update: {
-        enabled: true,
-        name: 'IBAN',
-        additionalData: JSON.stringify({
-          schemaVersion: 1,
-          allowedFields: ['iban'],
-          requiredFields: ['iban'],
-          fieldDefinitions: {
-            iban: {
-              type: 'string',
-              format: 'iban',
-              required: true,
-              minLength: 15,
-              maxLength: 34,
-            },
-          },
-        }),
-      },
-      create: {
-        code: 'IBAN',
-        name: 'IBAN',
-        enabled: true,
-        additionalData: JSON.stringify({
-          schemaVersion: 1,
-          allowedFields: ['iban'],
-          requiredFields: ['iban'],
-          fieldDefinitions: {
-            iban: {
-              type: 'string',
-              format: 'iban',
-              required: true,
-              minLength: 15,
-              maxLength: 34,
-            },
-          },
-        }),
-      },
+      update: { enabled: true, name: 'IBAN' },
+      create: { code: 'IBAN', name: 'IBAN', enabled: true },
     });
     await prisma.paymentMethod.upsert({
       where: { code: 'STRIPE' },
-      update: {
-        enabled: true,
-        name: 'Stripe',
-        additionalData: JSON.stringify({
-          schemaVersion: 1,
-          allowedFields: ['stripePaymentMethodId'],
-          requiredFields: ['stripePaymentMethodId'],
-          fieldDefinitions: {
-            stripePaymentMethodId: {
-              type: 'string',
-              format: 'token',
-              required: true,
-              minLength: 3,
-              maxLength: 255,
-            },
-          },
-        }),
-      },
-      create: {
-        code: 'STRIPE',
-        name: 'Stripe',
-        enabled: true,
-        additionalData: JSON.stringify({
-          schemaVersion: 1,
-          allowedFields: ['stripePaymentMethodId'],
-          requiredFields: ['stripePaymentMethodId'],
-          fieldDefinitions: {
-            stripePaymentMethodId: {
-              type: 'string',
-              format: 'token',
-              required: true,
-              minLength: 3,
-              maxLength: 255,
-            },
-          },
-        }),
-      },
+      update: { enabled: true, name: 'Stripe' },
+      create: { code: 'STRIPE', name: 'Stripe', enabled: true },
     });
 
     const currencies = [
