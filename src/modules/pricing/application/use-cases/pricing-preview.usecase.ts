@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OriginAccountHolderType, Prisma } from '@prisma/client';
+import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import { PricingCalculatorService } from '../services/pricing-calculator.service';
 
 export interface PricingPreviewReadModel {
@@ -40,6 +41,10 @@ export class PricingPreviewUseCase {
       region: input.region,
       city: input.city,
     });
+
+    if (!result.commissionRuleId || result.commissionRuleVersion === null) {
+      throw new ValidationDomainException('Commission rule is not available for selected currency and holder type');
+    }
 
     return {
       commissionAmount: result.commissionAmount,

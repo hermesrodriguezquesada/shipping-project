@@ -11,8 +11,8 @@ import {
 } from 'src/shared/constants/tokens';
 
 export interface PricingCalculationResult {
-  commissionRuleId: string;
-  commissionRuleVersion: number;
+  commissionRuleId: string | null;
+  commissionRuleVersion: number | null;
   commissionAmount: Prisma.Decimal;
   deliveryFeeRuleId: string | null;
   deliveryFeeAmount: Prisma.Decimal;
@@ -53,10 +53,6 @@ export class PricingCalculatorService {
       holderType: input.holderType,
     });
 
-    if (!commissionRule) {
-      throw new ValidationDomainException('Commission rule is not available for selected currency and holder type');
-    }
-
     const deliveryFeeRule = await this.deliveryFeesQuery.findApplicableRule({
       currencyCode: paymentCurrencyCode,
       country: input.country,
@@ -73,14 +69,16 @@ export class PricingCalculatorService {
       throw new ValidationDomainException('Exchange rate is not available for selected currencies');
     }
 
-    const commissionAmount = this.calculateCommissionAmount(input.amount, commissionRule);
+    const commissionAmount = commissionRule
+      ? this.calculateCommissionAmount(input.amount, commissionRule)
+      : new Prisma.Decimal(0);
     const deliveryFeeAmount = this.round2(deliveryFeeRule?.amount ?? new Prisma.Decimal(0));
     const netBase = input.amount.minus(commissionAmount).minus(deliveryFeeAmount);
     const netReceivingAmount = this.round2(netBase.mul(exchangeRate.rate));
 
     return {
-      commissionRuleId: commissionRule.id,
-      commissionRuleVersion: commissionRule.version,
+      commissionRuleId: commissionRule?.id ?? null,
+      commissionRuleVersion: commissionRule?.version ?? null,
       commissionAmount,
       deliveryFeeRuleId: deliveryFeeRule?.id ?? null,
       deliveryFeeAmount,
