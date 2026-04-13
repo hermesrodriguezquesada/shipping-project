@@ -584,10 +584,11 @@ type Mutation {
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
-  markRemittancePaid(paymentDetails: String!, remittanceId: ID!): Boolean!
+  markRemittancePaid(accountHolderName: String, paymentDetails: String, paymentProofKey: String, remittanceId: ID!): Boolean!
   refresh(input: RefreshInput!): AuthPayload!
   register(input: RegisterInput!): AuthPayload!
   requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
+  requestRemittancePaymentProofUpload(input: RequestRemittancePaymentProofUploadInput!): RemittancePaymentProofUploadPayload!
   resetPassword(input: ResetPasswordInput!): Boolean!
   revokeMySession(sessionId: String!): Boolean!
   revokeOtherMySessions(currentSessionId: String!): Boolean!
@@ -675,6 +676,7 @@ type Query {
   paymentMethods(enabledOnly: Boolean): [PaymentMethodType!]!
   pricingPreview(input: PricingPreviewInput!): PricingPreviewType!
   receptionMethods(enabledOnly: Boolean): [ReceptionMethodType!]!
+  remittancePaymentProofViewUrl(remittanceId: ID!): RemittancePaymentProofViewPayload!
   user(id: ID!): UserType
 }
 
@@ -718,6 +720,18 @@ input RegisterInput {
 type RemittanceOriginAccountType {
   data: JSON!
   paymentMethodCode: String!
+}
+
+type RemittancePaymentProofUploadPayload {
+  expiresAt: DateTime!
+  key: String!
+  method: String!
+  uploadUrl: String!
+}
+
+type RemittancePaymentProofViewPayload {
+  expiresAt: DateTime!
+  viewUrl: String!
 }
 
 type RemittanceRecipientType {
@@ -776,6 +790,13 @@ type RemittanceType {
 
 input RequestPasswordResetInput {
   email: String!
+}
+
+input RequestRemittancePaymentProofUploadInput {
+  fileName: String!
+  mimeType: String!
+  remittanceId: ID!
+  sizeBytes: Int!
 }
 
 input ResetPasswordInput {

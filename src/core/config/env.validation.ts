@@ -122,6 +122,22 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   BACKEND_PUBLIC_BASE_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  AWS_REGION?: string;
+
+  @IsOptional()
+  @IsString()
+  AWS_ACCESS_KEY_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  AWS_SECRET_ACCESS_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  AWS_S3_BUCKET_NAME?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

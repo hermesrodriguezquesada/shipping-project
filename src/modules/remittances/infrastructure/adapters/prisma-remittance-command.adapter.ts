@@ -125,6 +125,26 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
     });
   }
 
+  async attachPaymentProof(input: {
+    id: string;
+    paymentProofKey: string;
+    paymentProofFileName: string;
+    paymentProofMimeType: string;
+    paymentProofSizeBytes: number;
+    paymentProofUploadedAt: Date;
+  }): Promise<void> {
+    await this.prisma.remittance.update({
+      where: { id: input.id },
+      data: {
+        paymentProofKey: input.paymentProofKey,
+        paymentProofFileName: input.paymentProofFileName,
+        paymentProofMimeType: input.paymentProofMimeType,
+        paymentProofSizeBytes: input.paymentProofSizeBytes,
+        paymentProofUploadedAt: input.paymentProofUploadedAt,
+      },
+    });
+  }
+
   async confirmPayment(input: { id: string }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const updated = await tx.remittance.updateMany({

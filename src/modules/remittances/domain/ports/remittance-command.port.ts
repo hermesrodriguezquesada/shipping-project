@@ -49,6 +49,14 @@ export interface RemittanceCommandPort {
   }): Promise<string>;
 
   markPaid(input: { id: string; paymentDetails: string }): Promise<void>;
+  attachPaymentProof(input: {
+    id: string;
+    paymentProofKey: string;
+    paymentProofFileName: string;
+    paymentProofMimeType: string;
+    paymentProofSizeBytes: number;
+    paymentProofUploadedAt: Date;
+  }): Promise<void>;
   confirmPayment(input: { id: string }): Promise<void>;
   cancelByClient(input: { id: string }): Promise<void>;
   cancelByAdmin(input: { id: string; statusDescription: string }): Promise<void>;

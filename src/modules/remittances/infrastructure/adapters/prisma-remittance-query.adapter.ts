@@ -436,6 +436,11 @@ export class PrismaRemittanceQueryAdapter implements RemittanceQueryPort {
       ...remittance,
       feesBreakdownJson: remittance.feesBreakdownJson ?? null,
       netReceivingAmount: remittance.netReceivingAmount ?? null,
+      paymentProofKey: remittance.paymentProofKey ?? null,
+      paymentProofFileName: remittance.paymentProofFileName ?? null,
+      paymentProofMimeType: remittance.paymentProofMimeType ?? null,
+      paymentProofSizeBytes: remittance.paymentProofSizeBytes ?? null,
+      paymentProofUploadedAt: remittance.paymentProofUploadedAt ?? null,
       latestExternalPayment,
     };
   }

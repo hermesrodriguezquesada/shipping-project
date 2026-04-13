@@ -4,15 +4,18 @@ import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.ex
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import {
   REMITTANCE_COMMAND_PORT,
+  REMITTANCE_PAYMENT_PROOF_STORAGE_PORT,
   REMITTANCE_QUERY_PORT,
   REMITTANCE_STATUS_NOTIFIER_PORT,
 } from 'src/shared/constants/tokens';
 import { RemittanceCommandPort } from '../../domain/ports/remittance-command.port';
 import { RemittanceQueryPort } from '../../domain/ports/remittance-query.port';
+import { RemittancePaymentProofStoragePort } from '../../domain/ports/remittance-payment-proof-storage.port';
 import {
   RemittanceStatusNotificationPayload,
   RemittanceStatusNotifierPort,
 } from '../../domain/ports/remittance-status-notifier.port';
+import { buildPaymentDetailsProofJson } from '../utils/payment-details-proof';
 
 @Injectable()
 export class RemittanceLifecycleUseCase {
@@ -23,11 +26,19 @@ export class RemittanceLifecycleUseCase {
     private readonly remittanceQuery: RemittanceQueryPort,
     @Inject(REMITTANCE_COMMAND_PORT)
     private readonly remittanceCommand: RemittanceCommandPort,
+    @Inject(REMITTANCE_PAYMENT_PROOF_STORAGE_PORT)
+    private readonly paymentProofStorage: RemittancePaymentProofStoragePort,
     @Inject(REMITTANCE_STATUS_NOTIFIER_PORT)
     private readonly remittanceStatusNotifier: RemittanceStatusNotifierPort,
   ) {}
 
-  async markPaid(input: { remittanceId: string; senderUserId: string; paymentDetails: string }): Promise<boolean> {
+  async markPaid(input: {
+    remittanceId: string;
+    senderUserId: string;
+    paymentDetails?: string | null;
+    paymentProofKey?: string | null;
+    accountHolderName?: string | null;
+  }): Promise<boolean> {
     const remittance = await this.remittanceQuery.findByIdAndSenderUser({
       id: input.remittanceId,
       senderUserId: input.senderUserId,
@@ -38,10 +49,46 @@ export class RemittanceLifecycleUseCase {
       throw new ValidationDomainException('Only PENDING_PAYMENT remittances can be marked as paid');
     }
 
-    const paymentDetails = input.paymentDetails?.trim();
-    if (!paymentDetails) throw new ValidationDomainException('paymentDetails is required');
+    const legacyPaymentDetails = input.paymentDetails?.trim();
+    const paymentProofKey = input.paymentProofKey?.trim();
+    const accountHolderName = input.accountHolderName?.trim();
 
-    await this.remittanceCommand.markPaid({ id: input.remittanceId, paymentDetails });
+    let paymentDetailsToPersist: string;
+
+    const usingProofPayload = Boolean(paymentProofKey || accountHolderName);
+
+    if (usingProofPayload) {
+      if (!paymentProofKey) {
+        throw new ValidationDomainException('paymentProofKey is required');
+      }
+
+      if (!accountHolderName) {
+        throw new ValidationDomainException('accountHolderName is required');
+      }
+
+      const expectedPrefix = `remittances/${input.remittanceId}/payment-proof/`;
+      if (!paymentProofKey.startsWith(expectedPrefix)) {
+        throw new ValidationDomainException('Invalid paymentProofKey for this remittance');
+      }
+
+      const fileExists = await this.paymentProofStorage.exists({ key: paymentProofKey });
+      if (!fileExists) {
+        throw new ValidationDomainException('Uploaded payment proof file was not found');
+      }
+
+      paymentDetailsToPersist = buildPaymentDetailsProofJson({
+        paymentProofKey,
+        accountHolderName,
+      });
+    } else {
+      if (!legacyPaymentDetails) {
+        throw new ValidationDomainException('paymentDetails is required');
+      }
+
+      paymentDetailsToPersist = legacyPaymentDetails;
+    }
+
+    await this.remittanceCommand.markPaid({ id: input.remittanceId, paymentDetails: paymentDetailsToPersist });
     await this.notifyStatusChange({
       to: remittance.senderEmail,
       remittanceId: remittance.id,

@@ -131,4 +131,20 @@ export class AppConfigService {
     return this.configService.get<string>('BACKEND_PUBLIC_BASE_URL', `http://localhost:${this.port}`);
   }
 
+  get awsRegion(): string | undefined {
+    return this.configService.get<string>('AWS_REGION');
+  }
+
+  get awsAccessKeyId(): string | undefined {
+    return this.configService.get<string>('AWS_ACCESS_KEY_ID');
+  }
+
+  get awsSecretAccessKey(): string | undefined {
+    return this.configService.get<string>('AWS_SECRET_ACCESS_KEY');
+  }
+
+  get awsS3BucketName(): string | undefined {
+    return this.configService.get<string>('AWS_S3_BUCKET_NAME');
+  }
+
 }

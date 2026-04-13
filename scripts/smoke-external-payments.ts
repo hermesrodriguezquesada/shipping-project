@@ -366,9 +366,14 @@ async function main() {
     select: { status: true, paymentDetails: true },
   });
 
+  const fakePaymentProofStorage = {
+    exists: async () => true,
+  };
+
   const lifecycleUseCase = new RemittanceLifecycleUseCase(
     remittanceQuery,
     remittanceCommand,
+    fakePaymentProofStorage as any,
     fakeNotifier as any,
   );
 

@@ -16,6 +16,7 @@ import {
   PAYMENT_METHOD_AVAILABILITY_PORT,
   RECEPTION_METHOD_AVAILABILITY_PORT,
   REMITTANCE_COMMAND_PORT,
+  REMITTANCE_PAYMENT_PROOF_STORAGE_PORT,
   REMITTANCE_QUERY_PORT,
   REMITTANCE_RECEIPT_PDF_GENERATOR_PORT,
   REMITTANCE_STATUS_NOTIFIER_PORT,
@@ -32,10 +33,12 @@ import { CreateExternalPaymentSessionUseCase } from './application/use-cases/cre
 import { DownloadRemittanceReceiptUseCase } from './application/use-cases/download-remittance-receipt.usecase';
 import { DownloadAdminReportExportUseCase } from './application/use-cases/download-admin-report-export.usecase';
 import { ExternalPaymentAcceptanceUseCase } from './application/use-cases/external-payment-acceptance.usecase';
+import { GetRemittancePaymentProofViewUrlUseCase } from './application/use-cases/get-remittance-payment-proof-view-url.usecase';
 import { GetMyRemittanceUseCase } from './application/use-cases/get-my-remittance.usecase';
 import { HandleExternalPaymentWebhookUseCase } from './application/use-cases/handle-external-payment-webhook.usecase';
 import { ListMyRemittancesUseCase } from './application/use-cases/list-my-remittances.usecase';
 import { RemittanceLifecycleUseCase } from './application/use-cases/remittance-lifecycle.usecase';
+import { RequestRemittancePaymentProofUploadUseCase } from './application/use-cases/request-remittance-payment-proof-upload.usecase';
 import { SubmitRemittanceV2UseCase } from './application/use-cases/submit-remittance-v2.usecase';
 import { CurrencyAvailabilityBridgeAdapter } from './infrastructure/adapters/currency-availability.bridge.adapter';
 import { MailerRemittanceStatusNotifierAdapter } from './infrastructure/adapters/mailer-remittance-status-notifier.adapter';
@@ -46,6 +49,7 @@ import { PrismaExternalPaymentAdapter } from './infrastructure/adapters/prisma-e
 import { PrismaRemittanceCommandAdapter } from './infrastructure/adapters/prisma-remittance-command.adapter';
 import { PrismaRemittanceQueryAdapter } from './infrastructure/adapters/prisma-remittance-query.adapter';
 import { ReceptionMethodAvailabilityBridgeAdapter } from './infrastructure/adapters/reception-method-availability.bridge.adapter';
+import { S3RemittancePaymentProofStorageAdapter } from './infrastructure/adapters/s3-remittance-payment-proof-storage.adapter';
 import { SimplePdfReceiptGeneratorAdapter } from './infrastructure/adapters/simple-pdf-receipt-generator.adapter';
 import { StripeExternalPaymentProviderAdapter } from './infrastructure/adapters/stripe-external-payment-provider.adapter';
 import { ExternalPaymentWebhookController } from './presentation/http/controllers/external-payment-webhook.controller';
@@ -62,6 +66,7 @@ import { RemittancesResolver } from './presentation/graphql/resolvers/remittance
     PrismaExternalPaymentAdapter,
     PrismaAdminReportExportHistoryAdapter,
     LocalAdminReportExportStorageAdapter,
+    S3RemittancePaymentProofStorageAdapter,
     SimplePdfReceiptGeneratorAdapter,
     { provide: REMITTANCE_COMMAND_PORT, useExisting: PrismaRemittanceCommandAdapter },
     { provide: REMITTANCE_QUERY_PORT, useExisting: PrismaRemittanceQueryAdapter },
@@ -71,6 +76,7 @@ import { RemittancesResolver } from './presentation/graphql/resolvers/remittance
     { provide: EXTERNAL_PAYMENT_COMMAND_PORT, useExisting: PrismaExternalPaymentAdapter },
     { provide: ADMIN_REPORT_EXPORT_HISTORY_PORT, useExisting: PrismaAdminReportExportHistoryAdapter },
     { provide: ADMIN_REPORT_EXPORT_STORAGE_PORT, useExisting: LocalAdminReportExportStorageAdapter },
+    { provide: REMITTANCE_PAYMENT_PROOF_STORAGE_PORT, useExisting: S3RemittancePaymentProofStorageAdapter },
     { provide: EXTERNAL_PAYMENT_PROVIDER_PORT, useClass: StripeExternalPaymentProviderAdapter },
     { provide: PAYMENT_METHOD_AVAILABILITY_PORT, useClass: PaymentMethodAvailabilityBridgeAdapter },
     { provide: RECEPTION_METHOD_AVAILABILITY_PORT, useClass: ReceptionMethodAvailabilityBridgeAdapter },
@@ -83,6 +89,8 @@ import { RemittancesResolver } from './presentation/graphql/resolvers/remittance
     AdminTransactionsPeriodReportUseCase,
     AdminTransactionsAmountStatsUseCase,
     AdminPaymentMethodUsageMetricsUseCase,
+    RequestRemittancePaymentProofUploadUseCase,
+    GetRemittancePaymentProofViewUrlUseCase,
     CreateExternalPaymentSessionUseCase,
     DownloadRemittanceReceiptUseCase,
     DownloadAdminReportExportUseCase,

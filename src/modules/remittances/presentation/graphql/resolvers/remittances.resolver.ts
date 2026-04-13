@@ -15,9 +15,11 @@ import { AdminTransactionsAmountStatsUseCase } from 'src/modules/remittances/app
 import { AdminTransactionsPeriodReportUseCase } from 'src/modules/remittances/application/use-cases/admin-transactions-period-report.usecase';
 import { AdminTransactionsUseCase } from 'src/modules/remittances/application/use-cases/admin-transactions.usecase';
 import { CreateExternalPaymentSessionUseCase } from 'src/modules/remittances/application/use-cases/create-external-payment-session.usecase';
+import { GetRemittancePaymentProofViewUrlUseCase } from 'src/modules/remittances/application/use-cases/get-remittance-payment-proof-view-url.usecase';
 import { GetMyRemittanceUseCase } from 'src/modules/remittances/application/use-cases/get-my-remittance.usecase';
 import { ListMyRemittancesUseCase } from 'src/modules/remittances/application/use-cases/list-my-remittances.usecase';
 import { RemittanceLifecycleUseCase } from 'src/modules/remittances/application/use-cases/remittance-lifecycle.usecase';
+import { RequestRemittancePaymentProofUploadUseCase } from 'src/modules/remittances/application/use-cases/request-remittance-payment-proof-upload.usecase';
 import { SubmitRemittanceV2UseCase } from 'src/modules/remittances/application/use-cases/submit-remittance-v2.usecase';
 import { RemittanceReadModel } from 'src/modules/remittances/domain/ports/remittance-query.port';
 import { UserMapper } from 'src/modules/users/presentation/mappers/user.mapper';
@@ -32,6 +34,7 @@ import {
   AdminTransactionsFilterInput,
   AdminTransactionsPeriodReportInput,
 } from '../inputs/admin-transactions.input';
+import { RequestRemittancePaymentProofUploadInput } from '../inputs/request-remittance-payment-proof-upload.input';
 import { SubmitRemittanceV2Input } from '../inputs/submit-remittance-v2.input';
 import {
   AdminPaymentMethodUsageMetricType,
@@ -43,6 +46,8 @@ import {
   AdminTransactionType,
 } from '../types/admin-transactions.type';
 import { CreateExternalPaymentSessionPayload } from '../types/create-external-payment-session.payload';
+import { RemittancePaymentProofUploadPayload } from '../types/remittance-payment-proof-upload.payload';
+import { RemittancePaymentProofViewPayload } from '../types/remittance-payment-proof-view.payload';
 import { RemittanceType } from '../types/remittance.type';
 import { Prisma } from '@prisma/client';
 
@@ -63,6 +68,8 @@ export class RemittancesResolver {
     private readonly listMyRemittancesUseCase: ListMyRemittancesUseCase,
     private readonly submitRemittanceV2UseCase: SubmitRemittanceV2UseCase,
     private readonly createExternalPaymentSessionUseCase: CreateExternalPaymentSessionUseCase,
+    private readonly requestPaymentProofUploadUseCase: RequestRemittancePaymentProofUploadUseCase,
+    private readonly getPaymentProofViewUrlUseCase: GetRemittancePaymentProofViewUrlUseCase,
   ) {}
 
   @Query(() => RemittanceType, { nullable: true })
@@ -302,16 +309,46 @@ export class RemittancesResolver {
     });
   }
 
+  @Mutation(() => RemittancePaymentProofUploadPayload)
+  async requestRemittancePaymentProofUpload(
+    @Args('input') input: RequestRemittancePaymentProofUploadInput,
+    @CurrentUser() user: AuthContextUser,
+  ): Promise<RemittancePaymentProofUploadPayload> {
+    return this.requestPaymentProofUploadUseCase.execute({
+      remittanceId: input.remittanceId,
+      senderUserId: user.id,
+      fileName: input.fileName,
+      mimeType: input.mimeType,
+      sizeBytes: input.sizeBytes,
+    });
+  }
+
+  @Query(() => RemittancePaymentProofViewPayload)
+  async remittancePaymentProofViewUrl(
+    @Args('remittanceId', { type: () => ID }) remittanceId: string,
+    @CurrentUser() user: AuthContextUser,
+  ): Promise<RemittancePaymentProofViewPayload> {
+    return this.getPaymentProofViewUrlUseCase.execute({
+      remittanceId,
+      requesterUserId: user.id,
+      requesterRoles: user.roles,
+    });
+  }
+
   @Mutation(() => Boolean)
   async markRemittancePaid(
     @Args('remittanceId', { type: () => ID }) remittanceId: string,
-    @Args('paymentDetails') paymentDetails: string,
+    @Args('paymentDetails', { type: () => String, nullable: true }) paymentDetails: string | null,
+    @Args('paymentProofKey', { type: () => String, nullable: true }) paymentProofKey: string | null,
+    @Args('accountHolderName', { type: () => String, nullable: true }) accountHolderName: string | null,
     @CurrentUser() user: AuthContextUser,
   ): Promise<boolean> {
     return this.remittanceLifecycleUseCase.markPaid({
       remittanceId,
       senderUserId: user.id,
       paymentDetails,
+      paymentProofKey,
+      accountHolderName,
     });
   }
 

@@ -99,6 +99,11 @@ export interface RemittanceReadModel {
   originAccountHolderLastName: string | null;
   originAccountHolderCompanyName: string | null;
   paymentDetails: string | null;
+  paymentProofKey: string | null;
+  paymentProofFileName: string | null;
+  paymentProofMimeType: string | null;
+  paymentProofSizeBytes: number | null;
+  paymentProofUploadedAt: Date | null;
   statusDescription: string | null;
   exchangeRateIdUsed: string | null;
   exchangeRateRateUsed: Prisma.Decimal | null;

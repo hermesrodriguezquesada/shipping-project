@@ -370,6 +370,11 @@ model Remittance {
   originAccountHolderLastName String?
   originAccountHolderCompanyName String?
   paymentDetails String?
+  paymentProofKey String?
+  paymentProofFileName String?
+  paymentProofMimeType String?
+  paymentProofSizeBytes Int?
+  paymentProofUploadedAt DateTime?
   statusDescription String?
   exchangeRateIdUsed String?
   exchangeRateRateUsed Decimal?

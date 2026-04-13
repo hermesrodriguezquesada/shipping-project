@@ -9,6 +9,14 @@ describe('RemittancesResolver canonical originAccount output', () => {
       getById: jest.fn(),
     };
 
+    const adminExportReportUseCase = { execute: jest.fn() };
+    const adminReportExportsUseCase = { execute: jest.fn() };
+    const adminDashboardSummaryUseCase = { execute: jest.fn() };
+    const adminTransactionsUseCase = { execute: jest.fn() };
+    const adminTransactionsPeriodReportUseCase = { execute: jest.fn() };
+    const adminTransactionsAmountStatsUseCase = { execute: jest.fn() };
+    const adminPaymentMethodUsageMetricsUseCase = { execute: jest.fn() };
+
     const remittanceLifecycleUseCase = {
       markPaid: jest.fn(),
       cancelMyRemittance: jest.fn(),
@@ -20,13 +28,26 @@ describe('RemittancesResolver canonical originAccount output', () => {
     const getMyRemittanceUseCase = { execute: jest.fn() };
     const listMyRemittancesUseCase = { execute: jest.fn() };
     const submitRemittanceV2UseCase = { execute: jest.fn() };
+    const createExternalPaymentSessionUseCase = { execute: jest.fn() };
+    const requestPaymentProofUploadUseCase = { execute: jest.fn() };
+    const getPaymentProofViewUrlUseCase = { execute: jest.fn() };
 
     const resolver = new RemittancesResolver(
       adminRemittancesUseCase as any,
+      adminExportReportUseCase as any,
+      adminReportExportsUseCase as any,
+      adminDashboardSummaryUseCase as any,
+      adminTransactionsUseCase as any,
+      adminTransactionsPeriodReportUseCase as any,
+      adminTransactionsAmountStatsUseCase as any,
+      adminPaymentMethodUsageMetricsUseCase as any,
       remittanceLifecycleUseCase as any,
       getMyRemittanceUseCase as any,
       listMyRemittancesUseCase as any,
       submitRemittanceV2UseCase as any,
+      createExternalPaymentSessionUseCase as any,
+      requestPaymentProofUploadUseCase as any,
+      getPaymentProofViewUrlUseCase as any,
     );
 
     return { resolver, getMyRemittanceUseCase };
@@ -62,6 +83,11 @@ describe('RemittancesResolver canonical originAccount output', () => {
       originAccountHolderLastName: null,
       originAccountHolderCompanyName: null,
       paymentDetails: null,
+      paymentProofKey: null,
+      paymentProofFileName: null,
+      paymentProofMimeType: null,
+      paymentProofSizeBytes: null,
+      paymentProofUploadedAt: null,
       statusDescription: null,
       exchangeRateIdUsed: null,
       exchangeRateRateUsed: null,
@@ -82,6 +108,7 @@ describe('RemittancesResolver canonical originAccount output', () => {
       paymentCurrency: null,
       receivingCurrency: null,
       exchangeRateUsed: null,
+      latestExternalPayment: null,
       sender: {
         id: 'u1',
         email: 'owner@example.com',

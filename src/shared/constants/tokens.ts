@@ -16,6 +16,7 @@ export const REMITTANCE_QUERY_PORT = 'RemittanceQueryPort';
 export const REMITTANCE_COMMAND_PORT = 'RemittanceCommandPort';
 export const REMITTANCE_STATUS_NOTIFIER_PORT = 'RemittanceStatusNotifierPort';
 export const REMITTANCE_RECEIPT_PDF_GENERATOR_PORT = 'RemittanceReceiptPdfGeneratorPort';
+export const REMITTANCE_PAYMENT_PROOF_STORAGE_PORT = 'RemittancePaymentProofStoragePort';
 export const EXTERNAL_PAYMENT_PROVIDER_PORT = 'ExternalPaymentProviderPort';
 export const EXTERNAL_PAYMENT_QUERY_PORT = 'ExternalPaymentQueryPort';
 export const EXTERNAL_PAYMENT_COMMAND_PORT = 'ExternalPaymentCommandPort';
