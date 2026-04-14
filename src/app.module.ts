@@ -21,6 +21,7 @@ import { PricingModule } from './modules/pricing/pricing.module';
 import { ElToqueRatesModule } from './modules/eltoque-rates/eltoque-rates.module';
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 import { InternalNotificationsModule } from './modules/internal-notifications/internal-notifications.module';
+import { SupportMessagesModule } from './modules/support-messages/support-messages.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { InternalNotificationsModule } from './modules/internal-notifications/in
     ElToqueRatesModule,
     SystemSettingsModule,
     InternalNotificationsModule,
+    SupportMessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

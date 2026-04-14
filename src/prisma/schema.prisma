@@ -49,6 +49,8 @@ model User {
   beneficiaryUsage BeneficiaryUsage[]
   remittances Remittance[]
   internalNotifications InternalNotification[]
+  authoredSupportMessages SupportMessage[] @relation("SupportMessageAuthor")
+  answeredSupportMessages SupportMessage[] @relation("SupportMessageAnsweredBy")
 }
 
 model UserSession {
@@ -256,6 +258,11 @@ enum InternalNotificationType {
   REMITTANCE_PAYMENT_ERROR
   ALERT_TRANSACTION_OVER_AMOUNT_LIMIT
   ALERT_USER_HAS_TOO_MANY_TRANSACTIONS_TODAY
+}
+
+enum SupportMessageStatus {
+  OPEN
+  ANSWERED
 }
 
 model PaymentMethod {
@@ -517,4 +524,24 @@ model InternalNotification {
 
   @@index([userId, createdAt])
   @@index([userId, isRead, createdAt])
+}
+
+model SupportMessage {
+  id           String               @id @default(uuid())
+  authorId     String
+  title        String
+  content      String
+  answer       String?
+  answeredById String?
+  answeredAt   DateTime?
+  status       SupportMessageStatus @default(OPEN)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  author     User  @relation("SupportMessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  answeredBy User? @relation("SupportMessageAnsweredBy", fields: [answeredById], references: [id], onDelete: SetNull)
+
+  @@index([authorId, createdAt])
+  @@index([status, createdAt])
+  @@index([answeredById])
 }

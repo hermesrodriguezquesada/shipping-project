@@ -39,6 +39,8 @@ export const SYSTEM_SETTINGS_QUERY_PORT = 'SystemSettingsQueryPort';
 export const SYSTEM_SETTINGS_COMMAND_PORT = 'SystemSettingsCommandPort';
 export const INTERNAL_NOTIFICATION_QUERY_PORT = 'InternalNotificationQueryPort';
 export const INTERNAL_NOTIFICATION_COMMAND_PORT = 'InternalNotificationCommandPort';
+export const SUPPORT_MESSAGE_QUERY_PORT = 'SupportMessageQueryPort';
+export const SUPPORT_MESSAGE_COMMAND_PORT = 'SupportMessageCommandPort';
 
 
 

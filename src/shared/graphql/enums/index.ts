@@ -11,3 +11,4 @@ import './external-payment-provider.enum';
 import './external-payment-status.enum';
 import './system-setting-type.enum';
 import './internal-notification-type.enum';
+import './support-message-status.enum';

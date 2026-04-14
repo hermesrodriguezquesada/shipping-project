@@ -348,6 +348,11 @@ input AdminUpdateUserProfileInput {
   userId: ID!
 }
 
+input AnswerSupportMessageInput {
+  answer: String!
+  id: ID!
+}
+
 type AuthPayload {
   accessToken: String!
   refreshToken: String!
@@ -432,6 +437,11 @@ type CreateExternalPaymentSessionPayload {
   paymentId: ID!
   provider: ExternalPaymentProvider!
   status: ExternalPaymentStatus!
+}
+
+input CreateSupportMessageInput {
+  content: String!
+  title: String!
 }
 
 type CurrencyType {
@@ -606,10 +616,12 @@ type Mutation {
   adminUpdateReceptionMethodDescription(code: String!, description: String): ReceptionMethodType!
   adminUpdateSetting(input: AdminUpdateSystemSettingInput!): SystemSetting!
   adminUpdateUserProfile(input: AdminUpdateUserProfileInput!): UserType!
+  answerSupportMessage(input: AnswerSupportMessageInput!): SupportMessageType!
   cancelMyRemittance(remittanceId: ID!): Boolean!
   changePassword(input: ChangePasswordInput!): Boolean!
   createBeneficiary(input: CreateBeneficiaryInput!): BeneficiaryType!
   createExternalPaymentSession(input: CreateExternalPaymentSessionInput!): CreateExternalPaymentSessionPayload!
+  createSupportMessage(input: CreateSupportMessageInput!): SupportMessageType!
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
@@ -694,6 +706,8 @@ type Query {
   adminReportExports(input: AdminReportExportsInput): [AdminReportExportHistoryItemType!]!
   adminSetting(name: String!): SystemSetting
   adminSettings: [SystemSetting!]!
+  adminSupportMessages(input: SupportMessagesPaginationInput): [SupportMessageType!]!
+  adminSupportMessagesByAuthor(authorId: ID!, input: SupportMessagesPaginationInput): [SupportMessageType!]!
   adminTransactions(input: AdminTransactionsFilterInput!): [AdminTransactionType!]!
   adminTransactionsAmountStats(input: AdminTransactionsAmountStatsInput!): AdminTransactionsAmountStatsType!
   adminTransactionsPeriodReport(input: AdminTransactionsPeriodReportInput!): [AdminTransactionsPeriodBucketType!]!
@@ -711,6 +725,7 @@ type Query {
   myRemittance(id: ID!): RemittanceType
   myRemittances(limit: Int, offset: Int): [RemittanceType!]!
   mySessions(limit: Int, offset: Int): [SessionType!]!
+  mySupportMessages(input: SupportMessagesPaginationInput): [SupportMessageType!]!
   paymentMethods(enabledOnly: Boolean): [PaymentMethodType!]!
   pricingPreview(input: PricingPreviewInput!): PricingPreviewType!
   receptionMethods(enabledOnly: Boolean): [ReceptionMethodType!]!
@@ -886,6 +901,29 @@ input SubmitRemittanceV2OriginAccountHolderInput {
 input SubmitRemittanceV2OriginAccountInput {
   data: JSON!
   paymentMethodCode: String!
+}
+
+enum SupportMessageStatus {
+  ANSWERED
+  OPEN
+}
+
+type SupportMessageType {
+  answer: String
+  answeredAt: DateTime
+  answeredById: String
+  authorId: ID!
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  status: SupportMessageStatus!
+  title: String!
+  updatedAt: DateTime!
+}
+
+input SupportMessagesPaginationInput {
+  limit: Int
+  offset: Int
 }
 
 type SystemSetting {
