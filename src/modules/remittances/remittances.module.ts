@@ -38,7 +38,6 @@ import { GetMyRemittanceUseCase } from './application/use-cases/get-my-remittanc
 import { HandleExternalPaymentWebhookUseCase } from './application/use-cases/handle-external-payment-webhook.usecase';
 import { ListMyRemittancesUseCase } from './application/use-cases/list-my-remittances.usecase';
 import { RemittanceLifecycleUseCase } from './application/use-cases/remittance-lifecycle.usecase';
-import { RequestRemittancePaymentProofUploadUseCase } from './application/use-cases/request-remittance-payment-proof-upload.usecase';
 import { SubmitRemittanceV2UseCase } from './application/use-cases/submit-remittance-v2.usecase';
 import { CurrencyAvailabilityBridgeAdapter } from './infrastructure/adapters/currency-availability.bridge.adapter';
 import { MailerRemittanceStatusNotifierAdapter } from './infrastructure/adapters/mailer-remittance-status-notifier.adapter';
@@ -89,7 +88,6 @@ import { RemittancesResolver } from './presentation/graphql/resolvers/remittance
     AdminTransactionsPeriodReportUseCase,
     AdminTransactionsAmountStatsUseCase,
     AdminPaymentMethodUsageMetricsUseCase,
-    RequestRemittancePaymentProofUploadUseCase,
     GetRemittancePaymentProofViewUrlUseCase,
     CreateExternalPaymentSessionUseCase,
     DownloadRemittanceReceiptUseCase,

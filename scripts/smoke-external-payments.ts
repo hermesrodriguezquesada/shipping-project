@@ -368,6 +368,7 @@ async function main() {
 
   const fakePaymentProofStorage = {
     exists: async () => true,
+    uploadObject: async () => undefined,
   };
 
   const lifecycleUseCase = new RemittanceLifecycleUseCase(

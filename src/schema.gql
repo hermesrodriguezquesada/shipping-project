@@ -584,11 +584,10 @@ type Mutation {
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
-  markRemittancePaid(accountHolderName: String, paymentDetails: String, paymentProofKey: String, remittanceId: ID!): Boolean!
+  markRemittancePaid(accountHolderName: String!, paymentProofImg: String!, remittanceId: ID!): Boolean!
   refresh(input: RefreshInput!): AuthPayload!
   register(input: RegisterInput!): AuthPayload!
   requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
-  requestRemittancePaymentProofUpload(input: RequestRemittancePaymentProofUploadInput!): RemittancePaymentProofUploadPayload!
   resetPassword(input: ResetPasswordInput!): Boolean!
   revokeMySession(sessionId: String!): Boolean!
   revokeOtherMySessions(currentSessionId: String!): Boolean!
@@ -722,13 +721,6 @@ type RemittanceOriginAccountType {
   paymentMethodCode: String!
 }
 
-type RemittancePaymentProofUploadPayload {
-  expiresAt: DateTime!
-  key: String!
-  method: String!
-  uploadUrl: String!
-}
-
 type RemittancePaymentProofViewPayload {
   expiresAt: DateTime!
   viewUrl: String!
@@ -790,13 +782,6 @@ type RemittanceType {
 
 input RequestPasswordResetInput {
   email: String!
-}
-
-input RequestRemittancePaymentProofUploadInput {
-  fileName: String!
-  mimeType: String!
-  remittanceId: ID!
-  sizeBytes: Int!
 }
 
 input ResetPasswordInput {

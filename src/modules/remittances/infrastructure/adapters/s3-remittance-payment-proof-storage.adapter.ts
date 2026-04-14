@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppConfigService } from 'src/core/config/config.service';
 import {
+  RemittancePaymentProofObjectUploadRequest,
   RemittancePaymentProofStoragePort,
   RemittancePaymentProofUploadRequest,
   RemittancePaymentProofViewRequest,
@@ -31,6 +32,18 @@ export class S3RemittancePaymentProofStorageAdapter implements RemittancePayment
     });
 
     return getSignedUrl(client, command, { expiresIn: input.expiresInSeconds });
+  }
+
+  async uploadObject(input: RemittancePaymentProofObjectUploadRequest): Promise<void> {
+    const { bucket, client } = this.resolveAwsClient();
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: input.key,
+        ContentType: input.mimeType,
+        Body: input.body,
+      }),
+    );
   }
 
   async exists(input: { key: string }): Promise<boolean> {

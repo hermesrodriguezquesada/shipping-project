@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { RemittanceStatus } from '@prisma/client';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
@@ -16,6 +17,13 @@ import {
   RemittanceStatusNotifierPort,
 } from '../../domain/ports/remittance-status-notifier.port';
 import { buildPaymentDetailsProofJson } from '../utils/payment-details-proof';
+
+const ALLOWED_PAYMENT_PROOF_MIME_TYPES = new Map<string, string>([
+  ['image/jpeg', '.jpg'],
+  ['image/png', '.png'],
+  ['image/webp', '.webp'],
+]);
+const MAX_PAYMENT_PROOF_SIZE_BYTES = 10 * 1024 * 1024;
 
 @Injectable()
 export class RemittanceLifecycleUseCase {
@@ -36,7 +44,7 @@ export class RemittanceLifecycleUseCase {
     remittanceId: string;
     senderUserId: string;
     paymentDetails?: string | null;
-    paymentProofKey?: string | null;
+    paymentProofImg?: string | null;
     accountHolderName?: string | null;
   }): Promise<boolean> {
     const remittance = await this.remittanceQuery.findByIdAndSenderUser({
@@ -50,31 +58,26 @@ export class RemittanceLifecycleUseCase {
     }
 
     const legacyPaymentDetails = input.paymentDetails?.trim();
-    const paymentProofKey = input.paymentProofKey?.trim();
+    const paymentProofImg = input.paymentProofImg?.trim();
     const accountHolderName = input.accountHolderName?.trim();
 
     let paymentDetailsToPersist: string;
 
-    const usingProofPayload = Boolean(paymentProofKey || accountHolderName);
+    const usingProofPayload = Boolean(paymentProofImg || accountHolderName);
 
     if (usingProofPayload) {
-      if (!paymentProofKey) {
-        throw new ValidationDomainException('paymentProofKey is required');
+      if (!paymentProofImg) {
+        throw new ValidationDomainException('paymentProofImg is required');
       }
 
       if (!accountHolderName) {
         throw new ValidationDomainException('accountHolderName is required');
       }
 
-      const expectedPrefix = `remittances/${input.remittanceId}/payment-proof/`;
-      if (!paymentProofKey.startsWith(expectedPrefix)) {
-        throw new ValidationDomainException('Invalid paymentProofKey for this remittance');
-      }
+      const { mimeType, extension, body } = this.parsePaymentProofImage(paymentProofImg);
+      const paymentProofKey = `remittances/${input.remittanceId}/payment-proof/${randomUUID()}${extension}`;
 
-      const fileExists = await this.paymentProofStorage.exists({ key: paymentProofKey });
-      if (!fileExists) {
-        throw new ValidationDomainException('Uploaded payment proof file was not found');
-      }
+      await this.paymentProofStorage.uploadObject({ key: paymentProofKey, mimeType, body });
 
       paymentDetailsToPersist = buildPaymentDetailsProofJson({
         paymentProofKey,
@@ -96,6 +99,38 @@ export class RemittanceLifecycleUseCase {
       event: 'PAYMENT_REPORTED',
     });
     return true;
+  }
+
+  private parsePaymentProofImage(input: string): {
+    mimeType: string;
+    extension: string;
+    body: Buffer;
+  } {
+    const matches = /^data:(image\/[a-z0-9.+-]+);base64,([a-z0-9+/=\r\n]+)$/i.exec(input);
+    if (!matches) {
+      throw new ValidationDomainException('paymentProofImg must be a valid base64 data URL');
+    }
+
+    const mimeType = matches[1].toLowerCase();
+    const extension = ALLOWED_PAYMENT_PROOF_MIME_TYPES.get(mimeType);
+    if (!extension) {
+      throw new ValidationDomainException('Unsupported payment proof mimeType');
+    }
+
+    const base64Payload = matches[2].replace(/\s+/g, '');
+    const body = Buffer.from(base64Payload, 'base64');
+
+    if (!body.length) {
+      throw new ValidationDomainException('paymentProofImg content is empty');
+    }
+
+    if (body.length > MAX_PAYMENT_PROOF_SIZE_BYTES) {
+      throw new ValidationDomainException(
+        `payment proof size must be between 1 and ${MAX_PAYMENT_PROOF_SIZE_BYTES} bytes`,
+      );
+    }
+
+    return { mimeType, extension, body };
   }
 
   async cancelMyRemittance(input: { remittanceId: string; senderUserId: string }): Promise<boolean> {
