@@ -327,6 +327,11 @@ input AdminUpdatePaymentMethodInput {
   description: String
 }
 
+input AdminUpdateSystemSettingInput {
+  name: String!
+  value: String
+}
+
 input AdminUpdateUserProfileInput {
   addressLine1: String
   addressLine2: String
@@ -576,6 +581,7 @@ type Mutation {
   adminUpdatePaymentMethodAdditionalData(input: AdminUpdatePaymentMethodAdditionalDataInput!): PaymentMethodType!
   adminUpdatePaymentMethodDescription(code: String!, description: String): PaymentMethodType!
   adminUpdateReceptionMethodDescription(code: String!, description: String): ReceptionMethodType!
+  adminUpdateSetting(input: AdminUpdateSystemSettingInput!): SystemSetting!
   adminUpdateUserProfile(input: AdminUpdateUserProfileInput!): UserType!
   cancelMyRemittance(remittanceId: ID!): Boolean!
   changePassword(input: ChangePasswordInput!): Boolean!
@@ -656,6 +662,8 @@ type Query {
   adminRemittances(limit: Int, offset: Int): [RemittanceType!]!
   adminRemittancesByUser(limit: Int, offset: Int, userId: ID!): [RemittanceType!]!
   adminReportExports(input: AdminReportExportsInput): [AdminReportExportHistoryItemType!]!
+  adminSetting(name: String!): SystemSetting
+  adminSettings: [SystemSetting!]!
   adminTransactions(input: AdminTransactionsFilterInput!): [AdminTransactionType!]!
   adminTransactionsAmountStats(input: AdminTransactionsAmountStatsInput!): AdminTransactionsAmountStatsType!
   adminTransactionsPeriodReport(input: AdminTransactionsPeriodReportInput!): [AdminTransactionsPeriodBucketType!]!
@@ -847,6 +855,25 @@ input SubmitRemittanceV2OriginAccountHolderInput {
 input SubmitRemittanceV2OriginAccountInput {
   data: JSON!
   paymentMethodCode: String!
+}
+
+type SystemSetting {
+  createdAt: DateTime!
+  id: ID!
+  isMasked: Boolean!
+  name: String!
+  type: SystemSettingType!
+  updatedAt: DateTime!
+  value: String
+}
+
+enum SystemSettingType {
+  BOOLEAN
+  EMAIL
+  NUMBER
+  PASSWORD
+  STRING
+  URL
 }
 
 input UpdateBeneficiaryInput {

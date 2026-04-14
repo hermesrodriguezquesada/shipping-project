@@ -234,6 +234,15 @@ enum AdminReportExportStatus {
   FAILED
 }
 
+enum SystemSettingType {
+  STRING
+  EMAIL
+  NUMBER
+  BOOLEAN
+  URL
+  PASSWORD
+}
+
 model PaymentMethod {
   id          String   @id @default(uuid())
   code        String   @unique
@@ -467,4 +476,15 @@ model AdminReportExport {
   @@index([status, createdAt])
   @@index([expiresAt])
   @@index([dataset, format])
+}
+
+model SystemSetting {
+  id        String            @id @default(uuid())
+  name      String            @unique
+  type      SystemSettingType
+  value     String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([type])
 }

@@ -19,6 +19,7 @@ import { CommissionRulesModule } from './modules/commission-rules/commission-rul
 import { DeliveryFeesModule } from './modules/delivery-fees/delivery-fees.module';
 import { PricingModule } from './modules/pricing/pricing.module';
 import { ElToqueRatesModule } from './modules/eltoque-rates/eltoque-rates.module';
+import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ElToqueRatesModule } from './modules/eltoque-rates/eltoque-rates.module
     PricingModule,
     RemittancesModule,
     ElToqueRatesModule,
+    SystemSettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, SystemSettingType } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
@@ -74,6 +74,43 @@ async function main() {
           enabled: true,
           method,
           currency: { connect: { code: currencyCode } },
+        },
+      });
+    }
+
+    const systemSettings = [
+      {
+        name: 'CONTACT_WHATSAPP_CHANNEL',
+        type: SystemSettingType.URL,
+        value: 'https://wa.me/jr83nrirurj',
+      },
+      {
+        name: 'REMITTANCE_ENABLED',
+        type: SystemSettingType.BOOLEAN,
+        value: 'true',
+      },
+      {
+        name: 'NOTIF_TRANSACTIONS_OVER_AMOUNT',
+        type: SystemSettingType.NUMBER,
+        value: '10000',
+      },
+      {
+        name: 'EXTERNAL_CHANNEL_SHARED_SECRET',
+        type: SystemSettingType.PASSWORD,
+        value: null,
+      },
+    ] as const;
+
+    for (const setting of systemSettings) {
+      await prisma.systemSetting.upsert({
+        where: { name: setting.name },
+        update: {
+          type: setting.type,
+        },
+        create: {
+          name: setting.name,
+          type: setting.type,
+          value: setting.value,
         },
       });
     }
