@@ -20,6 +20,7 @@ import { DeliveryFeesModule } from './modules/delivery-fees/delivery-fees.module
 import { PricingModule } from './modules/pricing/pricing.module';
 import { ElToqueRatesModule } from './modules/eltoque-rates/eltoque-rates.module';
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
+import { InternalNotificationsModule } from './modules/internal-notifications/internal-notifications.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SystemSettingsModule } from './modules/system-settings/system-settings.
     RemittancesModule,
     ElToqueRatesModule,
     SystemSettingsModule,
+    InternalNotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

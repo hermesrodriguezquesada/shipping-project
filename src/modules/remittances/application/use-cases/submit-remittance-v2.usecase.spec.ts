@@ -6,6 +6,7 @@ type UseCaseDeps = {
   beneficiaryQuery: { findById: jest.Mock };
   remittanceQuery: { findMyRemittanceById: jest.Mock };
   remittanceCommand: { createPendingPayment: jest.Mock };
+  internalNotificationCommand: { create: jest.Mock };
   paymentMethodAvailability: { findEnabledPaymentMethodByCode: jest.Mock };
   receptionMethodAvailability: { findEnabledReceptionMethodByCode: jest.Mock };
   currencyAvailability: { findEnabledCurrencyByCode: jest.Mock };
@@ -19,6 +20,7 @@ const buildUseCase = () => {
     beneficiaryQuery: { findById: jest.fn() },
     remittanceQuery: { findMyRemittanceById: jest.fn() },
     remittanceCommand: { createPendingPayment: jest.fn() },
+    internalNotificationCommand: { create: jest.fn() },
     paymentMethodAvailability: { findEnabledPaymentMethodByCode: jest.fn() },
     receptionMethodAvailability: { findEnabledReceptionMethodByCode: jest.fn() },
     currencyAvailability: { findEnabledCurrencyByCode: jest.fn() },
@@ -31,6 +33,7 @@ const buildUseCase = () => {
     deps.beneficiaryQuery as any,
     deps.remittanceQuery as any,
     deps.remittanceCommand as any,
+    deps.internalNotificationCommand as any,
     deps.paymentMethodAvailability as any,
     deps.receptionMethodAvailability as any,
     deps.currencyAvailability as any,
@@ -94,6 +97,7 @@ const setupCommonSuccessMocks = (
 
   deps.remittanceCommand.createPendingPayment.mockResolvedValue('remittance-1');
   deps.remittanceQuery.findMyRemittanceById.mockResolvedValue({ id: 'remittance-1' });
+  deps.internalNotificationCommand.create.mockResolvedValue(undefined);
 };
 
 const baseInput = () => ({
@@ -228,6 +232,14 @@ describe('SubmitRemittanceV2UseCase originAccount data pass-through', () => {
       expect.objectContaining({
         paymentMethodCode: 'ZELLE',
         originAccountData: { zelleEmail: 'ana@example.com' },
+      }),
+    );
+
+    expect(deps.internalNotificationCommand.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-1',
+        type: 'NEW_REMITTANCE',
+        referenceId: 'remittance-1',
       }),
     );
   });

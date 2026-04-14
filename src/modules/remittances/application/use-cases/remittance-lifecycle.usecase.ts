@@ -1,10 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { RemittanceStatus } from '@prisma/client';
+import { InternalNotificationType, RemittanceStatus } from '@prisma/client';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import {
   REMITTANCE_COMMAND_PORT,
+  INTERNAL_NOTIFICATION_COMMAND_PORT,
   REMITTANCE_PAYMENT_PROOF_STORAGE_PORT,
   REMITTANCE_QUERY_PORT,
   REMITTANCE_STATUS_NOTIFIER_PORT,
@@ -17,6 +18,7 @@ import {
   RemittanceStatusNotifierPort,
 } from '../../domain/ports/remittance-status-notifier.port';
 import { buildPaymentDetailsProofJson } from '../utils/payment-details-proof';
+import { InternalNotificationCommandPort } from 'src/modules/internal-notifications/domain/ports/internal-notification-command.port';
 
 const ALLOWED_PAYMENT_PROOF_MIME_TYPES = new Map<string, string>([
   ['image/jpeg', '.jpg'],
@@ -38,6 +40,8 @@ export class RemittanceLifecycleUseCase {
     private readonly paymentProofStorage: RemittancePaymentProofStoragePort,
     @Inject(REMITTANCE_STATUS_NOTIFIER_PORT)
     private readonly remittanceStatusNotifier: RemittanceStatusNotifierPort,
+    @Inject(INTERNAL_NOTIFICATION_COMMAND_PORT)
+    private readonly internalNotificationCommand: InternalNotificationCommandPort,
   ) {}
 
   async markPaid(input: {
@@ -92,6 +96,11 @@ export class RemittanceLifecycleUseCase {
     }
 
     await this.remittanceCommand.markPaid({ id: input.remittanceId, paymentDetails: paymentDetailsToPersist });
+    await this.createInternalNotificationSafe({
+      userId: input.senderUserId,
+      type: InternalNotificationType.REMITTANCE_PENDING_CONFIRMATION_PAYMENT,
+      referenceId: remittance.id,
+    });
     await this.notifyStatusChange({
       to: remittance.senderEmail,
       remittanceId: remittance.id,
@@ -232,6 +241,25 @@ export class RemittanceLifecycleUseCase {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(
         `Non-blocking remittance notification failure. remittanceId=${input.remittanceId} event=${input.event} error=${message}`,
+      );
+    }
+  }
+
+  private async createInternalNotificationSafe(input: {
+    userId: string;
+    type: InternalNotificationType;
+    referenceId: string;
+  }): Promise<void> {
+    try {
+      await this.internalNotificationCommand.create({
+        userId: input.userId,
+        type: input.type,
+        referenceId: input.referenceId,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Non-blocking internal notification failure. userId=${input.userId} type=${input.type} referenceId=${input.referenceId} error=${message}`,
       );
     }
   }

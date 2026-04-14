@@ -5,6 +5,7 @@ import { NotificationsModule } from 'src/core/notifications/notifications.module
 import { BeneficiariesModule } from '../beneficiaries/beneficiaries.module';
 import { CatalogsModule } from '../catalogs/catalogs.module';
 import { ExchangeRatesModule } from '../exchange-rates/exchange-rates.module';
+import { InternalNotificationsModule } from '../internal-notifications/internal-notifications.module';
 import { PricingModule } from '../pricing/pricing.module';
 import {
   ADMIN_REPORT_EXPORT_HISTORY_PORT,
@@ -57,7 +58,15 @@ import { RemittanceReceiptController } from './presentation/http/controllers/rem
 import { RemittancesResolver } from './presentation/graphql/resolvers/remittances.resolver';
 
 @Module({
-  imports: [AppConfigModule, NotificationsModule, BeneficiariesModule, CatalogsModule, ExchangeRatesModule, PricingModule],
+  imports: [
+    AppConfigModule,
+    NotificationsModule,
+    InternalNotificationsModule,
+    BeneficiariesModule,
+    CatalogsModule,
+    ExchangeRatesModule,
+    PricingModule,
+  ],
   controllers: [RemittanceReceiptController, ExternalPaymentWebhookController, AdminReportExportController],
   providers: [
     PrismaRemittanceCommandAdapter,

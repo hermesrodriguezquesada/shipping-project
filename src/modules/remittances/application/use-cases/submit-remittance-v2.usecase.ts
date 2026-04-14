@@ -1,7 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   BeneficiaryRelationship,
   DocumentType,
+  InternalNotificationType,
   OriginAccountHolderType,
   Prisma,
   ReceptionMethod,
@@ -17,6 +18,7 @@ import {
   CURRENCY_AVAILABILITY_PORT,
   PAYMENT_METHOD_AVAILABILITY_PORT,
   RECEPTION_METHOD_AVAILABILITY_PORT,
+  INTERNAL_NOTIFICATION_COMMAND_PORT,
   REMITTANCE_COMMAND_PORT,
   REMITTANCE_QUERY_PORT,
 } from 'src/shared/constants/tokens';
@@ -28,9 +30,12 @@ import { RemittanceQueryPort, RemittanceReadModel } from '../../domain/ports/rem
 import { BeneficiaryCommandPort } from 'src/modules/beneficiaries/domain/ports/beneficiary-command.port';
 import { BeneficiaryQueryPort } from 'src/modules/beneficiaries/domain/ports/beneficiary-query.port';
 import { BeneficiaryEntity } from 'src/modules/beneficiaries/domain/entities/beneficiary.entity';
+import { InternalNotificationCommandPort } from 'src/modules/internal-notifications/domain/ports/internal-notification-command.port';
 
 @Injectable()
 export class SubmitRemittanceV2UseCase {
+  private readonly logger = new Logger(SubmitRemittanceV2UseCase.name);
+
   constructor(
     @Inject(BENEFICIARY_COMMAND_PORT)
     private readonly beneficiaryCommand: BeneficiaryCommandPort,
@@ -40,6 +45,8 @@ export class SubmitRemittanceV2UseCase {
     private readonly remittanceQuery: RemittanceQueryPort,
     @Inject(REMITTANCE_COMMAND_PORT)
     private readonly remittanceCommand: RemittanceCommandPort,
+    @Inject(INTERNAL_NOTIFICATION_COMMAND_PORT)
+    private readonly internalNotificationCommand: InternalNotificationCommandPort,
     @Inject(PAYMENT_METHOD_AVAILABILITY_PORT)
     private readonly paymentMethodAvailability: PaymentMethodAvailabilityPort,
     @Inject(RECEPTION_METHOD_AVAILABILITY_PORT)
@@ -281,7 +288,32 @@ export class SubmitRemittanceV2UseCase {
       throw new NotFoundDomainException('Remittance not found');
     }
 
+    await this.createInternalNotificationSafe({
+      userId: input.senderUserId,
+      type: InternalNotificationType.NEW_REMITTANCE,
+      referenceId: remittance.id,
+    });
+
     return remittance;
+  }
+
+  private async createInternalNotificationSafe(input: {
+    userId: string;
+    type: InternalNotificationType;
+    referenceId: string;
+  }): Promise<void> {
+    try {
+      await this.internalNotificationCommand.create({
+        userId: input.userId,
+        type: input.type,
+        referenceId: input.referenceId,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Non-blocking internal notification failure. userId=${input.userId} type=${input.type} referenceId=${input.referenceId} error=${message}`,
+      );
+    }
   }
 
   private parseAmount(value: string): Prisma.Decimal {

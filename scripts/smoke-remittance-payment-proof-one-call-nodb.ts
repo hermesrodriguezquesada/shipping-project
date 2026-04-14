@@ -81,12 +81,19 @@ const notifier = {
   },
 };
 
+const internalNotificationCommand = {
+  async create() {
+    return;
+  },
+};
+
 async function main() {
   const lifecycle = new RemittanceLifecycleUseCase(
     remittanceQuery as any,
     remittanceCommand as any,
     paymentProofStorage as any,
     notifier as any,
+    internalNotificationCommand as any,
   );
 
   const viewUseCase = new GetRemittancePaymentProofViewUrlUseCase(

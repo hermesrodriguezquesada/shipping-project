@@ -48,6 +48,7 @@ model User {
   beneficiaries        Beneficiary[]
   beneficiaryUsage BeneficiaryUsage[]
   remittances Remittance[]
+  internalNotifications InternalNotification[]
 }
 
 model UserSession {
@@ -241,6 +242,20 @@ enum SystemSettingType {
   BOOLEAN
   URL
   PASSWORD
+}
+
+enum InternalNotificationType {
+  NEW_CLIENT
+  NEW_REMITTANCE
+  REMITTANCE_PENDING_PAYMENT
+  REMITTANCE_PENDING_CONFIRMATION_PAYMENT
+  REMITTANCE_PAYMENT_ACCEPTED_SENDING_RECEIVER
+  REMITTANCE_COMPLETED
+  REMITTANCE_CANCELLED_BY_ADMIN
+  REMITTANCE_CANCELLED_BY_USER
+  REMITTANCE_PAYMENT_ERROR
+  ALERT_TRANSACTION_OVER_AMOUNT_LIMIT
+  ALERT_USER_HAS_TOO_MANY_TRANSACTIONS_TODAY
 }
 
 model PaymentMethod {
@@ -487,4 +502,19 @@ model SystemSetting {
   updatedAt DateTime          @updatedAt
 
   @@index([type])
+}
+
+model InternalNotification {
+  id          String                   @id @default(uuid())
+  type        InternalNotificationType
+  referenceId String?
+  userId      String
+  isRead      Boolean                  @default(false)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead, createdAt])
 }

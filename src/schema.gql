@@ -516,6 +516,29 @@ type IdentityVerificationType {
   userId: String!
 }
 
+type InternalNotificationObjectType {
+  createdAt: DateTime!
+  id: ID!
+  isRead: Boolean!
+  referenceId: String
+  type: InternalNotificationType!
+  updatedAt: DateTime!
+}
+
+enum InternalNotificationType {
+  ALERT_TRANSACTION_OVER_AMOUNT_LIMIT
+  ALERT_USER_HAS_TOO_MANY_TRANSACTIONS_TODAY
+  NEW_CLIENT
+  NEW_REMITTANCE
+  REMITTANCE_CANCELLED_BY_ADMIN
+  REMITTANCE_CANCELLED_BY_USER
+  REMITTANCE_COMPLETED
+  REMITTANCE_PAYMENT_ACCEPTED_SENDING_RECEIVER
+  REMITTANCE_PAYMENT_ERROR
+  REMITTANCE_PENDING_CONFIRMATION_PAYMENT
+  REMITTANCE_PENDING_PAYMENT
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -590,6 +613,7 @@ type Mutation {
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
+  markNotificationAsRead(id: ID!): Boolean!
   markRemittancePaid(accountHolderName: String!, paymentProofImg: String!, remittanceId: ID!): Boolean!
   refresh(input: RefreshInput!): AuthPayload!
   register(input: RegisterInput!): AuthPayload!
@@ -601,6 +625,12 @@ type Mutation {
   submitRemittanceV2(input: SubmitRemittanceV2Input!): RemittanceType!
   updateBeneficiary(input: UpdateBeneficiaryInput!): BeneficiaryType!
   updateMyProfile(input: UpdateMyProfileInput!): UserType!
+}
+
+input MyNotificationsInput {
+  isRead: Boolean
+  limit: Int
+  offset: Int
 }
 
 enum OriginAccountHolderType {
@@ -676,6 +706,7 @@ type Query {
   me: UserType!
   myBeneficiaries(input: ListBeneficiariesInput): [BeneficiaryType!]!
   myIdentityVerification: IdentityVerificationType
+  myNotifications(input: MyNotificationsInput): [InternalNotificationObjectType!]!
   myProfile: UserType!
   myRemittance(id: ID!): RemittanceType
   myRemittances(limit: Int, offset: Int): [RemittanceType!]!

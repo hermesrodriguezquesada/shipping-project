@@ -19,6 +19,10 @@ import { RemittanceLifecycleUseCase } from 'src/modules/remittances/application/
 import { SubmitRemittanceV2UseCase } from 'src/modules/remittances/application/use-cases/submit-remittance-v2.usecase';
 import { extractPaymentProofKeyFromDetails } from 'src/modules/remittances/application/utils/payment-details-proof';
 import { RemittancePaymentProofStoragePort } from 'src/modules/remittances/domain/ports/remittance-payment-proof-storage.port';
+import { ListMyNotificationsUseCase } from 'src/modules/internal-notifications/application/use-cases/list-my-notifications.usecase';
+import { MarkNotificationAsReadUseCase } from 'src/modules/internal-notifications/application/use-cases/mark-notification-as-read.usecase';
+import { PrismaInternalNotificationCommandAdapter } from 'src/modules/internal-notifications/infrastructure/adapters/prisma-internal-notification-command.adapter';
+import { PrismaInternalNotificationQueryAdapter } from 'src/modules/internal-notifications/infrastructure/adapters/prisma-internal-notification-query.adapter';
 import { CurrencyAvailabilityBridgeAdapter } from 'src/modules/remittances/infrastructure/adapters/currency-availability.bridge.adapter';
 import { PaymentMethodAvailabilityBridgeAdapter } from 'src/modules/remittances/infrastructure/adapters/payment-method-availability.bridge.adapter';
 import { PrismaRemittanceCommandAdapter } from 'src/modules/remittances/infrastructure/adapters/prisma-remittance-command.adapter';
@@ -73,6 +77,8 @@ async function main() {
 
   const remittanceQuery = new PrismaRemittanceQueryAdapter(prisma);
   const remittanceCommand = new PrismaRemittanceCommandAdapter(prisma);
+  const internalNotificationCommand = new PrismaInternalNotificationCommandAdapter(prisma);
+  const internalNotificationQuery = new PrismaInternalNotificationQueryAdapter(prisma);
 
   const beneficiaryCommand = new PrismaBeneficiaryCommandAdapter(prisma);
   const beneficiaryQuery = new PrismaBeneficiaryQueryAdapter(prisma);
@@ -88,6 +94,7 @@ async function main() {
     beneficiaryQuery,
     remittanceQuery,
     remittanceCommand,
+    internalNotificationCommand,
     paymentMethodAvailability,
     receptionMethodAvailability,
     currencyAvailability,
@@ -101,7 +108,11 @@ async function main() {
     remittanceCommand,
     paymentProofStorage,
     new FakeNotifier() as any,
+    internalNotificationCommand,
   );
+
+  const listMyNotificationsUseCase = new ListMyNotificationsUseCase(internalNotificationQuery as any);
+  const markNotificationAsReadUseCase = new MarkNotificationAsReadUseCase(internalNotificationCommand as any);
 
   const getViewUrlUseCase = new GetRemittancePaymentProofViewUrlUseCase(remittanceQuery, paymentProofStorage);
 
@@ -156,6 +167,19 @@ async function main() {
     },
   });
 
+  const notificationsAfterSubmit = await listMyNotificationsUseCase.execute({
+    userId: user.id,
+    limit: 20,
+  });
+
+  const newRemittanceNotification = notificationsAfterSubmit.find(
+    (item) => item.type === 'NEW_REMITTANCE' && item.referenceId === remittance.id,
+  );
+
+  if (!newRemittanceNotification) {
+    throw new Error('Caso A fallido: no aparece notificacion NEW_REMITTANCE luego de submitRemittanceV2');
+  }
+
   const markPaidResult = await lifecycleUseCase.markPaid({
     remittanceId: remittance.id,
     senderUserId: user.id,
@@ -169,6 +193,39 @@ async function main() {
   });
 
   const paymentProofKey = extractPaymentProofKeyFromDetails(remittanceAfterMarkPaid.paymentDetails);
+
+  const notificationsAfterMarkPaid = await listMyNotificationsUseCase.execute({
+    userId: user.id,
+    limit: 20,
+  });
+
+  const pendingConfirmationNotification = notificationsAfterMarkPaid.find(
+    (item) => item.type === 'REMITTANCE_PENDING_CONFIRMATION_PAYMENT' && item.referenceId === remittance.id,
+  );
+
+  if (!pendingConfirmationNotification) {
+    throw new Error(
+      'Caso B fallido: no aparece notificacion REMITTANCE_PENDING_CONFIRMATION_PAYMENT luego de markRemittancePaid',
+    );
+  }
+
+  const markAsReadResult = await markNotificationAsReadUseCase.execute({
+    id: pendingConfirmationNotification.id,
+    userId: user.id,
+  });
+
+  const notificationsRead = await listMyNotificationsUseCase.execute({
+    userId: user.id,
+    isRead: true,
+    limit: 20,
+  });
+
+  const markedNotification = notificationsRead.find((item) => item.id === pendingConfirmationNotification.id);
+
+  if (!markAsReadResult || !markedNotification?.isRead) {
+    throw new Error('Caso C fallido: markNotificationAsRead no dejo la notificacion en isRead=true');
+  }
+
   const view = await getViewUrlUseCase.execute({
     remittanceId: remittance.id,
     requesterUserId: user.id,
@@ -185,6 +242,12 @@ async function main() {
       statusAfter: remittanceAfterMarkPaid.status,
       movedToPendingPaymentConfirmation:
         remittanceAfterMarkPaid.status === RemittanceStatus.PENDING_PAYMENT_CONFIRMATION,
+    },
+    internalNotifications: {
+      caseA_newRemittanceFound: Boolean(newRemittanceNotification),
+      caseB_pendingConfirmationFound: Boolean(pendingConfirmationNotification),
+      caseC_markAsReadResult: markAsReadResult,
+      caseC_markedIsReadTrue: Boolean(markedNotification?.isRead),
     },
     paymentDetails: {
       raw: remittanceAfterMarkPaid.paymentDetails,
