@@ -6,8 +6,14 @@ export class SupportMessageType {
   @Field(() => ID)
   id!: string;
 
-  @Field(() => ID)
-  authorId!: string;
+  @Field(() => ID, { nullable: true })
+  authorId!: string | null;
+
+  @Field(() => String, { nullable: true })
+  email!: string | null;
+
+  @Field(() => String, { nullable: true })
+  phone!: string | null;
 
   @Field()
   title!: string;

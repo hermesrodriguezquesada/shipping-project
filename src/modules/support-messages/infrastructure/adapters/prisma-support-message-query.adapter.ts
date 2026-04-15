@@ -40,7 +40,9 @@ export class PrismaSupportMessageQueryAdapter implements SupportMessageQueryPort
   private toEntity(row: PrismaSupportMessage): SupportMessageEntity {
     return {
       id: row.id,
-      authorId: row.authorId,
+      authorId: row.authorId ?? null,
+      email: row.email ?? null,
+      phone: row.phone ?? null,
       title: row.title,
       content: row.content,
       answer: row.answer ?? null,

@@ -6,6 +6,8 @@ export class SupportMessageMapper {
     return {
       id: entity.id,
       authorId: entity.authorId,
+      email: entity.email,
+      phone: entity.phone,
       title: entity.title,
       content: entity.content,
       answer: entity.answer,

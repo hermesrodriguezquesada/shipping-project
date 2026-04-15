@@ -12,13 +12,17 @@ export class PrismaSupportMessageCommandAdapter implements SupportMessageCommand
   constructor(private readonly prisma: PrismaService) {}
 
   async create(input: {
-    authorId: string;
+    authorId: string | null;
+    email: string | null;
+    phone: string | null;
     title: string;
     content: string;
   }): Promise<SupportMessageEntity> {
     const row = await this.prisma.supportMessage.create({
       data: {
         authorId: input.authorId,
+        email: input.email,
+        phone: input.phone,
         title: input.title,
         content: input.content,
         status: SupportMessageStatus.OPEN,
@@ -50,7 +54,9 @@ export class PrismaSupportMessageCommandAdapter implements SupportMessageCommand
   private toEntity(row: PrismaSupportMessage): SupportMessageEntity {
     return {
       id: row.id,
-      authorId: row.authorId,
+      authorId: row.authorId ?? null,
+      email: row.email ?? null,
+      phone: row.phone ?? null,
       title: row.title,
       content: row.content,
       answer: row.answer ?? null,

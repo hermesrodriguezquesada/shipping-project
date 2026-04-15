@@ -13,12 +13,17 @@ export class CreateSupportMessageUseCase {
   ) {}
 
   async execute(input: {
-    authorId: string;
+    authorId?: string | null;
+    email?: string | null;
+    phone?: string | null;
     title: string;
     content: string;
   }): Promise<SupportMessageEntity> {
     const title = input.title.trim();
     const content = input.content.trim();
+    const authorId = input.authorId ?? null;
+    const email = input.email?.trim() || null;
+    const phone = input.phone?.trim() || null;
 
     if (!title) {
       throw new ValidationDomainException('title is required');
@@ -28,8 +33,22 @@ export class CreateSupportMessageUseCase {
       throw new ValidationDomainException('content is required');
     }
 
+    if (email !== null && !this.isValidEmail(email)) {
+      throw new ValidationDomainException('email must be a valid email');
+    }
+
+    if (phone !== null && !this.isValidPhone(phone)) {
+      throw new ValidationDomainException('phone must be a valid phone');
+    }
+
+    if (authorId === null && email === null && phone === null) {
+      throw new ValidationDomainException('email or phone is required when author is anonymous');
+    }
+
     const created = await this.commandPort.create({
-      authorId: input.authorId,
+      authorId,
+      email,
+      phone,
       title,
       content,
     });
@@ -39,5 +58,13 @@ export class CreateSupportMessageUseCase {
     }
 
     return created;
+  }
+
+  private isValidEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  private isValidPhone(value: string): boolean {
+    return value.length >= 3;
   }
 }

@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 @InputType()
 export class CreateSupportMessageInput {
@@ -14,4 +14,17 @@ export class CreateSupportMessageInput {
   @IsNotEmpty()
   @MaxLength(5000)
   content!: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(320)
+  email?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(50)
+  phone?: string;
 }

@@ -441,6 +441,8 @@ type CreateExternalPaymentSessionPayload {
 
 input CreateSupportMessageInput {
   content: String!
+  email: String
+  phone: String
   title: String!
 }
 
@@ -912,10 +914,12 @@ type SupportMessageType {
   answer: String
   answeredAt: DateTime
   answeredById: String
-  authorId: ID!
+  authorId: ID
   content: String!
   createdAt: DateTime!
+  email: String
   id: ID!
+  phone: String
   status: SupportMessageStatus!
   title: String!
   updatedAt: DateTime!

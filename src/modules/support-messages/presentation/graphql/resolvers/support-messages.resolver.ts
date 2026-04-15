@@ -4,6 +4,7 @@ import { Role } from '@prisma/client';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { OptionalGqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/optional-gql-auth.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { AdminSupportMessagesByAuthorUseCase } from 'src/modules/support-messages/application/use-cases/admin-support-messages-by-author.usecase';
@@ -17,7 +18,6 @@ import { CreateSupportMessageInput } from '../inputs/create-support-message.inpu
 import { SupportMessagesPaginationInput } from '../inputs/support-messages-pagination.input';
 import { SupportMessageType } from '../types/support-message.type';
 
-@UseGuards(GqlAuthGuard)
 @Resolver(() => SupportMessageType)
 export class SupportMessagesResolver {
   constructor(
@@ -28,13 +28,16 @@ export class SupportMessagesResolver {
     private readonly adminSupportMessagesByAuthorUseCase: AdminSupportMessagesByAuthorUseCase,
   ) {}
 
+  @UseGuards(OptionalGqlAuthGuard)
   @Mutation(() => SupportMessageType)
   async createSupportMessage(
-    @CurrentUser() authUser: AuthContextUser,
+    @CurrentUser() authUser: AuthContextUser | undefined,
     @Args('input') input: CreateSupportMessageInput,
   ): Promise<SupportMessageType> {
     const created = await this.createSupportMessageUseCase.execute({
-      authorId: authUser.id,
+      authorId: authUser?.id ?? null,
+      email: input.email ?? null,
+      phone: input.phone ?? null,
       title: input.title,
       content: input.content,
     });
@@ -42,7 +45,7 @@ export class SupportMessagesResolver {
     return SupportMessageMapper.toGraphQL(created);
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Mutation(() => SupportMessageType)
   async answerSupportMessage(
@@ -58,6 +61,7 @@ export class SupportMessagesResolver {
     return SupportMessageMapper.toGraphQL(answered);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Query(() => [SupportMessageType])
   async mySupportMessages(
     @CurrentUser() authUser: AuthContextUser,
@@ -73,7 +77,7 @@ export class SupportMessagesResolver {
     return rows.map(SupportMessageMapper.toGraphQL);
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Query(() => [SupportMessageType])
   async adminSupportMessages(
@@ -88,7 +92,7 @@ export class SupportMessagesResolver {
     return rows.map(SupportMessageMapper.toGraphQL);
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Query(() => [SupportMessageType])
   async adminSupportMessagesByAuthor(
