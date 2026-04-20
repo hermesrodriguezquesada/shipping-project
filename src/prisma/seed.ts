@@ -82,12 +82,32 @@ async function main() {
       {
         name: 'CONTACT_WHATSAPP_CHANNEL',
         type: SystemSettingType.URL,
-        value: 'https://wa.me/jr83nrirurj',
+        value: 'https://whatsapp.com/channel/0029VbBohmQ3AzNYEWUuTt2d',
+      },
+      {
+        name: 'CONTACT_PHONE_NUMBER1',
+        type: SystemSettingType.NUMBER,
+        value: "+971543138 837''",
+      },
+      {
+        name: 'CONTACT_PHONE_NUMBER2',
+        type: SystemSettingType.NUMBER,
+        value: null,
+      },
+      {
+        name: 'CONTACT_EMAIL',
+        type: SystemSettingType.EMAIL,
+        value: 'resiliencebrothersfz@gmail.com',
       },
       {
         name: 'REMITTANCE_ENABLED',
         type: SystemSettingType.BOOLEAN,
         value: 'true',
+      },
+      {
+        name: 'NOTIF_USER_EXCEEDS_TRANSACTIONS_PER_DAY',
+        type: SystemSettingType.NUMBER,
+        value: '10',
       },
       {
         name: 'NOTIF_TRANSACTIONS_OVER_AMOUNT',
