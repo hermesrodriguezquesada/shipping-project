@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { SupportMessageStatus } from '@prisma/client';
+import { UserType } from 'src/modules/users/presentation/graphql/types/user.type';
 
 @ObjectType()
 export class SupportMessageType {
@@ -38,4 +39,10 @@ export class SupportMessageType {
 
   @Field()
   updatedAt!: Date;
+
+  @Field(() => UserType, { nullable: true })
+  author!: UserType | null;
+
+  @Field(() => UserType, { nullable: true })
+  answeredBy!: UserType | null;
 }

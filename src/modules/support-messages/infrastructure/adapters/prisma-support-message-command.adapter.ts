@@ -2,10 +2,19 @@ import { Injectable } from '@nestjs/common';
 import {
   SupportMessage as PrismaSupportMessage,
   SupportMessageStatus,
+  User as PrismaUser,
 } from '@prisma/client';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { UserEntity } from 'src/modules/users/domain/entities/user.entity';
 import { SupportMessageEntity } from '../../domain/entities/support-message.entity';
 import { SupportMessageCommandPort } from '../../domain/ports/support-message-command.port';
+
+type SupportMessageWithUsers = PrismaSupportMessage & {
+  author: PrismaUser | null;
+  answeredBy: PrismaUser | null;
+};
+
+const INCLUDE_USERS = { author: true, answeredBy: true } as const;
 
 @Injectable()
 export class PrismaSupportMessageCommandAdapter implements SupportMessageCommandPort {
@@ -27,6 +36,7 @@ export class PrismaSupportMessageCommandAdapter implements SupportMessageCommand
         content: input.content,
         status: SupportMessageStatus.OPEN,
       },
+      include: INCLUDE_USERS,
     });
 
     return this.toEntity(row);
@@ -46,12 +56,13 @@ export class PrismaSupportMessageCommandAdapter implements SupportMessageCommand
         answeredAt: input.answeredAt,
         status: SupportMessageStatus.ANSWERED,
       },
+      include: INCLUDE_USERS,
     });
 
     return this.toEntity(row);
   }
 
-  private toEntity(row: PrismaSupportMessage): SupportMessageEntity {
+  private toEntity(row: SupportMessageWithUsers): SupportMessageEntity {
     return {
       id: row.id,
       authorId: row.authorId ?? null,
@@ -65,6 +76,34 @@ export class PrismaSupportMessageCommandAdapter implements SupportMessageCommand
       status: row.status,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      author: row.author ? this.toUserEntity(row.author) : null,
+      answeredBy: row.answeredBy ? this.toUserEntity(row.answeredBy) : null,
+    };
+  }
+
+  private toUserEntity(user: PrismaUser): UserEntity {
+    return {
+      id: user.id,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      roles: user.roles,
+      isActive: user.isActive,
+      isDeleted: user.isDeleted,
+      isVip: user.isVip,
+      totalGeneratedAmount: user.totalGeneratedAmount,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      birthDate: user.birthDate,
+      addressLine1: user.addressLine1,
+      addressLine2: user.addressLine2,
+      city: user.city,
+      country: user.country,
+      postalCode: user.postalCode,
+      clientType: user.clientType,
+      companyName: user.companyName,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 }

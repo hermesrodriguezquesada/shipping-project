@@ -1,3 +1,4 @@
+import { UserMapper } from 'src/modules/users/presentation/mappers/user.mapper';
 import { SupportMessageEntity } from '../../domain/entities/support-message.entity';
 import { SupportMessageType } from '../graphql/types/support-message.type';
 
@@ -16,6 +17,8 @@ export class SupportMessageMapper {
       status: entity.status,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+      author: entity.author ? UserMapper.toGraphQL(entity.author) : null,
+      answeredBy: entity.answeredBy ? UserMapper.toGraphQL(entity.answeredBy) : null,
     };
   }
 }

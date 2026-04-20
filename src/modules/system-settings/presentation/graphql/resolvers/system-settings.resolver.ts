@@ -11,7 +11,6 @@ import { SystemSettingReadModel } from 'src/modules/system-settings/domain/ports
 import { AdminUpdateSystemSettingInput } from '../inputs/admin-update-system-setting.input';
 import { SystemSettingObjectType } from '../types/system-setting.type';
 
-@UseGuards(GqlAuthGuard)
 @Resolver()
 export class SystemSettingsResolver {
   constructor(
@@ -20,18 +19,14 @@ export class SystemSettingsResolver {
     private readonly updateUseCase: AdminUpdateSystemSettingValueUseCase,
   ) {}
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
   @Query(() => [SystemSettingObjectType])
-  async adminSettings(): Promise<SystemSettingObjectType[]> {
+  async getSettings(): Promise<SystemSettingObjectType[]> {
     const settings = await this.listUseCase.execute();
     return settings.map((setting) => this.toType(setting));
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
   @Query(() => SystemSettingObjectType, { nullable: true })
-  async adminSetting(@Args('name') name: string): Promise<SystemSettingObjectType | null> {
+  async getSetting(@Args('name') name: string): Promise<SystemSettingObjectType | null> {
     const setting = await this.getUseCase.execute(name);
     return setting ? this.toType(setting) : null;
   }

@@ -706,8 +706,6 @@ type Query {
   adminRemittances(limit: Int, offset: Int): [RemittanceType!]!
   adminRemittancesByUser(limit: Int, offset: Int, userId: ID!): [RemittanceType!]!
   adminReportExports(input: AdminReportExportsInput): [AdminReportExportHistoryItemType!]!
-  adminSetting(name: String!): SystemSetting
-  adminSettings: [SystemSetting!]!
   adminSupportMessages(input: SupportMessagesPaginationInput): [SupportMessageType!]!
   adminSupportMessagesByAuthor(authorId: ID!, input: SupportMessagesPaginationInput): [SupportMessageType!]!
   adminTransactions(input: AdminTransactionsFilterInput!): [AdminTransactionType!]!
@@ -719,6 +717,8 @@ type Query {
   elToqueRates(dateFrom: String, dateTo: String): String!
   exchangeRate(from: String!, to: String!): ExchangeRateType
   exchangeRates(enabledOnly: Boolean! = true, from: String, limit: Int, offset: Int, to: String): [ExchangeRateType!]!
+  getSetting(name: String!): SystemSetting
+  getSettings: [SystemSetting!]!
   me: UserType!
   myBeneficiaries(input: ListBeneficiariesInput): [BeneficiaryType!]!
   myIdentityVerification: IdentityVerificationType
@@ -913,7 +913,9 @@ enum SupportMessageStatus {
 type SupportMessageType {
   answer: String
   answeredAt: DateTime
+  answeredBy: UserType
   answeredById: String
+  author: UserType
   authorId: ID
   content: String!
   createdAt: DateTime!

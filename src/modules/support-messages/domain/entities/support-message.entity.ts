@@ -1,4 +1,5 @@
 import { SupportMessageStatus } from '@prisma/client';
+import { UserEntity } from 'src/modules/users/domain/entities/user.entity';
 
 export interface SupportMessageEntity {
   id: string;
@@ -13,4 +14,6 @@ export interface SupportMessageEntity {
   status: SupportMessageStatus;
   createdAt: Date;
   updatedAt: Date;
+  author?: UserEntity | null;
+  answeredBy?: UserEntity | null;
 }
