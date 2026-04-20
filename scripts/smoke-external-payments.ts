@@ -22,6 +22,7 @@ import { HandleExternalPaymentWebhookUseCase } from 'src/modules/remittances/app
 import { RemittanceLifecycleUseCase } from 'src/modules/remittances/application/use-cases/remittance-lifecycle.usecase';
 import { SubmitRemittanceV2UseCase } from 'src/modules/remittances/application/use-cases/submit-remittance-v2.usecase';
 import { PrismaInternalNotificationCommandAdapter } from 'src/modules/internal-notifications/infrastructure/adapters/prisma-internal-notification-command.adapter';
+import { PrismaUserQueryAdapter } from 'src/modules/users/infrastructure/adapters/prisma-user-query.adapter';
 import {
   CanonicalExternalPaymentWebhookEvent,
   CreatePaymentSessionProviderInput,
@@ -131,6 +132,7 @@ async function main() {
     remittanceQuery,
     remittanceCommand,
     internalNotificationCommand,
+    new PrismaUserQueryAdapter(prisma),
     paymentMethodAvailability,
     receptionMethodAvailability,
     currencyAvailability,
@@ -380,6 +382,7 @@ async function main() {
     fakePaymentProofStorage as any,
     fakeNotifier as any,
     internalNotificationCommand,
+    new PrismaUserQueryAdapter(prisma),
   );
 
   const remittanceManual = await submitUseCase.execute({

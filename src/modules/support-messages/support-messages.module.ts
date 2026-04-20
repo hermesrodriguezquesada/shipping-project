@@ -4,6 +4,8 @@ import {
   SUPPORT_MESSAGE_COMMAND_PORT,
   SUPPORT_MESSAGE_QUERY_PORT,
 } from 'src/shared/constants/tokens';
+import { InternalNotificationsModule } from '../internal-notifications/internal-notifications.module';
+import { UsersModule } from '../users/users.module';
 import { AdminSupportMessagesByAuthorUseCase } from './application/use-cases/admin-support-messages-by-author.usecase';
 import { AdminSupportMessagesUseCase } from './application/use-cases/admin-support-messages.usecase';
 import { AnswerSupportMessageUseCase } from './application/use-cases/answer-support-message.usecase';
@@ -14,6 +16,7 @@ import { PrismaSupportMessageQueryAdapter } from './infrastructure/adapters/pris
 import { SupportMessagesResolver } from './presentation/graphql/resolvers/support-messages.resolver';
 
 @Module({
+  imports: [InternalNotificationsModule, UsersModule],
   providers: [
     RolesGuard,
     PrismaSupportMessageCommandAdapter,

@@ -56,6 +56,7 @@ import { ExternalPaymentWebhookController } from './presentation/http/controller
 import { AdminReportExportController } from './presentation/http/controllers/admin-report-export.controller';
 import { RemittanceReceiptController } from './presentation/http/controllers/remittance-receipt.controller';
 import { RemittancesResolver } from './presentation/graphql/resolvers/remittances.resolver';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { RemittancesResolver } from './presentation/graphql/resolvers/remittance
     CatalogsModule,
     ExchangeRatesModule,
     PricingModule,
+    UsersModule,
   ],
   controllers: [RemittanceReceiptController, ExternalPaymentWebhookController, AdminReportExportController],
   providers: [

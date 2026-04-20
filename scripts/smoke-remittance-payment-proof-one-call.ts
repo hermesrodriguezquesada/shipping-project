@@ -23,6 +23,7 @@ import { ListMyNotificationsUseCase } from 'src/modules/internal-notifications/a
 import { MarkNotificationAsReadUseCase } from 'src/modules/internal-notifications/application/use-cases/mark-notification-as-read.usecase';
 import { PrismaInternalNotificationCommandAdapter } from 'src/modules/internal-notifications/infrastructure/adapters/prisma-internal-notification-command.adapter';
 import { PrismaInternalNotificationQueryAdapter } from 'src/modules/internal-notifications/infrastructure/adapters/prisma-internal-notification-query.adapter';
+import { PrismaUserQueryAdapter } from 'src/modules/users/infrastructure/adapters/prisma-user-query.adapter';
 import { CurrencyAvailabilityBridgeAdapter } from 'src/modules/remittances/infrastructure/adapters/currency-availability.bridge.adapter';
 import { PaymentMethodAvailabilityBridgeAdapter } from 'src/modules/remittances/infrastructure/adapters/payment-method-availability.bridge.adapter';
 import { PrismaRemittanceCommandAdapter } from 'src/modules/remittances/infrastructure/adapters/prisma-remittance-command.adapter';
@@ -95,6 +96,7 @@ async function main() {
     remittanceQuery,
     remittanceCommand,
     internalNotificationCommand,
+    new PrismaUserQueryAdapter(prisma),
     paymentMethodAvailability,
     receptionMethodAvailability,
     currencyAvailability,
@@ -109,6 +111,7 @@ async function main() {
     paymentProofStorage,
     new FakeNotifier() as any,
     internalNotificationCommand,
+    new PrismaUserQueryAdapter(prisma),
   );
 
   const listMyNotificationsUseCase = new ListMyNotificationsUseCase(internalNotificationQuery as any);

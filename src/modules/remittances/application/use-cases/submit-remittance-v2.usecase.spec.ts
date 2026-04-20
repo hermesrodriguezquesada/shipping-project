@@ -7,6 +7,7 @@ type UseCaseDeps = {
   remittanceQuery: { findMyRemittanceById: jest.Mock };
   remittanceCommand: { createPendingPayment: jest.Mock };
   internalNotificationCommand: { create: jest.Mock };
+  userQuery: { findMany: jest.Mock; findById: jest.Mock };
   paymentMethodAvailability: { findEnabledPaymentMethodByCode: jest.Mock };
   receptionMethodAvailability: { findEnabledReceptionMethodByCode: jest.Mock };
   currencyAvailability: { findEnabledCurrencyByCode: jest.Mock };
@@ -21,6 +22,7 @@ const buildUseCase = () => {
     remittanceQuery: { findMyRemittanceById: jest.fn() },
     remittanceCommand: { createPendingPayment: jest.fn() },
     internalNotificationCommand: { create: jest.fn() },
+    userQuery: { findMany: jest.fn().mockResolvedValue([{ id: 'admin-1' }]), findById: jest.fn() },
     paymentMethodAvailability: { findEnabledPaymentMethodByCode: jest.fn() },
     receptionMethodAvailability: { findEnabledReceptionMethodByCode: jest.fn() },
     currencyAvailability: { findEnabledCurrencyByCode: jest.fn() },
@@ -34,6 +36,7 @@ const buildUseCase = () => {
     deps.remittanceQuery as any,
     deps.remittanceCommand as any,
     deps.internalNotificationCommand as any,
+    deps.userQuery as any,
     deps.paymentMethodAvailability as any,
     deps.receptionMethodAvailability as any,
     deps.currencyAvailability as any,
@@ -237,7 +240,7 @@ describe('SubmitRemittanceV2UseCase originAccount data pass-through', () => {
 
     expect(deps.internalNotificationCommand.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        userId: 'user-1',
+        userId: 'admin-1',
         type: 'NEW_REMITTANCE',
         referenceId: 'remittance-1',
       }),

@@ -7,6 +7,7 @@ import {
   Prisma,
   ReceptionMethod,
   ReceptionPayoutMethod,
+  Role,
 } from '@prisma/client';
 import { AppConfigService } from 'src/core/config/config.service';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
@@ -21,6 +22,7 @@ import {
   INTERNAL_NOTIFICATION_COMMAND_PORT,
   REMITTANCE_COMMAND_PORT,
   REMITTANCE_QUERY_PORT,
+  USER_QUERY_PORT,
 } from 'src/shared/constants/tokens';
 import { CurrencyAvailabilityPort } from '../../domain/ports/currency-availability.port';
 import { PaymentMethodAvailabilityPort } from '../../domain/ports/payment-method-availability.port';
@@ -31,6 +33,7 @@ import { BeneficiaryCommandPort } from 'src/modules/beneficiaries/domain/ports/b
 import { BeneficiaryQueryPort } from 'src/modules/beneficiaries/domain/ports/beneficiary-query.port';
 import { BeneficiaryEntity } from 'src/modules/beneficiaries/domain/entities/beneficiary.entity';
 import { InternalNotificationCommandPort } from 'src/modules/internal-notifications/domain/ports/internal-notification-command.port';
+import { UserQueryPort } from 'src/modules/users/domain/ports/user-query.port';
 
 @Injectable()
 export class SubmitRemittanceV2UseCase {
@@ -47,6 +50,8 @@ export class SubmitRemittanceV2UseCase {
     private readonly remittanceCommand: RemittanceCommandPort,
     @Inject(INTERNAL_NOTIFICATION_COMMAND_PORT)
     private readonly internalNotificationCommand: InternalNotificationCommandPort,
+    @Inject(USER_QUERY_PORT)
+    private readonly userQuery: UserQueryPort,
     @Inject(PAYMENT_METHOD_AVAILABILITY_PORT)
     private readonly paymentMethodAvailability: PaymentMethodAvailabilityPort,
     @Inject(RECEPTION_METHOD_AVAILABILITY_PORT)
@@ -288,8 +293,7 @@ export class SubmitRemittanceV2UseCase {
       throw new NotFoundDomainException('Remittance not found');
     }
 
-    await this.createInternalNotificationSafe({
-      userId: input.senderUserId,
+    await this.createInternalNotificationsForAdminsSafe({
       type: InternalNotificationType.NEW_REMITTANCE,
       referenceId: remittance.id,
     });
@@ -297,21 +301,28 @@ export class SubmitRemittanceV2UseCase {
     return remittance;
   }
 
-  private async createInternalNotificationSafe(input: {
-    userId: string;
+  private async createInternalNotificationsForAdminsSafe(input: {
     type: InternalNotificationType;
     referenceId: string;
   }): Promise<void> {
     try {
-      await this.internalNotificationCommand.create({
-        userId: input.userId,
-        type: input.type,
-        referenceId: input.referenceId,
-      });
+      const admins = await this.userQuery.findMany(
+        { role: Role.ADMIN, isDeleted: false },
+        { limit: 200 },
+      );
+      await Promise.all(
+        admins.map((admin) =>
+          this.internalNotificationCommand.create({
+            userId: admin.id,
+            type: input.type,
+            referenceId: input.referenceId,
+          }),
+        ),
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(
-        `Non-blocking internal notification failure. userId=${input.userId} type=${input.type} referenceId=${input.referenceId} error=${message}`,
+        `Non-blocking admin notification failure. type=${input.type} referenceId=${input.referenceId} error=${message}`,
       );
     }
   }

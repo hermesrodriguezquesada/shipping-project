@@ -65,6 +65,7 @@ class InMemoryInternalNotificationAdapter implements InternalNotificationCommand
 const state = {
   remittanceId: 'rem-1',
   senderUserId: 'user-1',
+  adminUserId: 'admin-1',
   remittanceStatus: RemittanceStatus.PENDING_PAYMENT as RemittanceStatus,
   paymentDetails: null as string | null,
 };
@@ -236,12 +237,22 @@ const remittanceStatusNotifier = {
 async function main(): Promise<void> {
   const notificationsAdapter = new InMemoryInternalNotificationAdapter();
 
+  const userQuery = {
+    async findMany() {
+      return [{ id: state.adminUserId, roles: ['ADMIN'], isDeleted: false }];
+    },
+    async findById() {
+      return null;
+    },
+  };
+
   const submitUseCase = new SubmitRemittanceV2UseCase(
     beneficiaryCommand as any,
     beneficiaryQuery as any,
     remittanceQuery as any,
     remittanceCommand as any,
     notificationsAdapter,
+    userQuery as any,
     paymentMethodAvailability as any,
     receptionMethodAvailability as any,
     currencyAvailability as any,
@@ -255,6 +266,7 @@ async function main(): Promise<void> {
     paymentProofStorage as any,
     remittanceStatusNotifier as any,
     notificationsAdapter,
+    userQuery as any,
   );
 
   const listMyNotificationsUseCase = new ListMyNotificationsUseCase(notificationsAdapter);
@@ -279,7 +291,7 @@ async function main(): Promise<void> {
   });
 
   const notificationsAfterSubmit = await listMyNotificationsUseCase.execute({
-    userId: state.senderUserId,
+    userId: state.adminUserId,
     limit: 20,
   });
 
@@ -288,7 +300,16 @@ async function main(): Promise<void> {
   );
 
   if (!caseA) {
-    throw new Error('Caso A fallido: submitRemittanceV2 no genero NEW_REMITTANCE');
+    throw new Error('Caso A fallido: submitRemittanceV2 no genero NEW_REMITTANCE para ADMIN');
+  }
+
+  const senderNotificationsAfterSubmit = await listMyNotificationsUseCase.execute({
+    userId: state.senderUserId,
+    limit: 20,
+  });
+
+  if (senderNotificationsAfterSubmit.some((item) => item.type === InternalNotificationType.NEW_REMITTANCE)) {
+    throw new Error('Caso A fallido: NEW_REMITTANCE se genero para el cliente');
   }
 
   await lifecycleUseCase.markPaid({
@@ -300,7 +321,7 @@ async function main(): Promise<void> {
   });
 
   const notificationsAfterMarkPaid = await listMyNotificationsUseCase.execute({
-    userId: state.senderUserId,
+    userId: state.adminUserId,
     limit: 20,
   });
 
@@ -311,16 +332,29 @@ async function main(): Promise<void> {
   );
 
   if (!caseB) {
-    throw new Error('Caso B fallido: markRemittancePaid no genero REMITTANCE_PENDING_CONFIRMATION_PAYMENT');
+    throw new Error('Caso B fallido: markRemittancePaid no genero REMITTANCE_PENDING_CONFIRMATION_PAYMENT para ADMIN');
+  }
+
+  const senderNotificationsAfterMarkPaid = await listMyNotificationsUseCase.execute({
+    userId: state.senderUserId,
+    limit: 20,
+  });
+
+  if (
+    senderNotificationsAfterMarkPaid.some(
+      (item) => item.type === InternalNotificationType.REMITTANCE_PENDING_CONFIRMATION_PAYMENT,
+    )
+  ) {
+    throw new Error('Caso B fallido: REMITTANCE_PENDING_CONFIRMATION_PAYMENT se genero para el cliente');
   }
 
   const markReadResult = await markNotificationAsReadUseCase.execute({
     id: caseB.id,
-    userId: state.senderUserId,
+    userId: state.adminUserId,
   });
 
   const readNotifications = await listMyNotificationsUseCase.execute({
-    userId: state.senderUserId,
+    userId: state.adminUserId,
     isRead: true,
     limit: 20,
   });

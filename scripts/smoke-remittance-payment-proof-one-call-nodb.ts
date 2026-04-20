@@ -94,6 +94,7 @@ async function main() {
     paymentProofStorage as any,
     notifier as any,
     internalNotificationCommand as any,
+    { findMany: async () => [], findById: async () => null } as any,
   );
 
   const viewUseCase = new GetRemittancePaymentProofViewUrlUseCase(

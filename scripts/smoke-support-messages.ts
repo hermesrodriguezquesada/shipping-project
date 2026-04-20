@@ -48,6 +48,25 @@ async function main(): Promise<void> {
 
   const caseA = createdMessage.createSupportMessage;
 
+  const adminNotificationsAfterCreate = await graphqlRequest<{ myNotifications: Array<{ id: string; type: string; referenceId: string | null; isRead: boolean }> }>({
+    token: adminAuth.accessToken,
+    query: `
+      query MyNotifications($input: MyNotificationsInput) {
+        myNotifications(input: $input) {
+          id
+          type
+          referenceId
+          isRead
+        }
+      }
+    `,
+    variables: { input: { offset: 0, limit: 50 } },
+  });
+
+  const caseA_adminNotified = adminNotificationsAfterCreate.myNotifications.some(
+    (item) => item.type === 'NEW_SUPPORT_MESSAGE' && item.referenceId === caseA.id,
+  );
+
   const myList = await graphqlRequest<{ mySupportMessages: any[] }>({
     token: userAuth.accessToken,
     query: `
@@ -111,6 +130,71 @@ async function main(): Promise<void> {
 
   const caseD = answered.answerSupportMessage;
 
+  const userNotificationsAfterAnswer = await graphqlRequest<{ myNotifications: Array<{ id: string; type: string; referenceId: string | null; isRead: boolean }> }>({
+    token: userAuth.accessToken,
+    query: `
+      query MyNotifications($input: MyNotificationsInput) {
+        myNotifications(input: $input) {
+          id
+          type
+          referenceId
+          isRead
+        }
+      }
+    `,
+    variables: { input: { offset: 0, limit: 50 } },
+  });
+
+  const caseD_authorNotified = userNotificationsAfterAnswer.myNotifications.some(
+    (item) => item.type === 'SUPPORT_MESSAGE_ANSWERED' && item.referenceId === caseA.id,
+  );
+
+  const anonymousMessage = await graphqlRequest<{ createSupportMessage: { id: string; authorId: string | null; status: string } }>({
+    query: `
+      mutation CreateSupportMessage($input: CreateSupportMessageInput!) {
+        createSupportMessage(input: $input) {
+          id
+          authorId
+          status
+        }
+      }
+    `,
+    variables: {
+      input: {
+        title: 'Consulta anonima',
+        content: 'Necesito informacion general.',
+        email: `anon-${runId}@local.test`,
+      },
+    },
+  });
+
+  const answeredAnonymous = await graphqlRequest<{ answerSupportMessage: { id: string; status: string } }>({
+    token: adminAuth.accessToken,
+    query: `
+      mutation AnswerSupportMessage($input: AnswerSupportMessageInput!) {
+        answerSupportMessage(input: $input) {
+          id
+          status
+        }
+      }
+    `,
+    variables: {
+      input: {
+        id: anonymousMessage.createSupportMessage.id,
+        answer: 'Respuesta para consulta publica.',
+      },
+    },
+  });
+
+  const allAnsweredForAnonymous = await prisma.internalNotification.findMany({
+    where: {
+      type: 'SUPPORT_MESSAGE_ANSWERED',
+      referenceId: anonymousMessage.createSupportMessage.id,
+    },
+  });
+
+  const caseD_anonymousNoClientNotification = allAnsweredForAnonymous.length === 0;
+
   const adminByAuthor = await graphqlRequest<{ adminSupportMessagesByAuthor: any[] }>({
     token: adminAuth.accessToken,
     query: `
@@ -149,6 +233,7 @@ async function main(): Promise<void> {
           status: caseA.status,
           authorId: caseA.authorId,
         },
+        caseA_adminNotification_NEW_SUPPORT_MESSAGE: caseA_adminNotified,
         caseB_mySupportMessagesContainsCreated: caseB,
         caseC_adminSupportMessagesContainsCreated: caseC,
         caseD_answerSupportMessage: {
@@ -157,6 +242,9 @@ async function main(): Promise<void> {
           answeredById: caseD.answeredById,
           answeredAt: caseD.answeredAt,
         },
+        caseD_authorNotification_SUPPORT_MESSAGE_ANSWERED: caseD_authorNotified,
+        caseD_anonymousAnswer: answeredAnonymous.answerSupportMessage,
+        caseD_anonymousNoClientNotification,
         caseE_requeryAnsweredData: caseE,
       },
       null,

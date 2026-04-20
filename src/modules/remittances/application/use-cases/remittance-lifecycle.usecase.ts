@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { InternalNotificationType, RemittanceStatus } from '@prisma/client';
+import { InternalNotificationType, RemittanceStatus, Role } from '@prisma/client';
 import { NotFoundDomainException } from 'src/core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import {
@@ -9,6 +9,7 @@ import {
   REMITTANCE_PAYMENT_PROOF_STORAGE_PORT,
   REMITTANCE_QUERY_PORT,
   REMITTANCE_STATUS_NOTIFIER_PORT,
+  USER_QUERY_PORT,
 } from 'src/shared/constants/tokens';
 import { RemittanceCommandPort } from '../../domain/ports/remittance-command.port';
 import { RemittanceQueryPort } from '../../domain/ports/remittance-query.port';
@@ -19,6 +20,7 @@ import {
 } from '../../domain/ports/remittance-status-notifier.port';
 import { buildPaymentDetailsProofJson } from '../utils/payment-details-proof';
 import { InternalNotificationCommandPort } from 'src/modules/internal-notifications/domain/ports/internal-notification-command.port';
+import { UserQueryPort } from 'src/modules/users/domain/ports/user-query.port';
 
 const ALLOWED_PAYMENT_PROOF_MIME_TYPES = new Map<string, string>([
   ['image/jpeg', '.jpg'],
@@ -42,6 +44,8 @@ export class RemittanceLifecycleUseCase {
     private readonly remittanceStatusNotifier: RemittanceStatusNotifierPort,
     @Inject(INTERNAL_NOTIFICATION_COMMAND_PORT)
     private readonly internalNotificationCommand: InternalNotificationCommandPort,
+    @Inject(USER_QUERY_PORT)
+    private readonly userQuery: UserQueryPort,
   ) {}
 
   async markPaid(input: {
@@ -96,8 +100,7 @@ export class RemittanceLifecycleUseCase {
     }
 
     await this.remittanceCommand.markPaid({ id: input.remittanceId, paymentDetails: paymentDetailsToPersist });
-    await this.createInternalNotificationSafe({
-      userId: input.senderUserId,
+    await this.createInternalNotificationsForAdminsSafe({
       type: InternalNotificationType.REMITTANCE_PENDING_CONFIRMATION_PAYMENT,
       referenceId: remittance.id,
     });
@@ -245,21 +248,28 @@ export class RemittanceLifecycleUseCase {
     }
   }
 
-  private async createInternalNotificationSafe(input: {
-    userId: string;
+  private async createInternalNotificationsForAdminsSafe(input: {
     type: InternalNotificationType;
     referenceId: string;
   }): Promise<void> {
     try {
-      await this.internalNotificationCommand.create({
-        userId: input.userId,
-        type: input.type,
-        referenceId: input.referenceId,
-      });
+      const admins = await this.userQuery.findMany(
+        { role: Role.ADMIN, isDeleted: false },
+        { limit: 200 },
+      );
+      await Promise.all(
+        admins.map((admin) =>
+          this.internalNotificationCommand.create({
+            userId: admin.id,
+            type: input.type,
+            referenceId: input.referenceId,
+          }),
+        ),
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(
-        `Non-blocking internal notification failure. userId=${input.userId} type=${input.type} referenceId=${input.referenceId} error=${message}`,
+        `Non-blocking admin notification failure. type=${input.type} referenceId=${input.referenceId} error=${message}`,
       );
     }
   }
