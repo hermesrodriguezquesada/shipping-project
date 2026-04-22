@@ -245,6 +245,14 @@ describe('SubmitRemittanceV2UseCase originAccount data pass-through', () => {
         referenceId: 'remittance-1',
       }),
     );
+
+    expect(deps.internalNotificationCommand.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-1',
+        type: 'REMITTANCE_PENDING_PAYMENT',
+        referenceId: 'remittance-1',
+      }),
+    );
   });
 
   it('accepts IBAN payload and persists it', async () => {

@@ -157,6 +157,10 @@ export class RemittanceLifecycleUseCase {
     }
 
     await this.remittanceCommand.cancelByClient({ id: input.remittanceId });
+    await this.createInternalNotificationsForAdminsSafe({
+      type: InternalNotificationType.REMITTANCE_CANCELLED_BY_USER,
+      referenceId: remittance.id,
+    });
     await this.notifyStatusChange({
       to: remittance.senderEmail,
       remittanceId: remittance.id,
@@ -175,6 +179,11 @@ export class RemittanceLifecycleUseCase {
     }
 
     await this.remittanceCommand.confirmPayment({ id: remittanceId });
+    await this.createInternalNotificationForUserSafe({
+      userId: remittance.sender.id,
+      type: InternalNotificationType.REMITTANCE_PAYMENT_ACCEPTED_SENDING_RECEIVER,
+      referenceId: remittance.id,
+    });
     await this.notifyStatusChange({
       to: remittance.sender.email,
       remittanceId: remittance.id,
@@ -202,6 +211,11 @@ export class RemittanceLifecycleUseCase {
     if (!statusDescription) throw new ValidationDomainException('statusDescription is required');
 
     await this.remittanceCommand.cancelByAdmin({ id: input.remittanceId, statusDescription });
+    await this.createInternalNotificationForUserSafe({
+      userId: remittance.sender.id,
+      type: InternalNotificationType.REMITTANCE_CANCELLED_BY_ADMIN,
+      referenceId: remittance.id,
+    });
     await this.notifyStatusChange({
       to: remittance.sender.email,
       remittanceId: remittance.id,
@@ -221,6 +235,11 @@ export class RemittanceLifecycleUseCase {
     }
 
     await this.remittanceCommand.markDelivered({ id: remittanceId });
+    await this.createInternalNotificationForUserSafe({
+      userId: remittance.sender.id,
+      type: InternalNotificationType.REMITTANCE_COMPLETED,
+      referenceId: remittance.id,
+    });
     await this.notifyStatusChange({
       to: remittance.sender.email,
       remittanceId: remittance.id,
@@ -244,6 +263,25 @@ export class RemittanceLifecycleUseCase {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.warn(
         `Non-blocking remittance notification failure. remittanceId=${input.remittanceId} event=${input.event} error=${message}`,
+      );
+    }
+  }
+
+  private async createInternalNotificationForUserSafe(input: {
+    userId: string;
+    type: InternalNotificationType;
+    referenceId: string;
+  }): Promise<void> {
+    try {
+      await this.internalNotificationCommand.create({
+        userId: input.userId,
+        type: input.type,
+        referenceId: input.referenceId,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Non-blocking user notification failure. type=${input.type} userId=${input.userId} referenceId=${input.referenceId} error=${message}`,
       );
     }
   }

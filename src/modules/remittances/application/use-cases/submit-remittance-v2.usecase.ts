@@ -297,8 +297,32 @@ export class SubmitRemittanceV2UseCase {
       type: InternalNotificationType.NEW_REMITTANCE,
       referenceId: remittance.id,
     });
+    await this.createInternalNotificationForUserSafe({
+      userId: input.senderUserId,
+      type: InternalNotificationType.REMITTANCE_PENDING_PAYMENT,
+      referenceId: remittance.id,
+    });
 
     return remittance;
+  }
+
+  private async createInternalNotificationForUserSafe(input: {
+    userId: string;
+    type: InternalNotificationType;
+    referenceId: string;
+  }): Promise<void> {
+    try {
+      await this.internalNotificationCommand.create({
+        userId: input.userId,
+        type: input.type,
+        referenceId: input.referenceId,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Non-blocking user notification failure. type=${input.type} userId=${input.userId} referenceId=${input.referenceId} error=${message}`,
+      );
+    }
   }
 
   private async createInternalNotificationsForAdminsSafe(input: {
