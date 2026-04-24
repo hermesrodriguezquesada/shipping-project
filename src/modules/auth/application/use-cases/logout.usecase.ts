@@ -15,7 +15,7 @@ export class LogoutUseCase {
     private readonly tokens: TokenServicePort,
   ) {}
 
-  async execute(refreshToken: string): Promise<boolean> {
+  async execute(refreshToken: string): Promise<{ success: boolean; userId: string; sessionId: string }> {
     let payload: RefreshPayload;
     try {
       payload = await this.tokens.verifyRefresh<RefreshPayload>(refreshToken);
@@ -24,13 +24,15 @@ export class LogoutUseCase {
     }
 
     const session = await this.sessions.findById(payload.sid);
-    if (!session) return true;
+    if (!session) {
+      return { success: true, userId: payload.sub, sessionId: payload.sid };
+    }
 
     if (session.userId !== payload.sub) {
       throw new UnauthorizedDomainException('Invalid refresh token');
     }
 
     await this.sessions.revoke(session.id);
-    return true;
+    return { success: true, userId: payload.sub, sessionId: session.id };
   }
 }

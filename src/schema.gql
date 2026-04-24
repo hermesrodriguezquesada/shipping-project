@@ -348,6 +348,17 @@ input AdminUpdateUserProfileInput {
   userId: ID!
 }
 
+input AdminUserActionLogListInput {
+  action: UserActionLogAction
+  actorUserId: ID
+  dateFrom: DateTime
+  dateTo: DateTime
+  limit: Int
+  offset: Int
+  resourceId: String
+  resourceType: String
+}
+
 input AdminVipPaymentProofListInput {
   currencyId: ID
   dateFrom: DateTime
@@ -733,6 +744,7 @@ type Query {
   adminTransactions(input: AdminTransactionsFilterInput!): [AdminTransactionType!]!
   adminTransactionsAmountStats(input: AdminTransactionsAmountStatsInput!): AdminTransactionsAmountStatsType!
   adminTransactionsPeriodReport(input: AdminTransactionsPeriodReportInput!): [AdminTransactionsPeriodBucketType!]!
+  adminUserActionLogs(input: AdminUserActionLogListInput): [UserActionLog!]!
   adminUsers(input: AdminListUsersInput): [UserType!]!
   adminVipPaymentProofs(input: AdminVipPaymentProofListInput): [VipPaymentProof!]!
   beneficiary(id: ID!): BeneficiaryType!
@@ -751,6 +763,7 @@ type Query {
   myRemittances(limit: Int, offset: Int): [RemittanceType!]!
   mySessions(limit: Int, offset: Int): [SessionType!]!
   mySupportMessages(input: SupportMessagesPaginationInput): [SupportMessageType!]!
+  myUserActionLogs(input: UserActionLogListInput): [UserActionLog!]!
   myVipPaymentProofs(input: VipPaymentProofListInput): [VipPaymentProof!]!
   paymentMethods(enabledOnly: Boolean): [PaymentMethodType!]!
   pricingPreview(input: PricingPreviewInput!): PricingPreviewType!
@@ -1004,6 +1017,49 @@ input UpdateMyProfileInput {
   lastName: String
   phone: String
   postalCode: String
+}
+
+type UserActionLog {
+  action: UserActionLogAction!
+  actor: UserType
+  actorEmail: String
+  actorRole: String
+  actorUserId: String
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  ipAddress: String
+  metadataJson: String
+  resourceId: String
+  resourceType: String
+  userAgent: String
+}
+
+enum UserActionLogAction {
+  ADMIN_CANCEL_VIP_PAYMENT_PROOF
+  ADMIN_CONFIRM_REMITTANCE_PAYMENT
+  ADMIN_CONFIRM_VIP_PAYMENT_PROOF
+  ADMIN_MARK_REMITTANCE_DELIVERED
+  ADMIN_SET_USER_VIP
+  ADMIN_UPDATE_USER
+  ANSWER_SUPPORT_MESSAGE
+  CANCEL_REMITTANCE
+  CREATE_REMITTANCE
+  CREATE_SUPPORT_MESSAGE
+  CREATE_VIP_PAYMENT_PROOF
+  LOGIN
+  LOGOUT
+  MARK_REMITTANCE_PAID
+  REGISTER
+  UPDATE_PROFILE
+}
+
+input UserActionLogListInput {
+  action: UserActionLogAction
+  dateFrom: DateTime
+  dateTo: DateTime
+  limit: Int
+  offset: Int
 }
 
 type UserType {

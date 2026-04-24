@@ -14,9 +14,10 @@ import { MySupportMessagesUseCase } from './application/use-cases/my-support-mes
 import { PrismaSupportMessageCommandAdapter } from './infrastructure/adapters/prisma-support-message-command.adapter';
 import { PrismaSupportMessageQueryAdapter } from './infrastructure/adapters/prisma-support-message-query.adapter';
 import { SupportMessagesResolver } from './presentation/graphql/resolvers/support-messages.resolver';
+import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
 
 @Module({
-  imports: [InternalNotificationsModule, UsersModule],
+  imports: [InternalNotificationsModule, UsersModule, UserActionLogsModule],
   providers: [
     RolesGuard,
     PrismaSupportMessageCommandAdapter,

@@ -1,6 +1,7 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { Logger, UseGuards } from '@nestjs/common';
+import { Args, Context, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Role, UserActionLogAction } from '@prisma/client';
+import { Request } from 'express';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
@@ -17,15 +18,21 @@ import { AnswerSupportMessageInput } from '../inputs/answer-support-message.inpu
 import { CreateSupportMessageInput } from '../inputs/create-support-message.input';
 import { SupportMessagesPaginationInput } from '../inputs/support-messages-pagination.input';
 import { SupportMessageType } from '../types/support-message.type';
+import { RecordUserActionLogUseCase } from 'src/modules/user-action-logs/application/use-cases/record-user-action-log.usecase';
+import { recordUserActionLogSafe } from 'src/modules/user-action-logs/application/utils/record-user-action-log-safe';
+import { getPrimaryRole, getRequestAuditContext } from 'src/modules/user-action-logs/application/utils/user-action-log-context';
 
 @Resolver(() => SupportMessageType)
 export class SupportMessagesResolver {
+  private readonly logger = new Logger(SupportMessagesResolver.name);
+
   constructor(
     private readonly createSupportMessageUseCase: CreateSupportMessageUseCase,
     private readonly answerSupportMessageUseCase: AnswerSupportMessageUseCase,
     private readonly mySupportMessagesUseCase: MySupportMessagesUseCase,
     private readonly adminSupportMessagesUseCase: AdminSupportMessagesUseCase,
     private readonly adminSupportMessagesByAuthorUseCase: AdminSupportMessagesByAuthorUseCase,
+    private readonly recordUserActionLogUseCase: RecordUserActionLogUseCase,
   ) {}
 
   @UseGuards(OptionalGqlAuthGuard)
@@ -33,6 +40,7 @@ export class SupportMessagesResolver {
   async createSupportMessage(
     @CurrentUser() authUser: AuthContextUser | undefined,
     @Args('input') input: CreateSupportMessageInput,
+    @Context('req') req: Request,
   ): Promise<SupportMessageType> {
     const created = await this.createSupportMessageUseCase.execute({
       authorId: authUser?.id ?? null,
@@ -40,6 +48,22 @@ export class SupportMessagesResolver {
       phone: input.phone ?? null,
       title: input.title,
       content: input.content,
+    });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: authUser?.id ?? null,
+      actorEmail: authUser?.email ?? input.email ?? null,
+      actorRole: getPrimaryRole(authUser?.roles),
+      action: UserActionLogAction.CREATE_SUPPORT_MESSAGE,
+      resourceType: 'SUPPORT_MESSAGE',
+      resourceId: created.id,
+      description: 'Support message created',
+      metadata: {
+        hasAuthenticatedActor: Boolean(authUser?.id),
+        hasEmail: Boolean(input.email),
+        hasPhone: Boolean(input.phone),
+      },
+      ...getRequestAuditContext(req),
     });
 
     return SupportMessageMapper.toGraphQL(created);
@@ -51,11 +75,24 @@ export class SupportMessagesResolver {
   async answerSupportMessage(
     @CurrentUser() authUser: AuthContextUser,
     @Args('input') input: AnswerSupportMessageInput,
+    @Context('req') req: Request,
   ): Promise<SupportMessageType> {
     const answered = await this.answerSupportMessageUseCase.execute({
       id: input.id,
       answer: input.answer,
       answeredById: authUser.id,
+    });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ANSWER_SUPPORT_MESSAGE,
+      resourceType: 'SUPPORT_MESSAGE',
+      resourceId: answered.id,
+      description: 'Support message answered',
+      metadata: { hasAnswer: Boolean(input.answer?.trim()) },
+      ...getRequestAuditContext(req),
     });
 
     return SupportMessageMapper.toGraphQL(answered);

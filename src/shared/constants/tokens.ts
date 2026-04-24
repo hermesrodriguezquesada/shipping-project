@@ -41,6 +41,8 @@ export const INTERNAL_NOTIFICATION_QUERY_PORT = 'InternalNotificationQueryPort';
 export const INTERNAL_NOTIFICATION_COMMAND_PORT = 'InternalNotificationCommandPort';
 export const SUPPORT_MESSAGE_QUERY_PORT = 'SupportMessageQueryPort';
 export const SUPPORT_MESSAGE_COMMAND_PORT = 'SupportMessageCommandPort';
+export const USER_ACTION_LOG_QUERY_PORT = 'UserActionLogQueryPort';
+export const USER_ACTION_LOG_COMMAND_PORT = 'UserActionLogCommandPort';
 
 export const VIP_PAYMENT_PROOF_QUERY_PORT = 'VipPaymentProofQueryPort';
 export const VIP_PAYMENT_PROOF_COMMAND_PORT = 'VipPaymentProofCommandPort';

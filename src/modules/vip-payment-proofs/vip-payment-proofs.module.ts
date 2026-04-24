@@ -14,9 +14,10 @@ import { PrismaVipPaymentProofCommandAdapter } from './infrastructure/adapters/p
 import { PrismaVipPaymentProofQueryAdapter } from './infrastructure/adapters/prisma-vip-payment-proof-query.adapter';
 import { S3VipPaymentProofStorageAdapter } from './infrastructure/adapters/s3-vip-payment-proof-storage.adapter';
 import { VipPaymentProofsResolver } from './presentation/graphql/resolvers/vip-payment-proofs.resolver';
+import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
 
 @Module({
-  imports: [AppConfigModule, UsersModule, CatalogsModule],
+  imports: [AppConfigModule, UsersModule, CatalogsModule, UserActionLogsModule],
   providers: [
     RolesGuard,
     PrismaVipPaymentProofCommandAdapter,

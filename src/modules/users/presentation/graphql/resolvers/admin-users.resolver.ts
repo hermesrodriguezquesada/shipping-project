@@ -1,6 +1,7 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { Logger, UseGuards } from '@nestjs/common';
+import { Args, Context, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Role, UserActionLogAction } from '@prisma/client';
+import { Request } from 'express';
 
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
@@ -27,11 +28,18 @@ import { AdminCreateUserUseCase } from 'src/modules/users/application/use-cases/
 import { AdminListUsersInput } from '../inputs/admin-list-users.input';
 import { AdminUpdateUserProfileInput } from '../inputs/admin-update-user-profile.input';
 import { AdminUpdateUserProfileUseCase } from 'src/modules/users/application/use-cases/admin/admin-update-user-profile.usecase';
+import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
+import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
+import { RecordUserActionLogUseCase } from 'src/modules/user-action-logs/application/use-cases/record-user-action-log.usecase';
+import { recordUserActionLogSafe } from 'src/modules/user-action-logs/application/utils/record-user-action-log-safe';
+import { getPrimaryRole, getRequestAuditContext } from 'src/modules/user-action-logs/application/utils/user-action-log-context';
 
 @UseGuards(GqlAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 @Resolver(() => UserType)
 export class AdminUsersResolver {
+  private readonly logger = new Logger(AdminUsersResolver.name);
+
   constructor(
     private readonly listUsers: AdminListUsersUseCase,
     private readonly createUser: AdminCreateUserUseCase,
@@ -41,6 +49,7 @@ export class AdminUsersResolver {
     private readonly activateUser: AdminActivateUserUseCase,
     private readonly deleteUser: AdminSoftDeleteUserUseCase,
     private readonly updateUserProfile: AdminUpdateUserProfileUseCase,
+    private readonly recordUserActionLogUseCase: RecordUserActionLogUseCase,
   ) {}
 
 @Query(() => [UserType], { name: 'adminUsers' })
@@ -102,10 +111,24 @@ async adminUsers(
   @Mutation(() => UserType, { name: 'adminSetUserVip' })
   async adminSetUserVip(
     @Args('input') input: AdminSetUserVipInput,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<UserType> {
     const updated = await this.setUserVip.execute({
       userId: input.userId,
       isVip: input.isVip,
+    });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_SET_USER_VIP,
+      resourceType: 'USER',
+      resourceId: input.userId,
+      description: 'Admin updated user VIP flag',
+      metadata: { isVip: input.isVip },
+      ...getRequestAuditContext(req),
     });
 
     return UserMapper.toGraphQL(updated);
@@ -138,6 +161,8 @@ async adminUsers(
   @Mutation(() => UserType, { name: 'adminUpdateUserProfile' })
   async adminUpdateUserProfile(
     @Args('input') input: AdminUpdateUserProfileInput,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<UserType> {
     const updated = await this.updateUserProfile.execute({
       userId: input.userId,
@@ -154,6 +179,23 @@ async adminUsers(
       clientType: input.clientType,
       companyName: input.companyName,
     });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_UPDATE_USER,
+      resourceType: 'USER',
+      resourceId: input.userId,
+      description: 'Admin updated user profile',
+      metadata: {
+        updatedFields: Object.entries(input)
+          .filter(([key, value]) => key !== 'userId' && value !== undefined && value !== null)
+          .map(([key]) => key),
+      },
+      ...getRequestAuditContext(req),
+    });
+
     return UserMapper.toGraphQL(updated);
   }
 }

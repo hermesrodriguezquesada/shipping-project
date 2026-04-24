@@ -1,6 +1,7 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { Logger, UseGuards } from '@nestjs/common';
+import { Args, Context, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Role, UserActionLogAction } from '@prisma/client';
+import { Request } from 'express';
 import { Roles } from '../../../../../core/auth/roles.decorator';
 import { RolesGuard } from '../../../../../core/auth/roles.guard';
 import { CurrentUser } from '../../../../auth/presentation/graphql/decorators/current-user.decorator';
@@ -18,9 +19,14 @@ import { CreateVipPaymentProofInput } from '../inputs/create-vip-payment-proof.i
 import { VipPaymentProofListInput } from '../inputs/vip-payment-proof-list.input';
 import { VipPaymentProofType } from '../types/vip-payment-proof.type';
 import { VipPaymentProofViewPayload } from '../types/vip-payment-proof-view.payload';
+import { RecordUserActionLogUseCase } from 'src/modules/user-action-logs/application/use-cases/record-user-action-log.usecase';
+import { recordUserActionLogSafe } from 'src/modules/user-action-logs/application/utils/record-user-action-log-safe';
+import { getPrimaryRole, getRequestAuditContext } from 'src/modules/user-action-logs/application/utils/user-action-log-context';
 
 @Resolver(() => VipPaymentProofType)
 export class VipPaymentProofsResolver {
+  private readonly logger = new Logger(VipPaymentProofsResolver.name);
+
   constructor(
     private readonly createUseCase: CreateVipPaymentProofUseCase,
     private readonly listMineUseCase: ListMyVipPaymentProofsUseCase,
@@ -28,6 +34,7 @@ export class VipPaymentProofsResolver {
     private readonly confirmUseCase: AdminConfirmVipPaymentProofUseCase,
     private readonly cancelUseCase: AdminCancelVipPaymentProofUseCase,
     private readonly getViewUrlUseCase: GetVipPaymentProofViewUrlUseCase,
+    private readonly recordUserActionLogUseCase: RecordUserActionLogUseCase,
   ) {}
 
   @UseGuards(GqlAuthGuard)
@@ -35,6 +42,7 @@ export class VipPaymentProofsResolver {
   async createVipPaymentProof(
     @Args('input') input: CreateVipPaymentProofInput,
     @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<VipPaymentProofType> {
     const created = await this.createUseCase.execute({
       userId: user.id,
@@ -42,6 +50,22 @@ export class VipPaymentProofsResolver {
       amount: input.amount,
       currencyId: input.currencyId,
       paymentProofImg: input.paymentProofImg,
+    });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.CREATE_VIP_PAYMENT_PROOF,
+      resourceType: 'VIP_PAYMENT_PROOF',
+      resourceId: created.id,
+      description: 'VIP payment proof created',
+      metadata: {
+        amount: input.amount,
+        currencyId: input.currencyId,
+        hasPaymentProofImage: Boolean(input.paymentProofImg),
+      },
+      ...getRequestAuditContext(req),
     });
 
     return VipPaymentProofMapper.toGraphQL(created);
@@ -88,10 +112,26 @@ export class VipPaymentProofsResolver {
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Mutation(() => VipPaymentProofType)
-  async adminConfirmVipPaymentProof(@Args('id', { type: () => ID }) id: string, @CurrentUser() user: AuthContextUser): Promise<VipPaymentProofType> {
+  async adminConfirmVipPaymentProof(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
+  ): Promise<VipPaymentProofType> {
     const updated = await this.confirmUseCase.execute({
       id,
       reviewedById: user.id,
+    });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.ADMIN_CONFIRM_VIP_PAYMENT_PROOF,
+      resourceType: 'VIP_PAYMENT_PROOF',
+      resourceId: updated.id,
+      description: 'Admin confirmed VIP payment proof',
+      metadata: { origin: 'ADMIN' },
+      ...getRequestAuditContext(req),
     });
 
     return VipPaymentProofMapper.toGraphQL(updated);
@@ -104,11 +144,27 @@ export class VipPaymentProofsResolver {
     @Args('id', { type: () => ID }) id: string,
     @Args('reason', { type: () => String }) reason: string,
     @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<VipPaymentProofType> {
     const updated = await this.cancelUseCase.execute({
       id,
       reason,
       reviewedById: user.id,
+    });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.ADMIN_CANCEL_VIP_PAYMENT_PROOF,
+      resourceType: 'VIP_PAYMENT_PROOF',
+      resourceId: updated.id,
+      description: 'Admin canceled VIP payment proof',
+      metadata: {
+        origin: 'ADMIN',
+        hasReason: Boolean(reason?.trim()),
+      },
+      ...getRequestAuditContext(req),
     });
 
     return VipPaymentProofMapper.toGraphQL(updated);

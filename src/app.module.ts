@@ -23,6 +23,7 @@ import { SystemSettingsModule } from './modules/system-settings/system-settings.
 import { InternalNotificationsModule } from './modules/internal-notifications/internal-notifications.module';
 import { SupportMessagesModule } from './modules/support-messages/support-messages.module';
 import { VipPaymentProofsModule } from './modules/vip-payment-proofs/vip-payment-proofs.module';
+import { UserActionLogsModule } from './modules/user-action-logs/user-action-logs.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { VipPaymentProofsModule } from './modules/vip-payment-proofs/vip-payment
     InternalNotificationsModule,
     SupportMessagesModule,
     VipPaymentProofsModule,
+    UserActionLogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

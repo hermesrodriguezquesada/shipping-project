@@ -1,6 +1,7 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { Logger, UseGuards } from '@nestjs/common';
+import { Args, Context, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Prisma, Role, UserActionLogAction } from '@prisma/client';
+import { Request } from 'express';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
@@ -46,11 +47,15 @@ import {
 import { CreateExternalPaymentSessionPayload } from '../types/create-external-payment-session.payload';
 import { RemittancePaymentProofViewPayload } from '../types/remittance-payment-proof-view.payload';
 import { RemittanceType } from '../types/remittance.type';
-import { Prisma } from '@prisma/client';
+import { RecordUserActionLogUseCase } from 'src/modules/user-action-logs/application/use-cases/record-user-action-log.usecase';
+import { recordUserActionLogSafe } from 'src/modules/user-action-logs/application/utils/record-user-action-log-safe';
+import { getPrimaryRole, getRequestAuditContext } from 'src/modules/user-action-logs/application/utils/user-action-log-context';
 
 @UseGuards(GqlAuthGuard)
 @Resolver()
 export class RemittancesResolver {
+  private readonly logger = new Logger(RemittancesResolver.name);
+
   constructor(
     private readonly adminRemittancesUseCase: AdminRemittancesUseCase,
     private readonly adminExportReportUseCase: AdminExportReportUseCase,
@@ -66,6 +71,7 @@ export class RemittancesResolver {
     private readonly submitRemittanceV2UseCase: SubmitRemittanceV2UseCase,
     private readonly createExternalPaymentSessionUseCase: CreateExternalPaymentSessionUseCase,
     private readonly getPaymentProofViewUrlUseCase: GetRemittancePaymentProofViewUrlUseCase,
+    private readonly recordUserActionLogUseCase: RecordUserActionLogUseCase,
   ) {}
 
   @Query(() => RemittanceType, { nullable: true })
@@ -275,6 +281,7 @@ export class RemittancesResolver {
   async submitRemittanceV2(
     @Args('input') input: SubmitRemittanceV2Input,
     @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<RemittanceType> {
     const remittance = await this.submitRemittanceV2UseCase.execute({
       senderUserId: user.id,
@@ -289,6 +296,26 @@ export class RemittancesResolver {
       originAccountHolder: input.originAccountHolder,
       originAccount: input.originAccount,
       deliveryLocation: input.deliveryLocation,
+    });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.CREATE_REMITTANCE,
+      resourceType: 'REMITTANCE',
+      resourceId: remittance.id,
+      description: 'Remittance created',
+      metadata: {
+        beneficiaryMode: input.beneficiaryId ? 'EXISTING' : 'MANUAL',
+        saveManualBeneficiary: input.saveManualBeneficiary,
+        paymentAmount: input.paymentAmount,
+        paymentCurrencyCode: input.paymentCurrencyCode,
+        receivingCurrencyCode: input.receivingCurrencyCode,
+        receptionMethod: input.receptionMethod,
+        paymentMethodCode: input.originAccount.paymentMethodCode,
+      },
+      ...getRequestAuditContext(req),
     });
 
     return this.toRemittanceType(remittance);
@@ -323,24 +350,58 @@ export class RemittancesResolver {
     @Args('paymentProofImg', { type: () => String }) paymentProofImg: string,
     @Args('accountHolderName', { type: () => String }) accountHolderName: string,
     @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<boolean> {
-    return this.remittanceLifecycleUseCase.markPaid({
+    const result = await this.remittanceLifecycleUseCase.markPaid({
       remittanceId,
       senderUserId: user.id,
       paymentProofImg,
       accountHolderName,
     });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.MARK_REMITTANCE_PAID,
+      resourceType: 'REMITTANCE',
+      resourceId: remittanceId,
+      description: 'Remittance marked as paid',
+      metadata: {
+        origin: 'USER',
+        hasPaymentProofImage: Boolean(paymentProofImg),
+        hasAccountHolderName: Boolean(accountHolderName?.trim()),
+      },
+      ...getRequestAuditContext(req),
+    });
+
+    return result;
   }
 
   @Mutation(() => Boolean)
   async cancelMyRemittance(
     @Args('remittanceId', { type: () => ID }) remittanceId: string,
     @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<boolean> {
-    return this.remittanceLifecycleUseCase.cancelMyRemittance({
+    const result = await this.remittanceLifecycleUseCase.cancelMyRemittance({
       remittanceId,
       senderUserId: user.id,
     });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.CANCEL_REMITTANCE,
+      resourceType: 'REMITTANCE',
+      resourceId: remittanceId,
+      description: 'User canceled remittance',
+      metadata: { origin: 'USER' },
+      ...getRequestAuditContext(req),
+    });
+
+    return result;
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard)
@@ -348,8 +409,24 @@ export class RemittancesResolver {
   @Mutation(() => Boolean)
   async adminConfirmRemittancePayment(
     @Args('remittanceId', { type: () => ID }) remittanceId: string,
+    @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<boolean> {
-    return this.remittanceLifecycleUseCase.adminConfirmRemittancePayment(remittanceId);
+    const result = await this.remittanceLifecycleUseCase.adminConfirmRemittancePayment(remittanceId);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.ADMIN_CONFIRM_REMITTANCE_PAYMENT,
+      resourceType: 'REMITTANCE',
+      resourceId: remittanceId,
+      description: 'Admin confirmed remittance payment',
+      metadata: { origin: 'ADMIN' },
+      ...getRequestAuditContext(req),
+    });
+
+    return result;
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard)
@@ -358,11 +435,30 @@ export class RemittancesResolver {
   async adminCancelRemittance(
     @Args('remittanceId', { type: () => ID }) remittanceId: string,
     @Args('statusDescription') statusDescription: string,
+    @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<boolean> {
-    return this.remittanceLifecycleUseCase.adminCancelRemittance({
+    const result = await this.remittanceLifecycleUseCase.adminCancelRemittance({
       remittanceId,
       statusDescription,
     });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.CANCEL_REMITTANCE,
+      resourceType: 'REMITTANCE',
+      resourceId: remittanceId,
+      description: 'Admin canceled remittance',
+      metadata: {
+        origin: 'ADMIN',
+        hasStatusDescription: Boolean(statusDescription?.trim()),
+      },
+      ...getRequestAuditContext(req),
+    });
+
+    return result;
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard)
@@ -370,8 +466,24 @@ export class RemittancesResolver {
   @Mutation(() => Boolean)
   async adminMarkRemittanceDelivered(
     @Args('remittanceId', { type: () => ID }) remittanceId: string,
+    @CurrentUser() user: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<boolean> {
-    return this.remittanceLifecycleUseCase.adminMarkRemittanceDelivered(remittanceId);
+    const result = await this.remittanceLifecycleUseCase.adminMarkRemittanceDelivered(remittanceId);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: getPrimaryRole(user.roles),
+      action: UserActionLogAction.ADMIN_MARK_REMITTANCE_DELIVERED,
+      resourceType: 'REMITTANCE',
+      resourceId: remittanceId,
+      description: 'Admin marked remittance as delivered',
+      metadata: { origin: 'ADMIN' },
+      ...getRequestAuditContext(req),
+    });
+
+    return result;
   }
 
 

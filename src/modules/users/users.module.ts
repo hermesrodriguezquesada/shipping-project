@@ -20,8 +20,10 @@ import { PrismaUserCommandAdapter } from './infrastructure/adapters/prisma-user-
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { AdminCreateUserUseCase } from './application/use-cases/admin/admin-create-user.usecase';
 import { UpdateMyProfileUseCase } from './application/use-cases/update-my-profile.usecase';
+import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
 
 @Module({
+  imports: [UserActionLogsModule],
   providers: [
     RolesGuard,
 

@@ -53,6 +53,51 @@ model User {
   internalNotifications InternalNotification[]
   authoredSupportMessages SupportMessage[] @relation("SupportMessageAuthor")
   answeredSupportMessages SupportMessage[] @relation("SupportMessageAnsweredBy")
+  actionLogs UserActionLog[] @relation("UserActionLogActor")
+}
+
+enum UserActionLogAction {
+  REGISTER
+  LOGIN
+  LOGOUT
+  UPDATE_PROFILE
+  ADMIN_UPDATE_USER
+  ADMIN_SET_USER_VIP
+
+  CREATE_REMITTANCE
+  MARK_REMITTANCE_PAID
+  ADMIN_CONFIRM_REMITTANCE_PAYMENT
+  ADMIN_MARK_REMITTANCE_DELIVERED
+  CANCEL_REMITTANCE
+
+  CREATE_VIP_PAYMENT_PROOF
+  ADMIN_CONFIRM_VIP_PAYMENT_PROOF
+  ADMIN_CANCEL_VIP_PAYMENT_PROOF
+
+  CREATE_SUPPORT_MESSAGE
+  ANSWER_SUPPORT_MESSAGE
+}
+
+model UserActionLog {
+  id           String              @id @default(uuid())
+  actorUserId  String?
+  actorEmail   String?
+  actorRole    String?
+  action       UserActionLogAction
+  resourceType String?
+  resourceId   String?
+  description  String?
+  metadataJson String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime            @default(now())
+
+  actor User? @relation("UserActionLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([action])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
 }
 
 model UserSession {

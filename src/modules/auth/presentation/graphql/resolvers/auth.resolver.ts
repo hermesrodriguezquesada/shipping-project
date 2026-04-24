@@ -1,5 +1,7 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Logger, UseGuards } from '@nestjs/common';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Request } from 'express';
+import { UserActionLogAction } from '@prisma/client';
 
 import { LoginUseCase } from '../../../application/use-cases/login.usecase';
 import { RegisterUseCase } from '../../../application/use-cases/register.usecase';
@@ -26,9 +28,14 @@ import { RequestPasswordResetInput } from '../inputs/request-password-reset.inpu
 import { ResetPasswordInput } from '../inputs/reset-password.input';
 import { ChangePasswordInput } from '../inputs/change-password.input';
 import { ChangePasswordUseCase } from 'src/modules/auth/application/use-cases/change-password.usecase';
+import { RecordUserActionLogUseCase } from 'src/modules/user-action-logs/application/use-cases/record-user-action-log.usecase';
+import { recordUserActionLogSafe } from 'src/modules/user-action-logs/application/utils/record-user-action-log-safe';
+import { getPrimaryRole, getRequestAuditContext } from 'src/modules/user-action-logs/application/utils/user-action-log-context';
 
 @Resolver()
 export class AuthResolver {
+  private readonly logger = new Logger(AuthResolver.name);
+
   constructor(
     private readonly loginUseCase: LoginUseCase,
     private readonly registerUseCase: RegisterUseCase,
@@ -38,16 +45,32 @@ export class AuthResolver {
     private readonly requestPasswordResetUseCase: RequestPasswordResetUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly changePasswordUseCase: ChangePasswordUseCase,
-
+    private readonly recordUserActionLogUseCase: RecordUserActionLogUseCase,
   ) {}
 
   @Mutation(() => AuthPayload)
-  async register(@Args('input') input: RegisterInput): Promise<AuthPayload> {
+  async register(@Args('input') input: RegisterInput, @Context('req') req: Request): Promise<AuthPayload> {
     const { accessToken, refreshToken, sessionId, user } = await this.registerUseCase.execute(
       new RegisterInputDto(input.email, input.password, input.clientType, input.companyName),
     );
 
     const fullUser = await this.getMeUseCase.execute(user.id);
+    const requestContext = getRequestAuditContext(req);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: fullUser.id,
+      actorEmail: fullUser.email,
+      actorRole: getPrimaryRole(fullUser.roles),
+      action: UserActionLogAction.REGISTER,
+      resourceType: 'USER',
+      resourceId: fullUser.id,
+      description: 'User registered',
+      metadata: {
+        clientType: input.clientType,
+        sessionId,
+      },
+      ...requestContext,
+    });
 
     return {
       accessToken,
@@ -58,13 +81,26 @@ export class AuthResolver {
   }
 
   @Mutation(() => AuthPayload)
-  async login(@Args('input') input: LoginInput): Promise<AuthPayload> {
+  async login(@Args('input') input: LoginInput, @Context('req') req: Request): Promise<AuthPayload> {
     const { accessToken, refreshToken, sessionId, user } = await this.loginUseCase.execute({
       email: input.email,
       password: input.password,
     });
 
     const fullUser = await this.getMeUseCase.execute(user.id);
+    const requestContext = getRequestAuditContext(req);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: fullUser.id,
+      actorEmail: fullUser.email,
+      actorRole: getPrimaryRole(fullUser.roles),
+      action: UserActionLogAction.LOGIN,
+      resourceType: 'USER_SESSION',
+      resourceId: sessionId,
+      description: 'User logged in',
+      metadata: { sessionId },
+      ...requestContext,
+    });
 
     return {
       accessToken,
@@ -88,8 +124,20 @@ export class AuthResolver {
   }
 
   @Mutation(() => Boolean)
-  async logout(@Args('input') input: LogoutInput): Promise<boolean> {
-    return this.logoutUseCase.execute(input.refreshToken);
+  async logout(@Args('input') input: LogoutInput, @Context('req') req: Request): Promise<boolean> {
+    const result = await this.logoutUseCase.execute(input.refreshToken);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: result.userId,
+      action: UserActionLogAction.LOGOUT,
+      resourceType: 'USER_SESSION',
+      resourceId: result.sessionId,
+      description: 'User logged out',
+      metadata: { sessionId: result.sessionId },
+      ...getRequestAuditContext(req),
+    });
+
+    return result.success;
   }
 
   @UseGuards(GqlAuthGuard)

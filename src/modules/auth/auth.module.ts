@@ -27,6 +27,7 @@ import { ListMySessionsUseCase } from './application/use-cases/list-my-sessions.
 import { RevokeMySessionUseCase } from './application/use-cases/revoke-my-session.usecase';
 import { RevokeOtherMySessionsUseCase } from './application/use-cases/revoke-other-my-sessions.usecase';
 import { ChangePasswordUseCase } from './application/use-cases/change-password.usecase';
+import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ChangePasswordUseCase } from './application/use-cases/change-password.u
       }),
     }),
     NotificationsModule,
+    UserActionLogsModule,
   ],
   providers: [
     AuthResolver,

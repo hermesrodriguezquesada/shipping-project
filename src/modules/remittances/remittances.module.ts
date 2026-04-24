@@ -57,6 +57,7 @@ import { AdminReportExportController } from './presentation/http/controllers/adm
 import { RemittanceReceiptController } from './presentation/http/controllers/remittance-receipt.controller';
 import { RemittancesResolver } from './presentation/graphql/resolvers/remittances.resolver';
 import { UsersModule } from '../users/users.module';
+import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { UsersModule } from '../users/users.module';
     ExchangeRatesModule,
     PricingModule,
     UsersModule,
+    UserActionLogsModule,
   ],
   controllers: [RemittanceReceiptController, ExternalPaymentWebhookController, AdminReportExportController],
   providers: [
