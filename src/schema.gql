@@ -102,6 +102,17 @@ type AdminDashboardSummaryType {
   topPaymentMethods: [AdminPaymentMethodUsageMetricType!]!
 }
 
+input AdminExportUserActionLogsInput {
+  action: UserActionLogAction
+  actorUserId: ID
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  limit: Int
+  offset: Int
+  resourceId: ID
+  resourceType: String
+}
+
 type AdminExternalPaymentSummaryType {
   amount: String!
   checkoutUrl: String
@@ -356,6 +367,25 @@ input AdminUserActionLogListInput {
   limit: Int
   offset: Int
   resourceId: String
+  resourceType: String
+}
+
+input AdminUserActionLogReportInput {
+  action: UserActionLogAction
+  actorUserId: ID
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  resourceId: ID
+  resourceType: String
+}
+
+input AdminUserActionLogTopInput {
+  action: UserActionLogAction
+  actorUserId: ID
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  limit: Int
+  resourceId: ID
   resourceType: String
 }
 
@@ -733,6 +763,7 @@ type Query {
   adminDeliveryFeeRules(country: String, currencyCode: String, enabled: Boolean): [DeliveryFeeRuleType!]!
   adminExchangeRates(from: String, limit: Int, offset: Int, to: String): [ExchangeRateType!]!
   adminExportReport(input: AdminReportExportInput!): AdminReportExportPayload!
+  adminExportUserActionLogs(input: AdminExportUserActionLogsInput!): UserActionLogExportPayload!
   adminPaymentMethodUsageMetrics(input: AdminPaymentMethodUsageInput!): [AdminPaymentMethodUsageMetricType!]!
   adminPendingVerifications(limit: Int, offset: Int): [IdentityVerificationType!]!
   adminRemittance(id: ID!): RemittanceType
@@ -744,6 +775,10 @@ type Query {
   adminTransactions(input: AdminTransactionsFilterInput!): [AdminTransactionType!]!
   adminTransactionsAmountStats(input: AdminTransactionsAmountStatsInput!): AdminTransactionsAmountStatsType!
   adminTransactionsPeriodReport(input: AdminTransactionsPeriodReportInput!): [AdminTransactionsPeriodBucketType!]!
+  adminUserActionLogActivityByDay(input: AdminUserActionLogReportInput!): [UserActionLogActivityBucket!]!
+  adminUserActionLogSummary(input: AdminUserActionLogReportInput!): UserActionLogSummary!
+  adminUserActionLogTopActions(input: AdminUserActionLogReportInput!): [UserActionLogTopAction!]!
+  adminUserActionLogTopActors(input: AdminUserActionLogTopInput!): [UserActionLogTopActor!]!
   adminUserActionLogs(input: AdminUserActionLogListInput): [UserActionLog!]!
   adminUsers(input: AdminListUsersInput): [UserType!]!
   adminVipPaymentProofs(input: AdminVipPaymentProofListInput): [VipPaymentProof!]!
@@ -1054,12 +1089,46 @@ enum UserActionLogAction {
   UPDATE_PROFILE
 }
 
+type UserActionLogActivityBucket {
+  actionCount: Int!
+  date: String!
+  uniqueActors: Int!
+}
+
+type UserActionLogExportPayload {
+  contentBase64: String!
+  fileName: String!
+  generatedAt: DateTime!
+  mimeType: String!
+  sizeBytes: Int!
+}
+
 input UserActionLogListInput {
   action: UserActionLogAction
   dateFrom: DateTime
   dateTo: DateTime
   limit: Int
   offset: Int
+}
+
+type UserActionLogSummary {
+  dateFrom: DateTime!
+  dateTo: DateTime!
+  totalActions: Int!
+  uniqueActors: Int!
+}
+
+type UserActionLogTopAction {
+  action: UserActionLogAction!
+  actionCount: Int!
+}
+
+type UserActionLogTopActor {
+  actionCount: Int!
+  actorEmail: String
+  actorRole: String
+  actorUserId: ID
+  lastActionAt: DateTime!
 }
 
 type UserType {
