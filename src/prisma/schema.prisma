@@ -48,6 +48,8 @@ model User {
   beneficiaries        Beneficiary[]
   beneficiaryUsage BeneficiaryUsage[]
   remittances Remittance[]
+  vipPaymentProofs VipPaymentProof[] @relation("VipPaymentProofOwner")
+  reviewedVipPaymentProofs VipPaymentProof[] @relation("VipPaymentProofReviewer")
   internalNotifications InternalNotification[]
   authoredSupportMessages SupportMessage[] @relation("SupportMessageAuthor")
   answeredSupportMessages SupportMessage[] @relation("SupportMessageAnsweredBy")
@@ -267,6 +269,12 @@ enum SupportMessageStatus {
   ANSWERED
 }
 
+enum VipPaymentProofStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  CANCELED
+}
+
 model PaymentMethod {
   id          String   @id @default(uuid())
   code        String   @unique
@@ -320,6 +328,32 @@ model CurrencyCatalog {
   commissionRules       CommissionRule[]
   deliveryFeeRules      DeliveryFeeRule[]
   receptionMethods      ReceptionMethodCatalog[]
+  vipPaymentProofs      VipPaymentProof[]
+}
+
+model VipPaymentProof {
+  id                String                @id @default(uuid())
+  userId            String
+  accountHolderName String
+  amount            Decimal
+  currencyId        String
+  paymentProofKey   String
+  status            VipPaymentProofStatus @default(PENDING_CONFIRMATION)
+  cancelReason      String?
+  reviewedById      String?
+  reviewedAt        DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  user       User            @relation("VipPaymentProofOwner", fields: [userId], references: [id], onDelete: Cascade)
+  currency   CurrencyCatalog @relation(fields: [currencyId], references: [id], onDelete: Restrict)
+  reviewedBy User?           @relation("VipPaymentProofReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([currencyId])
+  @@index([createdAt])
+  @@index([reviewedById])
 }
 
 model CommissionRule {

@@ -348,6 +348,16 @@ input AdminUpdateUserProfileInput {
   userId: ID!
 }
 
+input AdminVipPaymentProofListInput {
+  currencyId: ID
+  dateFrom: DateTime
+  dateTo: DateTime
+  limit: Int
+  offset: Int
+  status: VipPaymentProofStatus
+  userId: ID
+}
+
 input AnswerSupportMessageInput {
   answer: String!
   id: ID!
@@ -444,6 +454,13 @@ input CreateSupportMessageInput {
   email: String
   phone: String
   title: String!
+}
+
+input CreateVipPaymentProofInput {
+  accountHolderName: String!
+  amount: String!
+  currencyId: ID!
+  paymentProofImg: String!
 }
 
 type CurrencyType {
@@ -591,7 +608,9 @@ type Mutation {
   adminActivateUser(userId: ID!): UserType!
   adminBanUser(userId: ID!): UserType!
   adminCancelRemittance(remittanceId: ID!, statusDescription: String!): Boolean!
+  adminCancelVipPaymentProof(id: ID!, reason: String!): VipPaymentProof!
   adminConfirmRemittancePayment(remittanceId: ID!): Boolean!
+  adminConfirmVipPaymentProof(id: ID!): VipPaymentProof!
   adminCreateCommissionRule(input: AdminCreateCommissionRuleInput!): CommissionRuleType!
   adminCreateCurrency(input: AdminCreateCurrencyInput!): CurrencyType!
   adminCreateDeliveryFeeRule(input: AdminCreateDeliveryFeeRuleInput!): DeliveryFeeRuleType!
@@ -626,6 +645,7 @@ type Mutation {
   createBeneficiary(input: CreateBeneficiaryInput!): BeneficiaryType!
   createExternalPaymentSession(input: CreateExternalPaymentSessionInput!): CreateExternalPaymentSessionPayload!
   createSupportMessage(input: CreateSupportMessageInput!): SupportMessageType!
+  createVipPaymentProof(input: CreateVipPaymentProofInput!): VipPaymentProof!
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
@@ -714,6 +734,7 @@ type Query {
   adminTransactionsAmountStats(input: AdminTransactionsAmountStatsInput!): AdminTransactionsAmountStatsType!
   adminTransactionsPeriodReport(input: AdminTransactionsPeriodReportInput!): [AdminTransactionsPeriodBucketType!]!
   adminUsers(input: AdminListUsersInput): [UserType!]!
+  adminVipPaymentProofs(input: AdminVipPaymentProofListInput): [VipPaymentProof!]!
   beneficiary(id: ID!): BeneficiaryType!
   currencies(enabledOnly: Boolean): [CurrencyType!]!
   elToqueRates(dateFrom: String, dateTo: String): String!
@@ -730,11 +751,13 @@ type Query {
   myRemittances(limit: Int, offset: Int): [RemittanceType!]!
   mySessions(limit: Int, offset: Int): [SessionType!]!
   mySupportMessages(input: SupportMessagesPaginationInput): [SupportMessageType!]!
+  myVipPaymentProofs(input: VipPaymentProofListInput): [VipPaymentProof!]!
   paymentMethods(enabledOnly: Boolean): [PaymentMethodType!]!
   pricingPreview(input: PricingPreviewInput!): PricingPreviewType!
   receptionMethods(enabledOnly: Boolean): [ReceptionMethodType!]!
   remittancePaymentProofViewUrl(remittanceId: ID!): RemittancePaymentProofViewPayload!
   user(id: ID!): UserType
+  vipPaymentProofViewUrl(id: ID!): VipPaymentProofViewPayload!
 }
 
 enum ReceptionMethod {
@@ -1004,4 +1027,41 @@ type UserType {
   role: String!
   totalGeneratedAmount: String!
   updatedAt: DateTime!
+}
+
+type VipPaymentProof {
+  accountHolderName: String!
+  amount: String!
+  cancelReason: String
+  createdAt: DateTime!
+  currency: CurrencyType!
+  currencyId: ID!
+  id: ID!
+  reviewedAt: DateTime
+  reviewedBy: UserType
+  reviewedById: ID
+  status: VipPaymentProofStatus!
+  updatedAt: DateTime!
+  user: UserType!
+  userId: ID!
+}
+
+input VipPaymentProofListInput {
+  currencyId: ID
+  dateFrom: DateTime
+  dateTo: DateTime
+  limit: Int
+  offset: Int
+  status: VipPaymentProofStatus
+}
+
+enum VipPaymentProofStatus {
+  CANCELED
+  CONFIRMED
+  PENDING_CONFIRMATION
+}
+
+type VipPaymentProofViewPayload {
+  expiresAt: DateTime!
+  viewUrl: String!
 }

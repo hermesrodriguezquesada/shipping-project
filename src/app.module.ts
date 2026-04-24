@@ -22,6 +22,7 @@ import { ElToqueRatesModule } from './modules/eltoque-rates/eltoque-rates.module
 import { SystemSettingsModule } from './modules/system-settings/system-settings.module';
 import { InternalNotificationsModule } from './modules/internal-notifications/internal-notifications.module';
 import { SupportMessagesModule } from './modules/support-messages/support-messages.module';
+import { VipPaymentProofsModule } from './modules/vip-payment-proofs/vip-payment-proofs.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SupportMessagesModule } from './modules/support-messages/support-messag
     SystemSettingsModule,
     InternalNotificationsModule,
     SupportMessagesModule,
+    VipPaymentProofsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

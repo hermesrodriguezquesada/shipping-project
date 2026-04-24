@@ -12,3 +12,4 @@ import './external-payment-status.enum';
 import './system-setting-type.enum';
 import './internal-notification-type.enum';
 import './support-message-status.enum';
+import './vip-payment-proof-status.enum';
