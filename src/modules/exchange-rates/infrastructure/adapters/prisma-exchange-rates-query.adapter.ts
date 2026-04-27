@@ -6,6 +6,16 @@ import { ExchangeRateReadModel, ExchangeRatesQueryPort } from '../../domain/port
 export class PrismaExchangeRatesQueryAdapter implements ExchangeRatesQueryPort {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findById(id: string): Promise<ExchangeRateReadModel | null> {
+    return this.prisma.exchangeRate.findUnique({
+      where: { id },
+      include: {
+        fromCurrency: true,
+        toCurrency: true,
+      },
+    });
+  }
+
   async getLatestExchangeRate(input: { fromCode: string; toCode: string }): Promise<ExchangeRateReadModel | null> {
     return this.prisma.exchangeRate.findFirst({
       where: {

@@ -1,13 +1,21 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { CATALOGS_QUERY_PORT, EXCHANGE_RATES_COMMAND_PORT, EXCHANGE_RATES_QUERY_PORT } from 'src/shared/constants/tokens';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ExchangeRateHistoryType, Prisma } from '@prisma/client';
+import {
+  CATALOGS_QUERY_PORT,
+  EXCHANGE_RATE_HISTORY_RECORDER_PORT,
+  EXCHANGE_RATES_COMMAND_PORT,
+  EXCHANGE_RATES_QUERY_PORT,
+} from 'src/shared/constants/tokens';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 import { CatalogsQueryPort } from 'src/modules/catalogs/domain/ports/catalogs-query.port';
+import { ExchangeRateHistoryRecorderPort } from 'src/modules/exchange-rate-history/domain/ports/exchange-rate-history-recorder.port';
 import { ExchangeRateReadModel, ExchangeRatesQueryPort } from '../../domain/ports/exchange-rates-query.port';
 import { ExchangeRatesCommandPort } from '../../domain/ports/exchange-rates-command.port';
 
 @Injectable()
 export class AdminCreateExchangeRateUseCase {
+  private readonly logger = new Logger(AdminCreateExchangeRateUseCase.name);
+
   constructor(
     @Inject(CATALOGS_QUERY_PORT)
     private readonly catalogsQuery: CatalogsQueryPort,
@@ -15,12 +23,15 @@ export class AdminCreateExchangeRateUseCase {
     private readonly exchangeRatesQuery: ExchangeRatesQueryPort,
     @Inject(EXCHANGE_RATES_COMMAND_PORT)
     private readonly exchangeRatesCommand: ExchangeRatesCommandPort,
+    @Inject(EXCHANGE_RATE_HISTORY_RECORDER_PORT)
+    private readonly exchangeRateHistoryRecorder: ExchangeRateHistoryRecorderPort,
   ) {}
 
   async execute(input: { from: string; to: string; rate: string; enabled?: boolean }): Promise<ExchangeRateReadModel> {
     const fromCode = input.from.trim().toUpperCase();
     const toCode = input.to.trim().toUpperCase();
     const shouldCreateActive = input.enabled ?? true;
+    const rate = this.parseRate(input.rate);
 
     const fromCurrency = await this.catalogsQuery.findCurrencyByCode({ code: fromCode });
     const toCurrency = await this.catalogsQuery.findCurrencyByCode({ code: toCode });
@@ -41,17 +52,37 @@ export class AdminCreateExchangeRateUseCase {
     const id = await this.exchangeRatesCommand.createExchangeRate({
       fromCurrencyId: fromCurrency.id,
       toCurrencyId: toCurrency.id,
-      rate: this.parseRate(input.rate),
+      rate,
       enabled: shouldCreateActive,
     });
 
-    const rates = await this.exchangeRatesQuery.listExchangeRates({ limit: 500, offset: 0 });
-    const created = rates.find((rate) => rate.id === id);
+    const created = await this.exchangeRatesQuery.findById(id);
     if (!created) {
       throw new ValidationDomainException('Created exchange rate not found');
     }
 
+    await this.recordHistory(created);
+
     return created;
+  }
+
+  private async recordHistory(rate: ExchangeRateReadModel): Promise<void> {
+    try {
+      await this.exchangeRateHistoryRecorder.record({
+        rateType: ExchangeRateHistoryType.GENERAL,
+        sourceRateId: rate.id,
+        fromCurrencyId: rate.fromCurrencyId,
+        toCurrencyId: rate.toCurrencyId,
+        fromCurrencyCode: rate.fromCurrency.code,
+        toCurrencyCode: rate.toCurrency.code,
+        rate: rate.rate,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Non-blocking exchange-rate history failure. rateType=GENERAL sourceRateId=${rate.id} pair=${rate.fromCurrency.code}->${rate.toCurrency.code} error=${message}`,
+      );
+    }
   }
 
   private parseRate(value: string): Prisma.Decimal {

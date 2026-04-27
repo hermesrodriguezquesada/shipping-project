@@ -310,6 +310,16 @@ enum AdminReportExportStatus {
   FAILED
 }
 
+enum ExchangeRateHistoryType {
+  GENERAL
+  VIP
+}
+
+enum ExchangeRateHistoryVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 enum SystemSettingType {
   STRING
   EMAIL
@@ -396,6 +406,8 @@ model CurrencyCatalog {
   remittancesAsNetReceivingCurrency Remittance[] @relation("RemittanceNetReceivingCurrency")
   exchangeRatesFrom     ExchangeRate[] @relation("ExchangeRateFromCurrency")
   exchangeRatesTo       ExchangeRate[] @relation("ExchangeRateToCurrency")
+  vipExchangeRatesFrom  VipExchangeRate[] @relation("VipExchangeRateFromCurrency")
+  vipExchangeRatesTo    VipExchangeRate[] @relation("VipExchangeRateToCurrency")
   commissionRules       CommissionRule[]
   deliveryFeeRules      DeliveryFeeRule[]
   receptionMethods      ReceptionMethodCatalog[]
@@ -477,6 +489,40 @@ model ExchangeRate {
   remittancesUsingThisRate Remittance[]
 
   @@index([fromCurrencyId, toCurrencyId, enabled, createdAt])
+}
+
+model VipExchangeRate {
+  id             String   @id @default(uuid())
+  fromCurrencyId String
+  toCurrencyId   String
+  rate           Decimal
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  fromCurrency CurrencyCatalog @relation("VipExchangeRateFromCurrency", fields: [fromCurrencyId], references: [id], onDelete: Restrict)
+  toCurrency   CurrencyCatalog @relation("VipExchangeRateToCurrency", fields: [toCurrencyId], references: [id], onDelete: Restrict)
+
+  @@unique([fromCurrencyId, toCurrencyId])
+  @@index([enabled])
+}
+
+model ExchangeRateHistory {
+  id               String                        @id @default(uuid())
+  rateType         ExchangeRateHistoryType
+  visibility       ExchangeRateHistoryVisibility @default(PRIVATE)
+  sourceRateId     String?
+  fromCurrencyId   String?
+  toCurrencyId     String?
+  fromCurrencyCode String
+  toCurrencyCode   String
+  rate             Decimal
+  createdAt        DateTime                      @default(now())
+
+  @@index([visibility, rateType, createdAt])
+  @@index([rateType, fromCurrencyCode, createdAt])
+  @@index([rateType, toCurrencyCode, createdAt])
+  @@index([rateType, fromCurrencyCode, toCurrencyCode, createdAt])
 }
 
 model Remittance {

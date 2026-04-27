@@ -24,6 +24,8 @@ import { InternalNotificationsModule } from './modules/internal-notifications/in
 import { SupportMessagesModule } from './modules/support-messages/support-messages.module';
 import { VipPaymentProofsModule } from './modules/vip-payment-proofs/vip-payment-proofs.module';
 import { UserActionLogsModule } from './modules/user-action-logs/user-action-logs.module';
+import { VipPricingModule } from './modules/vip-pricing/vip-pricing.module';
+import { ExchangeRateHistoryModule } from './modules/exchange-rate-history/exchange-rate-history.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { UserActionLogsModule } from './modules/user-action-logs/user-action-log
     SystemSettingsModule,
     InternalNotificationsModule,
     SupportMessagesModule,
+    VipPricingModule,
+    ExchangeRateHistoryModule,
     VipPaymentProofsModule,
     UserActionLogsModule,
   ],

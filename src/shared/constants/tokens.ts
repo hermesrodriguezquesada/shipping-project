@@ -50,6 +50,12 @@ export const VIP_PAYMENT_PROOF_QUERY_PORT = 'VipPaymentProofQueryPort';
 export const VIP_PAYMENT_PROOF_COMMAND_PORT = 'VipPaymentProofCommandPort';
 export const VIP_PAYMENT_PROOF_STORAGE_PORT = 'VipPaymentProofStoragePort';
 
+export const VIP_EXCHANGE_RATE_QUERY_PORT = 'VipExchangeRateQueryPort';
+export const VIP_EXCHANGE_RATE_COMMAND_PORT = 'VipExchangeRateCommandPort';
+
+export const EXCHANGE_RATE_HISTORY_RECORDER_PORT = 'ExchangeRateHistoryRecorderPort';
+export const EXCHANGE_RATE_HISTORY_QUERY_PORT = 'ExchangeRateHistoryQueryPort';
+
 
 
 

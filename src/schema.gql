@@ -72,6 +72,13 @@ input AdminCreateUserInput {
   roles: [Role!]
 }
 
+input AdminCreateVipExchangeRateInput {
+  enabled: Boolean
+  fromCurrencyCode: String!
+  rate: String!
+  toCurrencyCode: String!
+}
+
 type AdminDashboardKpisType {
   totalPaymentAmount: String!
   totalReceivingAmount: String!
@@ -359,6 +366,12 @@ input AdminUpdateUserProfileInput {
   userId: ID!
 }
 
+input AdminUpdateVipExchangeRateInput {
+  enabled: Boolean
+  id: ID!
+  rate: String
+}
+
 input AdminUserActionAlertListInput {
   actorUserId: ID
   dateFrom: DateTime
@@ -396,6 +409,14 @@ input AdminUserActionLogTopInput {
   limit: Int
   resourceId: ID
   resourceType: String
+}
+
+input AdminVipExchangeRatesInput {
+  enabled: Boolean
+  fromCurrencyCode: String
+  limit: Int
+  offset: Int
+  toCurrencyCode: String
 }
 
 input AdminVipPaymentProofListInput {
@@ -547,6 +568,30 @@ enum DocumentType {
   PASSPORT
 }
 
+input ExchangeRateHistoryInput {
+  currencyCode: String
+  dateFrom: DateTime
+  dateTo: DateTime
+  fromCurrencyCode: String
+  limit: Int
+  offset: Int
+  rateTypes: [ExchangeRateHistoryType!]
+  toCurrencyCode: String
+}
+
+type ExchangeRateHistoryItem {
+  createdAt: DateTime!
+  fromCurrencyCode: String!
+  rate: String!
+  rateType: ExchangeRateHistoryType!
+  toCurrencyCode: String!
+}
+
+enum ExchangeRateHistoryType {
+  GENERAL
+  VIP
+}
+
 type ExchangeRateType {
   createdAt: DateTime!
   enabled: Boolean!
@@ -668,6 +713,7 @@ type Mutation {
   adminCreatePaymentMethod(input: AdminCreatePaymentMethodInput!): PaymentMethodType!
   adminCreateReceptionMethod(input: AdminCreateReceptionMethodInput!): ReceptionMethodType!
   adminCreateUser(input: AdminCreateUserInput!): UserType!
+  adminCreateVipExchangeRate(input: AdminCreateVipExchangeRateInput!): VipExchangeRate!
   adminDeleteExchangeRate(id: ID!): Boolean!
   adminDeleteUser(userId: ID!): UserType!
   adminMarkRemittanceDelivered(remittanceId: ID!): Boolean!
@@ -679,6 +725,7 @@ type Mutation {
   adminSetReceptionMethodEnabled(code: String!, enabled: Boolean!): ReceptionMethodType!
   adminSetUserRoles(input: AdminSetUserRolesInput!): UserType!
   adminSetUserVip(input: AdminSetUserVipInput!): UserType!
+  adminSetVipExchangeRateEnabled(enabled: Boolean!, id: ID!): VipExchangeRate!
   adminUpdateCommissionRule(input: AdminUpdateCommissionRuleInput!): CommissionRuleType!
   adminUpdateCurrency(input: AdminUpdateCurrencyInput!): CurrencyType!
   adminUpdateDeliveryFeeRule(input: AdminUpdateDeliveryFeeRuleInput!): DeliveryFeeRuleType!
@@ -689,6 +736,7 @@ type Mutation {
   adminUpdateReceptionMethodDescription(code: String!, description: String): ReceptionMethodType!
   adminUpdateSetting(input: AdminUpdateSystemSettingInput!): SystemSetting!
   adminUpdateUserProfile(input: AdminUpdateUserProfileInput!): UserType!
+  adminUpdateVipExchangeRate(input: AdminUpdateVipExchangeRateInput!): VipExchangeRate!
   answerSupportMessage(input: AnswerSupportMessageInput!): SupportMessageType!
   cancelMyRemittance(remittanceId: ID!): Boolean!
   changePassword(input: ChangePasswordInput!): Boolean!
@@ -792,11 +840,13 @@ type Query {
   adminUserActionLogTopActors(input: AdminUserActionLogTopInput!): [UserActionLogTopActor!]!
   adminUserActionLogs(input: AdminUserActionLogListInput): [UserActionLog!]!
   adminUsers(input: AdminListUsersInput): [UserType!]!
+  adminVipExchangeRates(input: AdminVipExchangeRatesInput): [VipExchangeRate!]!
   adminVipPaymentProofs(input: AdminVipPaymentProofListInput): [VipPaymentProof!]!
   beneficiary(id: ID!): BeneficiaryType!
   currencies(enabledOnly: Boolean): [CurrencyType!]!
   elToqueRates(dateFrom: String, dateTo: String): String!
   exchangeRate(from: String!, to: String!): ExchangeRateType
+  exchangeRateHistory(input: ExchangeRateHistoryInput!): [ExchangeRateHistoryItem!]!
   exchangeRates(enabledOnly: Boolean! = true, from: String, limit: Int, offset: Int, to: String): [ExchangeRateType!]!
   getSetting(name: String!): SystemSetting
   getSettings: [SystemSetting!]!
@@ -817,6 +867,7 @@ type Query {
   remittancePaymentProofViewUrl(remittanceId: ID!): RemittancePaymentProofViewPayload!
   user(id: ID!): UserType
   vipPaymentProofViewUrl(id: ID!): VipPaymentProofViewPayload!
+  vipProfitPreview(input: VipProfitPreviewInput!): VipProfitPreview!
 }
 
 enum ReceptionMethod {
@@ -1192,6 +1243,16 @@ type UserType {
   updatedAt: DateTime!
 }
 
+type VipExchangeRate {
+  createdAt: DateTime!
+  enabled: Boolean!
+  fromCurrency: CurrencyType!
+  id: ID!
+  rate: String!
+  toCurrency: CurrencyType!
+  updatedAt: DateTime!
+}
+
 type VipPaymentProof {
   accountHolderName: String!
   amount: String!
@@ -1227,4 +1288,21 @@ enum VipPaymentProofStatus {
 type VipPaymentProofViewPayload {
   expiresAt: DateTime!
   viewUrl: String!
+}
+
+type VipProfitPreview {
+  baseRate: String!
+  fromCurrencyCode: String!
+  paymentAmount: String!
+  profitCurrencyCode: String!
+  rateDifference: String!
+  toCurrencyCode: String!
+  vipProfitAmount: String!
+  vipRate: String!
+}
+
+input VipProfitPreviewInput {
+  fromCurrencyCode: String!
+  paymentAmount: String!
+  toCurrencyCode: String!
 }
