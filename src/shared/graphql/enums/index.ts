@@ -14,3 +14,4 @@ import './internal-notification-type.enum';
 import './support-message-status.enum';
 import './vip-payment-proof-status.enum';
 import './user-action-log-action.enum';
+import './user-action-alert-type.enum';

@@ -6,7 +6,9 @@ import { RolesGuard } from 'src/core/auth/roles.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
+import { UserMapper } from 'src/modules/users/presentation/mappers/user.mapper';
 import { AdminExportUserActionLogsUseCase } from '../../../application/use-cases/admin-export-user-action-logs.usecase';
+import { AdminUserActionAlertsUseCase } from '../../../application/use-cases/admin-user-action-alerts.usecase';
 import { AdminUserActionLogActivityByDayUseCase } from '../../../application/use-cases/admin-user-action-log-activity-by-day.usecase';
 import { AdminUserActionLogDashboardUseCase } from '../../../application/use-cases/admin-user-action-log-dashboard.usecase';
 import { AdminUserActionLogsUseCase } from '../../../application/use-cases/admin-user-action-logs.usecase';
@@ -14,12 +16,14 @@ import { AdminUserActionLogSummaryUseCase } from '../../../application/use-cases
 import { AdminUserActionLogTopActionsUseCase } from '../../../application/use-cases/admin-user-action-log-top-actions.usecase';
 import { AdminUserActionLogTopActorsUseCase } from '../../../application/use-cases/admin-user-action-log-top-actors.usecase';
 import { MyUserActionLogsUseCase } from '../../../application/use-cases/my-user-action-logs.usecase';
+import { AdminUserActionAlertListInput } from '../inputs/admin-user-action-alert-list.input';
 import { AdminExportUserActionLogsInput } from '../inputs/admin-export-user-action-logs.input';
 import { UserActionLogMapper } from '../mappers/user-action-log.mapper';
 import { AdminUserActionLogListInput } from '../inputs/admin-user-action-log-list.input';
 import { AdminUserActionLogReportInput } from '../inputs/admin-user-action-log-report.input';
 import { AdminUserActionLogTopInput } from '../inputs/admin-user-action-log-top.input';
 import { UserActionLogListInput } from '../inputs/user-action-log-list.input';
+import { UserActionAlertType } from '../types/user-action-alert.type';
 import { UserActionLogActivityBucketType } from '../types/user-action-log-activity-bucket.type';
 import { UserActionLogDashboardType } from '../types/user-action-log-dashboard.type';
 import { UserActionLogExportPayloadType } from '../types/user-action-log-export-payload.type';
@@ -33,6 +37,7 @@ export class UserActionLogsResolver {
   constructor(
     private readonly myUserActionLogsUseCase: MyUserActionLogsUseCase,
     private readonly adminUserActionLogsUseCase: AdminUserActionLogsUseCase,
+    private readonly adminUserActionAlertsUseCase: AdminUserActionAlertsUseCase,
     private readonly adminUserActionLogSummaryUseCase: AdminUserActionLogSummaryUseCase,
     private readonly adminUserActionLogActivityByDayUseCase: AdminUserActionLogActivityByDayUseCase,
     private readonly adminUserActionLogDashboardUseCase: AdminUserActionLogDashboardUseCase,
@@ -77,6 +82,34 @@ export class UserActionLogsResolver {
     });
 
     return rows.map(UserActionLogMapper.toGraphQL);
+  }
+
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.EMPLOYEE)
+  @Query(() => [UserActionAlertType])
+  async adminUserActionAlerts(
+    @Args('input', { type: () => AdminUserActionAlertListInput, nullable: true }) input?: AdminUserActionAlertListInput,
+  ): Promise<UserActionAlertType[]> {
+    const rows = await this.adminUserActionAlertsUseCase.execute({
+      type: input?.type,
+      actorUserId: input?.actorUserId,
+      dateFrom: input?.dateFrom,
+      dateTo: input?.dateTo,
+      offset: input?.offset,
+      limit: input?.limit,
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      type: row.type,
+      actorUserId: row.actorUserId,
+      actorEmail: row.actorEmail,
+      actorRole: row.actorRole,
+      description: row.description,
+      metadataJson: row.metadataJson,
+      createdAt: row.createdAt,
+      actor: row.actor ? UserMapper.toGraphQL(row.actor) : null,
+    }));
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard)

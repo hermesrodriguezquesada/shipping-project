@@ -1,8 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UserActionLogAction } from '@prisma/client';
 import { USER_ACTION_LOG_COMMAND_PORT } from 'src/shared/constants/tokens';
 import { UserActionLogEntity } from '../../domain/entities/user-action-log.entity';
 import { UserActionLogCommandPort } from '../../domain/ports/user-action-log-command.port';
+import { DetectUserActionAlertUseCase } from './detect-user-action-alert.usecase';
 import { sanitizeUserActionLogMetadata } from '../utils/sanitize-user-action-log-metadata';
 
 type RecordUserActionLogInput = {
@@ -21,13 +22,16 @@ type RecordUserActionLogInput = {
 
 @Injectable()
 export class RecordUserActionLogUseCase {
+  private readonly logger = new Logger(RecordUserActionLogUseCase.name);
+
   constructor(
     @Inject(USER_ACTION_LOG_COMMAND_PORT)
     private readonly commandPort: UserActionLogCommandPort,
+    private readonly detectUserActionAlertUseCase: DetectUserActionAlertUseCase,
   ) {}
 
   async execute(input: RecordUserActionLogInput): Promise<UserActionLogEntity> {
-    return this.commandPort.create({
+    const createdLog = await this.commandPort.create({
       actorUserId: this.normalize(input.actorUserId),
       actorEmail: this.normalize(input.actorEmail),
       actorRole: this.normalize(input.actorRole),
@@ -40,6 +44,15 @@ export class RecordUserActionLogUseCase {
       ipAddress: this.normalize(input.ipAddress),
       userAgent: this.normalize(input.userAgent),
     });
+
+    try {
+      await this.detectUserActionAlertUseCase.execute(createdLog);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Non-blocking user action alert failure. action=${createdLog.action} error=${message}`);
+    }
+
+    return createdLog;
   }
 
   private normalize(value: string | null | undefined): string | null {

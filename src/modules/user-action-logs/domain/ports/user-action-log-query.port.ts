@@ -64,6 +64,7 @@ export type UserActionLogDashboard = {
 export interface UserActionLogQueryPort {
   listMine(actorUserId: string, filters: UserActionLogListFilters, pagination: UserActionLogPagination): Promise<UserActionLogEntity[]>;
   listAdmin(filters: AdminUserActionLogListFilters, pagination: UserActionLogPagination): Promise<UserActionLogEntity[]>;
+  countRecentByActorAndActions(actorUserId: string, actions: UserActionLogAction[], dateFrom: Date): Promise<number>;
   getAdminSummary(filters: AdminUserActionLogReportFilters): Promise<UserActionLogSummary>;
   getAdminActivityByDay(filters: AdminUserActionLogReportFilters): Promise<UserActionLogActivityBucket[]>;
   getAdminTopActors(filters: AdminUserActionLogReportFilters, limit: number): Promise<UserActionLogTopActor[]>;

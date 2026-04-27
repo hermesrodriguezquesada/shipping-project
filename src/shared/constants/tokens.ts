@@ -43,6 +43,8 @@ export const SUPPORT_MESSAGE_QUERY_PORT = 'SupportMessageQueryPort';
 export const SUPPORT_MESSAGE_COMMAND_PORT = 'SupportMessageCommandPort';
 export const USER_ACTION_LOG_QUERY_PORT = 'UserActionLogQueryPort';
 export const USER_ACTION_LOG_COMMAND_PORT = 'UserActionLogCommandPort';
+export const USER_ACTION_ALERT_QUERY_PORT = 'UserActionAlertQueryPort';
+export const USER_ACTION_ALERT_COMMAND_PORT = 'UserActionAlertCommandPort';
 
 export const VIP_PAYMENT_PROOF_QUERY_PORT = 'VipPaymentProofQueryPort';
 export const VIP_PAYMENT_PROOF_COMMAND_PORT = 'VipPaymentProofCommandPort';

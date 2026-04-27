@@ -54,6 +54,7 @@ model User {
   authoredSupportMessages SupportMessage[] @relation("SupportMessageAuthor")
   answeredSupportMessages SupportMessage[] @relation("SupportMessageAnsweredBy")
   actionLogs UserActionLog[] @relation("UserActionLogActor")
+  actionAlerts UserActionAlert[] @relation("UserActionAlertActor")
 }
 
 enum UserActionLogAction {
@@ -78,6 +79,12 @@ enum UserActionLogAction {
   ANSWER_SUPPORT_MESSAGE
 }
 
+enum UserActionAlertType {
+  MANY_RECENT_LOGINS
+  MANY_REMITTANCE_CANCELLATIONS
+  SENSITIVE_ADMIN_ACTION
+}
+
 model UserActionLog {
   id           String              @id @default(uuid())
   actorUserId  String?
@@ -99,6 +106,23 @@ model UserActionLog {
   @@index([action])
   @@index([resourceType, resourceId])
   @@index([correlationId])
+  @@index([createdAt])
+}
+
+model UserActionAlert {
+  id           String              @id @default(uuid())
+  type         UserActionAlertType
+  actorUserId  String?
+  actorEmail   String?
+  actorRole    String?
+  description  String
+  metadataJson String?
+  createdAt    DateTime            @default(now())
+
+  actor User? @relation("UserActionAlertActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([type])
+  @@index([actorUserId])
   @@index([createdAt])
 }
 

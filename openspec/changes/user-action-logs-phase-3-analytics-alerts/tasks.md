@@ -6,8 +6,8 @@ PROPOSED
 
 ## 1. Discovery
 
-- [ ] 1.1 Revisar el modulo actual `src/modules/user-action-logs/` y confirmar reuse exacto de reporting fase 2.
-- [ ] 1.2 Confirmar limites actuales, filtros administrativos y puntos de integracion non-blocking ya existentes.
+- [x] 1.1 Revisar el modulo actual `src/modules/user-action-logs/` y confirmar reuse exacto de reporting fase 2.
+- [x] 1.2 Confirmar limites actuales, filtros administrativos y puntos de integracion non-blocking ya existentes.
 - [ ] 1.3 Identificar flujos de remittance y acciones admin sensibles donde `correlationId` y alert detection aportan valor inmediato.
 
 ## 2. Dashboard use-case
@@ -24,27 +24,27 @@ PROPOSED
 
 ## 4. Alert detection (inline)
 
-- [ ] 4.1 Crear `detect-user-action-alert.usecase.ts` dentro del modulo existente.
-- [ ] 4.2 Implementar thresholds minimos para `LOGIN`, `CANCEL_REMITTANCE` y acciones admin sensibles.
-- [ ] 4.3 Envolver la deteccion en patron non-blocking para no romper el flujo principal.
+- [x] 4.1 Crear `detect-user-action-alert.usecase.ts` dentro del modulo existente.
+- [x] 4.2 Implementar thresholds minimos para `LOGIN`, `CANCEL_REMITTANCE` y acciones admin sensibles.
+- [x] 4.3 Envolver la deteccion en patron non-blocking para no romper el flujo principal.
 
 ## 5. Prisma update (correlationId + alerts)
 
 - [ ] 5.1 Agregar `correlationId` nullable a `UserActionLog`.
-- [ ] 5.2 Agregar el modelo minimo `UserActionAlert`.
-- [ ] 5.3 Definir indices minimos para ventanas recientes, actor y correlacion.
-- [ ] 5.4 Generar migracion aditiva compatible hacia atras.
+- [x] 5.2 Agregar el modelo minimo `UserActionAlert`.
+- [x] 5.3 Definir indices minimos para ventanas recientes, actor y correlacion.
+- [x] 5.4 Generar migracion aditiva compatible hacia atras.
 
 ## 6. Integracion en flows existentes
 
 - [ ] 6.1 Poblar `correlationId` de forma opcional en flujos de remittance seleccionados.
-- [ ] 6.2 Integrar deteccion inline en el punto de logging seguro o inmediatamente despues del registro de logs.
+- [x] 6.2 Integrar deteccion inline en el punto de logging seguro o inmediatamente despues del registro de logs.
 - [ ] 6.3 Validar que no se duplique el registro ni se afecten queries de fases 1 y 2.
 
 ## 7. Build
 
-- [ ] 7.1 Ejecutar `npm run build`.
-- [ ] 7.2 Corregir errores de Prisma, GraphQL code-first, DI o tipado asociados al MVP.
+- [x] 7.1 Ejecutar `npm run build`.
+- [x] 7.2 Corregir errores de Prisma, GraphQL code-first, DI o tipado asociados al MVP.
 
 ## 8. Smoke tests
 

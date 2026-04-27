@@ -49,6 +49,20 @@ const INCLUDE_ACTOR = { actor: true } as const;
 export class PrismaUserActionLogQueryAdapter implements UserActionLogQueryPort {
   constructor(private readonly prisma: PrismaService) {}
 
+  async countRecentByActorAndActions(actorUserId: string, actions: UserActionLogEntity['action'][], dateFrom: Date): Promise<number> {
+    return this.prisma.userActionLog.count({
+      where: {
+        actorUserId,
+        action: {
+          in: actions,
+        },
+        createdAt: {
+          gte: dateFrom,
+        },
+      },
+    });
+  }
+
   async listMine(
     actorUserId: string,
     filters: UserActionLogListFilters,
