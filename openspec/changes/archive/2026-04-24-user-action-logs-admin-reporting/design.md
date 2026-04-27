@@ -216,7 +216,7 @@ Para mantener el cambio mínimo y evitar consultas descontroladas:
 - `limit` con default y máximo explícito para top actors,
 - `limit` y `offset` con topes explícitos para export,
 - sin soporte de agrupación semanal o mensual en esta fase,
-- sin formatos distintos de CSV,
+- sin PDF ni formatos distintos de CSV,
 - sin scheduling, caching ni persistencia de resultados.
 
 ## Architecture impact

@@ -305,6 +305,7 @@ export class RemittancesResolver {
       action: UserActionLogAction.CREATE_REMITTANCE,
       resourceType: 'REMITTANCE',
       resourceId: remittance.id,
+      correlationId: remittance.id,
       description: 'Remittance created',
       metadata: {
         beneficiaryMode: input.beneficiaryId ? 'EXISTING' : 'MANUAL',
@@ -366,6 +367,7 @@ export class RemittancesResolver {
       action: UserActionLogAction.MARK_REMITTANCE_PAID,
       resourceType: 'REMITTANCE',
       resourceId: remittanceId,
+      correlationId: remittanceId,
       description: 'Remittance marked as paid',
       metadata: {
         origin: 'USER',
@@ -396,6 +398,7 @@ export class RemittancesResolver {
       action: UserActionLogAction.CANCEL_REMITTANCE,
       resourceType: 'REMITTANCE',
       resourceId: remittanceId,
+      correlationId: remittanceId,
       description: 'User canceled remittance',
       metadata: { origin: 'USER' },
       ...getRequestAuditContext(req),
@@ -421,6 +424,7 @@ export class RemittancesResolver {
       action: UserActionLogAction.ADMIN_CONFIRM_REMITTANCE_PAYMENT,
       resourceType: 'REMITTANCE',
       resourceId: remittanceId,
+      correlationId: remittanceId,
       description: 'Admin confirmed remittance payment',
       metadata: { origin: 'ADMIN' },
       ...getRequestAuditContext(req),
@@ -450,6 +454,7 @@ export class RemittancesResolver {
       action: UserActionLogAction.CANCEL_REMITTANCE,
       resourceType: 'REMITTANCE',
       resourceId: remittanceId,
+      correlationId: remittanceId,
       description: 'Admin canceled remittance',
       metadata: {
         origin: 'ADMIN',
@@ -478,6 +483,7 @@ export class RemittancesResolver {
       action: UserActionLogAction.ADMIN_MARK_REMITTANCE_DELIVERED,
       resourceType: 'REMITTANCE',
       resourceId: remittanceId,
+      correlationId: remittanceId,
       description: 'Admin marked remittance as delivered',
       metadata: { origin: 'ADMIN' },
       ...getRequestAuditContext(req),

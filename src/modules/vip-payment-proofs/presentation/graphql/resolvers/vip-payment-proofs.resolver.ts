@@ -59,6 +59,7 @@ export class VipPaymentProofsResolver {
       action: UserActionLogAction.CREATE_VIP_PAYMENT_PROOF,
       resourceType: 'VIP_PAYMENT_PROOF',
       resourceId: created.id,
+      correlationId: created.id,
       description: 'VIP payment proof created',
       metadata: {
         amount: input.amount,
@@ -129,6 +130,7 @@ export class VipPaymentProofsResolver {
       action: UserActionLogAction.ADMIN_CONFIRM_VIP_PAYMENT_PROOF,
       resourceType: 'VIP_PAYMENT_PROOF',
       resourceId: updated.id,
+      correlationId: updated.id,
       description: 'Admin confirmed VIP payment proof',
       metadata: { origin: 'ADMIN' },
       ...getRequestAuditContext(req),
@@ -159,6 +161,7 @@ export class VipPaymentProofsResolver {
       action: UserActionLogAction.ADMIN_CANCEL_VIP_PAYMENT_PROOF,
       resourceType: 'VIP_PAYMENT_PROOF',
       resourceId: updated.id,
+      correlationId: updated.id,
       description: 'Admin canceled VIP payment proof',
       metadata: {
         origin: 'ADMIN',

@@ -58,7 +58,7 @@ Fuera de alcance en esta fase:
 - alertas o detección proactiva de anomalías,
 - persistencia de exports o historial de descargas,
 - nuevos datos sensibles en metadata,
-- formatos distintos de CSV en esta fase,
+- PDF y formatos distintos de CSV en esta fase,
 - cambios de frontend o dashboards fuera del contrato backend.
 
 ## Capabilities

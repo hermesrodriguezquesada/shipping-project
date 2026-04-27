@@ -86,6 +86,7 @@ model UserActionLog {
   action       UserActionLogAction
   resourceType String?
   resourceId   String?
+  correlationId String?
   description  String?
   metadataJson String?
   ipAddress    String?
@@ -97,6 +98,7 @@ model UserActionLog {
   @@index([actorUserId])
   @@index([action])
   @@index([resourceType, resourceId])
+  @@index([correlationId])
   @@index([createdAt])
 }
 

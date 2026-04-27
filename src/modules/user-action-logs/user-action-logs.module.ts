@@ -3,6 +3,7 @@ import { RolesGuard } from 'src/core/auth/roles.guard';
 import { USER_ACTION_LOG_COMMAND_PORT, USER_ACTION_LOG_QUERY_PORT } from 'src/shared/constants/tokens';
 import { AdminExportUserActionLogsUseCase } from './application/use-cases/admin-export-user-action-logs.usecase';
 import { AdminUserActionLogActivityByDayUseCase } from './application/use-cases/admin-user-action-log-activity-by-day.usecase';
+import { AdminUserActionLogDashboardUseCase } from './application/use-cases/admin-user-action-log-dashboard.usecase';
 import { AdminUserActionLogsUseCase } from './application/use-cases/admin-user-action-logs.usecase';
 import { AdminUserActionLogSummaryUseCase } from './application/use-cases/admin-user-action-log-summary.usecase';
 import { AdminUserActionLogTopActionsUseCase } from './application/use-cases/admin-user-action-log-top-actions.usecase';
@@ -25,6 +26,7 @@ import { UserActionLogsResolver } from './presentation/graphql/resolvers/user-ac
     AdminUserActionLogsUseCase,
     AdminUserActionLogSummaryUseCase,
     AdminUserActionLogActivityByDayUseCase,
+    AdminUserActionLogDashboardUseCase,
     AdminUserActionLogTopActorsUseCase,
     AdminUserActionLogTopActionsUseCase,
     AdminExportUserActionLogsUseCase,

@@ -8,6 +8,7 @@ import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-a
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { AdminExportUserActionLogsUseCase } from '../../../application/use-cases/admin-export-user-action-logs.usecase';
 import { AdminUserActionLogActivityByDayUseCase } from '../../../application/use-cases/admin-user-action-log-activity-by-day.usecase';
+import { AdminUserActionLogDashboardUseCase } from '../../../application/use-cases/admin-user-action-log-dashboard.usecase';
 import { AdminUserActionLogsUseCase } from '../../../application/use-cases/admin-user-action-logs.usecase';
 import { AdminUserActionLogSummaryUseCase } from '../../../application/use-cases/admin-user-action-log-summary.usecase';
 import { AdminUserActionLogTopActionsUseCase } from '../../../application/use-cases/admin-user-action-log-top-actions.usecase';
@@ -20,6 +21,7 @@ import { AdminUserActionLogReportInput } from '../inputs/admin-user-action-log-r
 import { AdminUserActionLogTopInput } from '../inputs/admin-user-action-log-top.input';
 import { UserActionLogListInput } from '../inputs/user-action-log-list.input';
 import { UserActionLogActivityBucketType } from '../types/user-action-log-activity-bucket.type';
+import { UserActionLogDashboardType } from '../types/user-action-log-dashboard.type';
 import { UserActionLogExportPayloadType } from '../types/user-action-log-export-payload.type';
 import { UserActionLogSummaryType } from '../types/user-action-log-summary.type';
 import { UserActionLogTopActionType } from '../types/user-action-log-top-action.type';
@@ -33,6 +35,7 @@ export class UserActionLogsResolver {
     private readonly adminUserActionLogsUseCase: AdminUserActionLogsUseCase,
     private readonly adminUserActionLogSummaryUseCase: AdminUserActionLogSummaryUseCase,
     private readonly adminUserActionLogActivityByDayUseCase: AdminUserActionLogActivityByDayUseCase,
+    private readonly adminUserActionLogDashboardUseCase: AdminUserActionLogDashboardUseCase,
     private readonly adminUserActionLogTopActorsUseCase: AdminUserActionLogTopActorsUseCase,
     private readonly adminUserActionLogTopActionsUseCase: AdminUserActionLogTopActionsUseCase,
     private readonly adminExportUserActionLogsUseCase: AdminExportUserActionLogsUseCase,
@@ -92,6 +95,23 @@ export class UserActionLogsResolver {
     @Args('input', { type: () => AdminUserActionLogReportInput }) input: AdminUserActionLogReportInput,
   ): Promise<UserActionLogActivityBucketType[]> {
     return this.adminUserActionLogActivityByDayUseCase.execute(input);
+  }
+
+  @UseGuards(GqlAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.EMPLOYEE)
+  @Query(() => UserActionLogDashboardType)
+  async adminUserActionLogDashboard(
+    @Args('input', { type: () => AdminUserActionLogReportInput }) input: AdminUserActionLogReportInput,
+  ): Promise<UserActionLogDashboardType> {
+    const dashboard = await this.adminUserActionLogDashboardUseCase.execute(input);
+
+    return {
+      summary: dashboard.summary,
+      activityByDay: dashboard.activityByDay,
+      topActors: dashboard.topActors,
+      topActions: dashboard.topActions,
+      recentCriticalActions: dashboard.recentCriticalActions.map(UserActionLogMapper.toGraphQL),
+    };
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard)

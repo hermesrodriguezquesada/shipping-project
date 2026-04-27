@@ -9,6 +9,7 @@ export type UserActionLogEntity = {
   action: UserActionLogAction;
   resourceType: string | null;
   resourceId: string | null;
+  correlationId: string | null;
   description: string | null;
   metadataJson: string | null;
   ipAddress: string | null;

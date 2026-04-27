@@ -12,6 +12,7 @@ export class UserActionLogMapper {
       action: log.action,
       resourceType: log.resourceType,
       resourceId: log.resourceId,
+      correlationId: log.correlationId,
       description: log.description,
       metadataJson: log.metadataJson,
       ipAddress: log.ipAddress,

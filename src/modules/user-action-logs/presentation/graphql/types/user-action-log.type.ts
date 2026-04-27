@@ -26,6 +26,9 @@ export class UserActionLogType {
   resourceId!: string | null;
 
   @Field(() => String, { nullable: true })
+  correlationId!: string | null;
+
+  @Field(() => String, { nullable: true })
   description!: string | null;
 
   @Field(() => String, { nullable: true })

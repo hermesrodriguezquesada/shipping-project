@@ -776,6 +776,7 @@ type Query {
   adminTransactionsAmountStats(input: AdminTransactionsAmountStatsInput!): AdminTransactionsAmountStatsType!
   adminTransactionsPeriodReport(input: AdminTransactionsPeriodReportInput!): [AdminTransactionsPeriodBucketType!]!
   adminUserActionLogActivityByDay(input: AdminUserActionLogReportInput!): [UserActionLogActivityBucket!]!
+  adminUserActionLogDashboard(input: AdminUserActionLogReportInput!): UserActionLogDashboard!
   adminUserActionLogSummary(input: AdminUserActionLogReportInput!): UserActionLogSummary!
   adminUserActionLogTopActions(input: AdminUserActionLogReportInput!): [UserActionLogTopAction!]!
   adminUserActionLogTopActors(input: AdminUserActionLogTopInput!): [UserActionLogTopActor!]!
@@ -1060,6 +1061,7 @@ type UserActionLog {
   actorEmail: String
   actorRole: String
   actorUserId: String
+  correlationId: String
   createdAt: DateTime!
   description: String
   id: ID!
@@ -1093,6 +1095,14 @@ type UserActionLogActivityBucket {
   actionCount: Int!
   date: String!
   uniqueActors: Int!
+}
+
+type UserActionLogDashboard {
+  activityByDay: [UserActionLogActivityBucket!]!
+  recentCriticalActions: [UserActionLog!]!
+  summary: UserActionLogSummary!
+  topActions: [UserActionLogTopAction!]!
+  topActors: [UserActionLogTopActor!]!
 }
 
 type UserActionLogExportPayload {

@@ -2,7 +2,21 @@
 
 ## Tasks status
 
-PROPOSED
+COMPLETED - BUILD/BOOT/SCHEMA/FUNCTIONAL SMOKE VALIDATED LOCALLY.
+
+## Validation summary
+
+- [x] `npm run build`
+- [x] `PORT=3001 npm run start:dev`
+- [x] `src/schema.gql` contiene `adminUserActionLogSummary`
+- [x] `src/schema.gql` contiene `adminUserActionLogActivityByDay`
+- [x] `src/schema.gql` contiene `adminUserActionLogTopActors`
+- [x] `src/schema.gql` contiene `adminUserActionLogTopActions`
+- [x] `src/schema.gql` contiene `adminExportUserActionLogs`
+- [x] smoke runtime sin credenciales sobre `adminUserActionLogSummary` devolvió `Unauthorized`, confirmando exposición del endpoint y protección por auth
+- [x] smoke funcional con credenciales `ADMIN` validó summary, activity by day, top actors, top actions y export CSV base64
+- [x] smoke funcional validó filtros por `action` y `actorUserId`
+- [x] smoke funcional validó acceso denegado para usuario no `ADMIN`/`EMPLOYEE`
 
 ## 1. Discovery read-only
 
@@ -76,11 +90,11 @@ PROPOSED
 
 ## 11. Smoke tests GraphQL
 
-- [ ] Probar `adminUserActionLogSummary`.
-- [ ] Probar `adminUserActionLogActivityByDay`.
-- [ ] Probar `adminUserActionLogTopActors`.
-- [ ] Probar `adminUserActionLogTopActions`.
-- [ ] Probar `adminExportUserActionLogs`.
-- [ ] Validar filtros por `action`, `resourceType`, `resourceId` y `actorUserId`.
-- [ ] Validar acceso denegado a usuario no admin.
-- [ ] Validar que fase 1 sigue funcionando igual.
+- [x] Probar `adminUserActionLogSummary`.
+- [x] Probar `adminUserActionLogActivityByDay`.
+- [x] Probar `adminUserActionLogTopActors`.
+- [x] Probar `adminUserActionLogTopActions`.
+- [x] Probar `adminExportUserActionLogs`.
+- [x] Validar filtros por `action`, `resourceType`, `resourceId` y `actorUserId`.
+- [x] Validar acceso denegado a usuario no admin.
+- [x] Validar que fase 1 sigue funcionando igual.

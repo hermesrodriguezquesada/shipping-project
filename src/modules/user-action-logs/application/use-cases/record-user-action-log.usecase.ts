@@ -12,6 +12,7 @@ type RecordUserActionLogInput = {
   action: UserActionLogAction;
   resourceType?: string | null;
   resourceId?: string | null;
+  correlationId?: string | null;
   description?: string | null;
   metadata?: unknown;
   ipAddress?: string | null;
@@ -33,6 +34,7 @@ export class RecordUserActionLogUseCase {
       action: input.action,
       resourceType: this.normalize(input.resourceType),
       resourceId: this.normalize(input.resourceId),
+      correlationId: this.normalize(input.correlationId),
       description: this.normalize(input.description),
       metadataJson: sanitizeUserActionLogMetadata(input.metadata),
       ipAddress: this.normalize(input.ipAddress),

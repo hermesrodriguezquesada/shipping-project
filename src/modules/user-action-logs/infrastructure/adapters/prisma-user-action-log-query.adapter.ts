@@ -164,6 +164,26 @@ export class PrismaUserActionLogQueryAdapter implements UserActionLogQueryPort {
     }));
   }
 
+  async listAdminRecentByActions(
+    filters: AdminUserActionLogReportFilters,
+    actions: UserActionLogEntity['action'][],
+    limit: number,
+  ): Promise<UserActionLogEntity[]> {
+    const rows = await this.prisma.userActionLog.findMany({
+      where: {
+        ...this.buildAdminWhere(filters),
+        action: {
+          in: actions,
+        },
+      },
+      include: INCLUDE_ACTOR,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    return rows.map((row) => this.toEntity(row));
+  }
+
   async listAdminForExport(
     filters: AdminUserActionLogReportFilters,
     pagination: UserActionLogPagination,
@@ -235,6 +255,7 @@ export class PrismaUserActionLogQueryAdapter implements UserActionLogQueryPort {
       action: row.action,
       resourceType: row.resourceType,
       resourceId: row.resourceId,
+      correlationId: row.correlationId,
       description: row.description,
       metadataJson: row.metadataJson,
       ipAddress: row.ipAddress,

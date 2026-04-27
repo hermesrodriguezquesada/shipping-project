@@ -53,6 +53,14 @@ export type UserActionLogTopAction = {
   actionCount: number;
 };
 
+export type UserActionLogDashboard = {
+  summary: UserActionLogSummary;
+  activityByDay: UserActionLogActivityBucket[];
+  topActors: UserActionLogTopActor[];
+  topActions: UserActionLogTopAction[];
+  recentCriticalActions: UserActionLogEntity[];
+};
+
 export interface UserActionLogQueryPort {
   listMine(actorUserId: string, filters: UserActionLogListFilters, pagination: UserActionLogPagination): Promise<UserActionLogEntity[]>;
   listAdmin(filters: AdminUserActionLogListFilters, pagination: UserActionLogPagination): Promise<UserActionLogEntity[]>;
@@ -60,5 +68,10 @@ export interface UserActionLogQueryPort {
   getAdminActivityByDay(filters: AdminUserActionLogReportFilters): Promise<UserActionLogActivityBucket[]>;
   getAdminTopActors(filters: AdminUserActionLogReportFilters, limit: number): Promise<UserActionLogTopActor[]>;
   getAdminTopActions(filters: AdminUserActionLogReportFilters): Promise<UserActionLogTopAction[]>;
+  listAdminRecentByActions(
+    filters: AdminUserActionLogReportFilters,
+    actions: UserActionLogAction[],
+    limit: number,
+  ): Promise<UserActionLogEntity[]>;
   listAdminForExport(filters: AdminUserActionLogReportFilters, pagination: UserActionLogPagination): Promise<UserActionLogEntity[]>;
 }
