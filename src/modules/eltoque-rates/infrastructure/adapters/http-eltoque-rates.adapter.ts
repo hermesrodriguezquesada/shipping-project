@@ -4,6 +4,29 @@ import { DomainException } from 'src/core/exceptions/domain/domain.exception';
 import { DomainErrorCode } from 'src/core/exceptions/domain/error-codes';
 import { ElToqueRatesPort } from '../../domain/ports/eltoque-rates.port';
 
+type ElToqueRawResponse = {
+  tasas?: Record<string, unknown>;
+} & Record<string, unknown>;
+
+function normalizeElToqueRates(data: ElToqueRawResponse): ElToqueRawResponse {
+  if (!data.tasas || typeof data.tasas !== 'object' || Array.isArray(data.tasas)) {
+    return data;
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(data.tasas, 'ECU')) {
+    return data;
+  }
+
+  const { ECU, ...rest } = data.tasas;
+  return {
+    ...data,
+    tasas: {
+      ...rest,
+      EUR: ECU,
+    },
+  };
+}
+
 @Injectable()
 export class HttpElToqueRatesAdapter implements ElToqueRatesPort {
   constructor(private readonly config: AppConfigService) {}
@@ -59,7 +82,7 @@ export class HttpElToqueRatesAdapter implements ElToqueRatesPort {
       }
     }
 
-    const data = await response.json();
+    const data = normalizeElToqueRates((await response.json()) as ElToqueRawResponse);
     return JSON.stringify(data);
   }
 }

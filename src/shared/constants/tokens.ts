@@ -35,6 +35,7 @@ export const COMMISSION_RULES_COMMAND_PORT = 'CommissionRulesCommandPort';
 export const DELIVERY_FEES_QUERY_PORT = 'DeliveryFeesQueryPort';
 export const DELIVERY_FEES_COMMAND_PORT = 'DeliveryFeesCommandPort';
 export const ELTOQUE_RATES_PORT = 'ElToqueRatesPort';
+export const ELTOQUE_CURRENT_RATES_PORT = 'ElToqueCurrentRatesPort';
 export const SYSTEM_SETTINGS_QUERY_PORT = 'SystemSettingsQueryPort';
 export const SYSTEM_SETTINGS_COMMAND_PORT = 'SystemSettingsCommandPort';
 export const INTERNAL_NOTIFICATION_QUERY_PORT = 'InternalNotificationQueryPort';
