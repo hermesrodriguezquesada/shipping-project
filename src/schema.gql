@@ -1280,6 +1280,7 @@ type VipPaymentProof {
   currency: CurrencyType!
   currencyId: ID!
   id: ID!
+  paymentProofKey: String
   reviewedAt: DateTime
   reviewedBy: UserType
   reviewedById: ID

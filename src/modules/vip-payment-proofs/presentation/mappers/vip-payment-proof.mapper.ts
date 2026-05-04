@@ -21,6 +21,7 @@ export class VipPaymentProofMapper {
       amount: entity.amount.toString(),
       currencyId: entity.currencyId,
       currency: entity.currency as CurrencyCatalogType,
+      paymentProofKey: entity.paymentProofKey,
       status: entity.status,
       cancelReason: entity.cancelReason ?? undefined,
       reviewedById: entity.reviewedById ?? undefined,

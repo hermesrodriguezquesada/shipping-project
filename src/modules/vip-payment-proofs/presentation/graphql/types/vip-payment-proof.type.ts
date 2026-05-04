@@ -26,6 +26,9 @@ export class VipPaymentProofType {
   @Field(() => CurrencyCatalogType)
   currency!: CurrencyCatalogType;
 
+  @Field(() => String, { nullable: true })
+  paymentProofKey?: string;
+
   @Field(() => VipPaymentProofStatus)
   status!: VipPaymentProofStatus;
 
