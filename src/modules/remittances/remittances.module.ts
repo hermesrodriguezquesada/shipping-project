@@ -58,6 +58,7 @@ import { RemittanceReceiptController } from './presentation/http/controllers/rem
 import { RemittancesResolver } from './presentation/graphql/resolvers/remittances.resolver';
 import { UsersModule } from '../users/users.module';
 import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
+import { SystemSettingsModule } from '../system-settings/system-settings.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { UserActionLogsModule } from '../user-action-logs/user-action-logs.modul
     PricingModule,
     UsersModule,
     UserActionLogsModule,
+    SystemSettingsModule,
   ],
   controllers: [RemittanceReceiptController, ExternalPaymentWebhookController, AdminReportExportController],
   providers: [

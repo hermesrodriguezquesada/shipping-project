@@ -86,12 +86,12 @@ async function main() {
       },
       {
         name: 'CONTACT_PHONE_NUMBER1',
-        type: SystemSettingType.NUMBER,
-        value: "+971543138 837''",
+        type: SystemSettingType.STRING,
+        value: '+971543138837',
       },
       {
         name: 'CONTACT_PHONE_NUMBER2',
-        type: SystemSettingType.NUMBER,
+        type: SystemSettingType.STRING,
         value: null,
       },
       {

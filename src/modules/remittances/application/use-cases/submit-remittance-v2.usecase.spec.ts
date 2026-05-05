@@ -42,6 +42,7 @@ const buildUseCase = () => {
     deps.currencyAvailability as any,
     deps.pricingCalculator as any,
     deps.config as any,
+    { findByName: jest.fn().mockResolvedValue(null), listAll: jest.fn().mockResolvedValue([]) } as any,
   );
 
   return { useCase, deps };

@@ -102,6 +102,7 @@ async function main() {
     currencyAvailability,
     pricingCalculator,
     fakeConfig as any,
+    { findByName: async () => null, listAll: async () => [] } as any,
   );
 
   const paymentProofStorage = new InMemoryPaymentProofStorage();

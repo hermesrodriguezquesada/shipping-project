@@ -258,6 +258,7 @@ async function main(): Promise<void> {
     currencyAvailability as any,
     pricingCalculator as any,
     config as any,
+    { findByName: async () => null, listAll: async () => [] } as any,
   );
 
   const lifecycleUseCase = new RemittanceLifecycleUseCase(

@@ -22,6 +22,7 @@ import {
   INTERNAL_NOTIFICATION_COMMAND_PORT,
   REMITTANCE_COMMAND_PORT,
   REMITTANCE_QUERY_PORT,
+  SYSTEM_SETTINGS_QUERY_PORT,
   USER_QUERY_PORT,
 } from 'src/shared/constants/tokens';
 import { CurrencyAvailabilityPort } from '../../domain/ports/currency-availability.port';
@@ -34,6 +35,7 @@ import { BeneficiaryQueryPort } from 'src/modules/beneficiaries/domain/ports/ben
 import { BeneficiaryEntity } from 'src/modules/beneficiaries/domain/entities/beneficiary.entity';
 import { InternalNotificationCommandPort } from 'src/modules/internal-notifications/domain/ports/internal-notification-command.port';
 import { UserQueryPort } from 'src/modules/users/domain/ports/user-query.port';
+import { SystemSettingsQueryPort } from 'src/modules/system-settings/domain/ports/system-settings-query.port';
 
 @Injectable()
 export class SubmitRemittanceV2UseCase {
@@ -60,6 +62,8 @@ export class SubmitRemittanceV2UseCase {
     private readonly currencyAvailability: CurrencyAvailabilityPort,
     private readonly pricingCalculator: PricingCalculatorService,
     private readonly config: AppConfigService,
+    @Inject(SYSTEM_SETTINGS_QUERY_PORT)
+    private readonly systemSettingsQuery: SystemSettingsQueryPort,
   ) {}
 
   async execute(input: {
@@ -101,6 +105,11 @@ export class SubmitRemittanceV2UseCase {
       city?: string;
     };
   }): Promise<RemittanceReadModel> {
+    const remittanceEnabled = await this.systemSettingsQuery.findByName('REMITTANCE_ENABLED');
+    if (remittanceEnabled?.value === 'false') {
+      throw new ValidationDomainException('Las remesas están deshabilitadas temporalmente');
+    }
+
     const hasBeneficiaryId = !!input.beneficiaryId;
     const hasManualBeneficiary = !!input.manualBeneficiary;
 

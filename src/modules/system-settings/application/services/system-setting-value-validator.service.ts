@@ -5,15 +5,16 @@ import { ValidationDomainException } from 'src/core/exceptions/domain/validation
 @Injectable()
 export class SystemSettingValueValidatorService {
   normalizeByType(type: SystemSettingType, value: string | null): string | null {
-    if (value === null || value === undefined) {
+    const isEmpty = value === null || value === undefined || value.trim().length === 0;
+
+    if (isEmpty) {
+      if (type === SystemSettingType.BOOLEAN) {
+        throw new ValidationDomainException('value is required for BOOLEAN type');
+      }
       return null;
     }
 
-    const normalized = value.trim();
-
-    if (type !== SystemSettingType.STRING && normalized.length === 0) {
-      throw new ValidationDomainException('value is required for this setting type');
-    }
+    const normalized = value!.trim();
 
     switch (type) {
       case SystemSettingType.STRING:
@@ -31,9 +32,6 @@ export class SystemSettingValueValidatorService {
       case SystemSettingType.BOOLEAN:
         return this.normalizeBoolean(normalized);
       case SystemSettingType.PASSWORD:
-        if (!normalized.length) {
-          throw new ValidationDomainException('value is required for PASSWORD type');
-        }
         return value;
       default:
         throw new ValidationDomainException('unsupported setting type');

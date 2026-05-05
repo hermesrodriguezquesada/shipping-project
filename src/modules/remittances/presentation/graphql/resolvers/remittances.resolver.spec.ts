@@ -46,6 +46,7 @@ describe('RemittancesResolver canonical originAccount output', () => {
       submitRemittanceV2UseCase as any,
       createExternalPaymentSessionUseCase as any,
       getPaymentProofViewUrlUseCase as any,
+      { execute: jest.fn() } as any,
     );
 
     return { resolver, getMyRemittanceUseCase };
