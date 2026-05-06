@@ -1,0 +1,48 @@
+# --- ETAPA 1: Dependencias ---
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package*.json ./
+COPY /src/prisma ./prisma/
+RUN npm ci
+
+# --- ETAPA 2: Builder ---
+FROM node:20-alpine AS builder
+WORKDIR /app
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/prisma ./prisma/
+COPY . .
+RUN npx prisma generate
+RUN npm run build
+RUN npm prune --production
+
+# --- ETAPA 3: Runner ---
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
+# Copiamos lo necesario
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
+# Copiamos el script de arranque
+COPY docker-bootstrap.sh ./docker-bootstrap.sh
+
+# Dar permisos de ejecución al script
+RUN chmod +x ./docker-bootstrap.sh
+
+# Usuario de seguridad
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nestjs
+USER nestjs
+
+EXPOSE 3000
+
+# Usamos el script como punto de entrada
+ENTRYPOINT ["./docker-bootstrap.sh"]

@@ -1,0 +1,32 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: BACKEND_SSH_KEY
+          script: |
+            # Configurar la llave SSH específica del backend
+            eval "$(ssh-agent -s)"
+            echo "$BACKEND_SSH_KEY" | ssh-add -
+
+            cd ~/app/backend
+            git pull origin main
+
+            # Reconstruir y levantar SOLO el backend y la DB
+            cd ~/app
+            docker-compose build backend
+            docker-compose up -d db backend
