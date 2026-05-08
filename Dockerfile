@@ -38,6 +38,9 @@ COPY docker-bootstrap.sh ./docker-bootstrap.sh
 # Dar permisos de ejecución al script
 RUN chmod +x ./docker-bootstrap.sh
 
+# Le damos permiso al usuario nestjs para que pueda escribir el schema.gql
+RUN chown -R nestjs:nodejs /app/src
+
 # Usuario de seguridad
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
