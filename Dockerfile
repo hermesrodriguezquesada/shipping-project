@@ -4,7 +4,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package*.json ./
 COPY /src/prisma ./prisma/
-RUN NODE_OPTIONS="--max-old-space-size=2048" RUN npm ci
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm ci
 
 # --- ETAPA 2: Builder ---
 FROM node:20-alpine AS builder
