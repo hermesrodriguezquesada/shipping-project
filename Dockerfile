@@ -30,7 +30,7 @@ ENV DATABASE_URL=$DATABASE_URL
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src/prisma ./src/prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 # Copiamos el script de arranque
 COPY docker-bootstrap.sh ./docker-bootstrap.sh
