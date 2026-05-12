@@ -17,7 +17,7 @@ COPY --from=deps /app/prisma ./prisma/
 COPY . .
 RUN npx prisma generate
 
-RUN NODE_OPTIONS="--max-old-space-size=500" npm run build
+RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build
 # Limpiar dependencias de desarrollo
 RUN npm prune --production
 
