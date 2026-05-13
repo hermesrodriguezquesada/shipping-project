@@ -1,17 +1,21 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientType, Role } from '@prisma/client';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ClientType, InternalNotificationType, Role } from '@prisma/client';
 import {
   USER_AUTH_PORT,
   USER_COMMAND_PORT,
   PASSWORD_HASHER,
   TOKEN_SERVICE,
   SESSION_STORE,
+  INTERNAL_NOTIFICATION_COMMAND_PORT,
+  USER_QUERY_PORT,
 } from 'src/shared/constants/tokens';
 import { ConflictDomainException } from 'src/core/exceptions/domain/conflict.exception';
 import { ValidationDomainException } from 'src/core/exceptions/domain/validation.exception';
 
 import { UserAuthPort } from 'src/modules/users/domain/ports/user-auth.port';
 import { UserCommandPort } from 'src/modules/users/domain/ports/user-command.port';
+import { UserQueryPort } from 'src/modules/users/domain/ports/user-query.port';
+import { InternalNotificationCommandPort } from 'src/modules/internal-notifications/domain/ports/internal-notification-command.port';
 
 import { PasswordHasherPort } from '../../domain/ports/password-hasher.port';
 import { TokenServicePort } from '../../domain/ports/token-service.port';
@@ -23,6 +27,8 @@ import { normalizeRoles } from 'src/shared/utils/normaliceRoles';
 
 @Injectable()
 export class RegisterUseCase {
+  private readonly logger = new Logger(RegisterUseCase.name);
+
   constructor(
     @Inject(USER_AUTH_PORT) private readonly userAuth: UserAuthPort,
     @Inject(USER_COMMAND_PORT) private readonly userCommands: UserCommandPort,
@@ -30,6 +36,10 @@ export class RegisterUseCase {
     @Inject(TOKEN_SERVICE) private readonly tokenService: TokenServicePort,
     @Inject(SESSION_STORE) private readonly sessions: SessionStorePort,
     private readonly config: AppConfigService,
+    @Inject(INTERNAL_NOTIFICATION_COMMAND_PORT)
+    private readonly notificationCommand: InternalNotificationCommandPort,
+    @Inject(USER_QUERY_PORT)
+    private readonly userQuery: UserQueryPort,
   ) {}
 
   async execute(input: RegisterInputDto): Promise<{
@@ -80,6 +90,8 @@ export class RegisterUseCase {
     const refreshTokenHash = await this.passwordHasher.hash(refreshToken);
     await this.sessions.setRefreshHash(session.id, refreshTokenHash);
 
+    await this.notifyAdminsSafe(user.id);
+
     return {
       accessToken,
       refreshToken,
@@ -87,6 +99,29 @@ export class RegisterUseCase {
       user: { id: user.id, email: user.email, roles: user.roles },
     };
   }
+
+  private async notifyAdminsSafe(referenceId: string): Promise<void> {
+    try {
+      const admins = await this.userQuery.findMany(
+        { role: Role.ADMIN, isDeleted: false },
+        { limit: 200 },
+      );
+      await Promise.all(
+        admins.map((admin) =>
+          this.notificationCommand.create({
+            userId: admin.id,
+            type: InternalNotificationType.NEW_CLIENT,
+            referenceId,
+          }),
+        ),
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Non-blocking notification failure for NEW_CLIENT. referenceId=${referenceId} error=${message}`,
+      );
+    }
+}
 
   private computeRefreshExpiresAt(expiresIn: string): Date {
     const match = /^(\d+)([smhd])$/.exec(expiresIn.trim());

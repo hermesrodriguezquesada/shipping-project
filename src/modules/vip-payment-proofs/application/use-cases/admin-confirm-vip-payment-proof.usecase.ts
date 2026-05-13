@@ -1,19 +1,24 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { VipPaymentProofStatus } from '@prisma/client';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { InternalNotificationType, VipPaymentProofStatus } from '@prisma/client';
 import { NotFoundDomainException } from '../../../../core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from '../../../../core/exceptions/domain/validation.exception';
-import { VIP_PAYMENT_PROOF_COMMAND_PORT, VIP_PAYMENT_PROOF_QUERY_PORT } from '../../../../shared/constants/tokens';
+import { InternalNotificationCommandPort } from '../../../internal-notifications/domain/ports/internal-notification-command.port';
+import { INTERNAL_NOTIFICATION_COMMAND_PORT, VIP_PAYMENT_PROOF_COMMAND_PORT, VIP_PAYMENT_PROOF_QUERY_PORT } from '../../../../shared/constants/tokens';
 import { VipPaymentProofEntity } from '../../domain/entities/vip-payment-proof.entity';
 import { VipPaymentProofCommandPort } from '../../domain/ports/vip-payment-proof-command.port';
 import { VipPaymentProofQueryPort } from '../../domain/ports/vip-payment-proof-query.port';
 
 @Injectable()
 export class AdminConfirmVipPaymentProofUseCase {
+  private readonly logger = new Logger(AdminConfirmVipPaymentProofUseCase.name);
+
   constructor(
     @Inject(VIP_PAYMENT_PROOF_QUERY_PORT)
     private readonly query: VipPaymentProofQueryPort,
     @Inject(VIP_PAYMENT_PROOF_COMMAND_PORT)
     private readonly command: VipPaymentProofCommandPort,
+    @Inject(INTERNAL_NOTIFICATION_COMMAND_PORT)
+    private readonly notificationCommand: InternalNotificationCommandPort,
   ) {}
 
   async execute(input: { id: string; reviewedById: string }): Promise<VipPaymentProofEntity> {
@@ -41,6 +46,23 @@ export class AdminConfirmVipPaymentProofUseCase {
       throw new NotFoundDomainException('Vip payment proof not found after confirm');
     }
 
+    await this.notifyOwnerSafe(confirmed.userId, confirmed.id);
+
     return confirmed;
+  }
+
+  private async notifyOwnerSafe(userId: string, referenceId: string): Promise<void> {
+    try {
+      await this.notificationCommand.create({
+        userId,
+        type: InternalNotificationType.CONFIRMED_PAYMENT_PROOF,
+        referenceId,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Non-blocking notification failure for CONFIRMED_PAYMENT_PROOF. userId=${userId} referenceId=${referenceId} error=${message}`,
+      );
+    }
   }
 }

@@ -8,6 +8,7 @@ describe('CreateVipPaymentProofUseCase', () => {
     const deps = {
       userQuery: {
         findById: jest.fn(),
+        findMany: jest.fn().mockResolvedValue([]),
       },
       catalogsQuery: {
         findCurrencyById: jest.fn(),
@@ -21,6 +22,9 @@ describe('CreateVipPaymentProofUseCase', () => {
       storage: {
         uploadObject: jest.fn(),
       },
+      notificationCommand: {
+        create: jest.fn().mockResolvedValue(undefined),
+      },
     };
 
     const useCase = new CreateVipPaymentProofUseCase(
@@ -29,6 +33,7 @@ describe('CreateVipPaymentProofUseCase', () => {
       deps.command as any,
       deps.query as any,
       deps.storage as any,
+      deps.notificationCommand as any,
     );
 
     return { useCase, deps };

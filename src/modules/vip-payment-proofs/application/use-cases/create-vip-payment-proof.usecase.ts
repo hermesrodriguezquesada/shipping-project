@@ -1,12 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { InternalNotificationType, Prisma, Role } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { NotFoundDomainException } from '../../../../core/exceptions/domain/not-found.exception';
 import { UnauthorizedDomainException } from '../../../../core/exceptions/domain/unauthorized.exception';
 import { ValidationDomainException } from '../../../../core/exceptions/domain/validation.exception';
+import { InternalNotificationCommandPort } from '../../../internal-notifications/domain/ports/internal-notification-command.port';
 import { CatalogsQueryPort } from '../../../catalogs/domain/ports/catalogs-query.port';
 import { UserQueryPort } from '../../../users/domain/ports/user-query.port';
-import { CATALOGS_QUERY_PORT, USER_QUERY_PORT, VIP_PAYMENT_PROOF_COMMAND_PORT, VIP_PAYMENT_PROOF_QUERY_PORT, VIP_PAYMENT_PROOF_STORAGE_PORT } from '../../../../shared/constants/tokens';
+import { CATALOGS_QUERY_PORT, INTERNAL_NOTIFICATION_COMMAND_PORT, USER_QUERY_PORT, VIP_PAYMENT_PROOF_COMMAND_PORT, VIP_PAYMENT_PROOF_QUERY_PORT, VIP_PAYMENT_PROOF_STORAGE_PORT } from '../../../../shared/constants/tokens';
 import { VipPaymentProofEntity } from '../../domain/entities/vip-payment-proof.entity';
 import { VipPaymentProofCommandPort } from '../../domain/ports/vip-payment-proof-command.port';
 import { VipPaymentProofQueryPort } from '../../domain/ports/vip-payment-proof-query.port';
@@ -15,6 +16,8 @@ import { parsePaymentProofImage } from '../utils/payment-proof-image';
 
 @Injectable()
 export class CreateVipPaymentProofUseCase {
+  private readonly logger = new Logger(CreateVipPaymentProofUseCase.name);
+
   constructor(
     @Inject(USER_QUERY_PORT)
     private readonly userQuery: UserQueryPort,
@@ -26,6 +29,8 @@ export class CreateVipPaymentProofUseCase {
     private readonly query: VipPaymentProofQueryPort,
     @Inject(VIP_PAYMENT_PROOF_STORAGE_PORT)
     private readonly storage: VipPaymentProofStoragePort,
+    @Inject(INTERNAL_NOTIFICATION_COMMAND_PORT)
+    private readonly notificationCommand: InternalNotificationCommandPort,
   ) {}
 
   async execute(input: {
@@ -81,6 +86,31 @@ export class CreateVipPaymentProofUseCase {
       throw new NotFoundDomainException('Vip payment proof not found after create');
     }
 
+    await this.notifyAdminsSafe(created.id);
+
     return created;
+  }
+
+  private async notifyAdminsSafe(referenceId: string): Promise<void> {
+    try {
+      const recipients = await this.userQuery.findMany(
+        { role: Role.ADMIN, isDeleted: false },
+        { limit: 200 },
+      );
+      await Promise.all(
+        recipients.map((u) =>
+          this.notificationCommand.create({
+            userId: u.id,
+            type: InternalNotificationType.NEW_PAYMENT_PROOF,
+            referenceId,
+          }),
+        ),
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(
+        `Non-blocking notification failure for NEW_PAYMENT_PROOF. referenceId=${referenceId} error=${message}`,
+      );
+    }
   }
 }

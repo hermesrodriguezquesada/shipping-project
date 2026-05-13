@@ -15,7 +15,8 @@ describe('Vip payment proof review and view use cases', () => {
     const command = {
       confirmPending: jest.fn().mockResolvedValue(true),
     };
-    const useCase = new AdminConfirmVipPaymentProofUseCase(query as any, command as any);
+    const notificationCommand = { create: jest.fn().mockResolvedValue(undefined) };
+    const useCase = new AdminConfirmVipPaymentProofUseCase(query as any, command as any, notificationCommand as any);
 
     const result = await useCase.execute({ id: 'proof-1', reviewedById: 'admin-1' });
 
@@ -30,7 +31,8 @@ describe('Vip payment proof review and view use cases', () => {
     const command = {
       cancelPending: jest.fn(),
     };
-    const useCase = new AdminCancelVipPaymentProofUseCase(query as any, command as any);
+    const notificationCommand = { create: jest.fn().mockResolvedValue(undefined) };
+    const useCase = new AdminCancelVipPaymentProofUseCase(query as any, command as any, notificationCommand as any);
 
     await expect(useCase.execute({ id: 'proof-1', reason: '   ', reviewedById: 'admin-1' })).rejects.toBeInstanceOf(
       ValidationDomainException,
