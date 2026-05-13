@@ -29,19 +29,43 @@ export class PrismaVipPaymentProofCommandAdapter implements VipPaymentProofComma
   }
 
   async confirmPending(input: { id: string; reviewedById: string; reviewedAt: Date }): Promise<boolean> {
-    const result = await this.prisma.vipPaymentProof.updateMany({
-      where: {
-        id: input.id,
-        status: VipPaymentProofStatus.PENDING_CONFIRMATION,
-      },
-      data: {
-        status: VipPaymentProofStatus.CONFIRMED,
-        reviewedById: input.reviewedById,
-        reviewedAt: input.reviewedAt,
-      },
-    });
+    return await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.vipPaymentProof.updateMany({
+        where: {
+          id: input.id,
+          status: VipPaymentProofStatus.PENDING_CONFIRMATION,
+        },
+        data: {
+          status: VipPaymentProofStatus.CONFIRMED,
+          reviewedById: input.reviewedById,
+          reviewedAt: input.reviewedAt,
+        },
+      });
 
-    return result.count > 0;
+      if (updated.count === 0) {
+        return false;
+      }
+
+      const proof = await tx.vipPaymentProof.findUnique({
+        where: { id: input.id },
+        select: { userId: true, amount: true },
+      });
+
+      if (!proof) {
+        return false;
+      }
+
+      await tx.user.update({
+        where: { id: proof.userId },
+        data: {
+          totalGeneratedAmount: {
+            increment: proof.amount,
+          },
+        },
+      });
+
+      return true;
+    });
   }
 
   async cancelPending(input: {
