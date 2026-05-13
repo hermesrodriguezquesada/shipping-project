@@ -1,10 +1,13 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { Logger, UseGuards } from '@nestjs/common';
+import { Args, Context, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Role, UserActionLogAction } from '@prisma/client';
+import { Request } from 'express';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
 import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
+import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
+import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { AdminCreateExchangeRateUseCase } from 'src/modules/exchange-rates/application/use-cases/admin-create-exchange-rate.usecase';
 import { AdminDeleteExchangeRateUseCase } from 'src/modules/exchange-rates/application/use-cases/admin-delete-exchange-rate.usecase';
 import { AdminListExchangeRatesUseCase } from 'src/modules/exchange-rates/application/use-cases/admin-list-exchange-rates.usecase';
@@ -15,9 +18,14 @@ import { ExchangeRateReadModel } from 'src/modules/exchange-rates/domain/ports/e
 import { AdminCreateExchangeRateInput } from '../inputs/admin-create-exchange-rate.input';
 import { AdminUpdateExchangeRateInput } from '../inputs/admin-update-exchange-rate.input';
 import { ExchangeRateType } from '../types/exchange-rate.type';
+import { RecordUserActionLogUseCase } from 'src/modules/user-action-logs/application/use-cases/record-user-action-log.usecase';
+import { recordUserActionLogSafe } from 'src/modules/user-action-logs/application/utils/record-user-action-log-safe';
+import { getPrimaryRole, getRequestAuditContext } from 'src/modules/user-action-logs/application/utils/user-action-log-context';
 
 @Resolver()
 export class ExchangeRatesResolver {
+  private readonly logger = new Logger(ExchangeRatesResolver.name);
+
   constructor(
     private readonly getLatestExchangeRateUseCase: GetLatestExchangeRateUseCase,
     private readonly listExchangeRatesPublicUseCase: ListExchangeRatesPublicUseCase,
@@ -25,6 +33,7 @@ export class ExchangeRatesResolver {
     private readonly adminCreateExchangeRateUseCase: AdminCreateExchangeRateUseCase,
     private readonly adminUpdateExchangeRateUseCase: AdminUpdateExchangeRateUseCase,
     private readonly adminDeleteExchangeRateUseCase: AdminDeleteExchangeRateUseCase,
+    private readonly recordUserActionLog: RecordUserActionLogUseCase,
   ) {}
 
   @Query(() => ExchangeRateType, { nullable: true })
@@ -64,24 +73,75 @@ export class ExchangeRatesResolver {
   @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => ExchangeRateType)
-  async adminCreateExchangeRate(@Args('input') input: AdminCreateExchangeRateInput): Promise<ExchangeRateType> {
+  async adminCreateExchangeRate(
+    @Args('input') input: AdminCreateExchangeRateInput,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
+  ): Promise<ExchangeRateType> {
     const created = await this.adminCreateExchangeRateUseCase.execute(input);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLog, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_CREATE_EXCHANGE_RATE,
+      resourceType: 'EXCHANGE_RATE',
+      resourceId: created.id,
+      description: 'Administrador creó tasa de cambio',
+      metadata: { fromCurrencyCode: created.fromCurrency.code, toCurrencyCode: created.toCurrency.code },
+      ...getRequestAuditContext(req),
+    });
+
     return this.toExchangeRateType(created);
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => ExchangeRateType)
-  async adminUpdateExchangeRate(@Args('input') input: AdminUpdateExchangeRateInput): Promise<ExchangeRateType> {
+  async adminUpdateExchangeRate(
+    @Args('input') input: AdminUpdateExchangeRateInput,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
+  ): Promise<ExchangeRateType> {
     const updated = await this.adminUpdateExchangeRateUseCase.execute(input);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLog, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_UPDATE_EXCHANGE_RATE,
+      resourceType: 'EXCHANGE_RATE',
+      resourceId: updated.id,
+      description: 'Administrador actualizó tasa de cambio',
+      metadata: { fromCurrencyCode: updated.fromCurrency.code, toCurrencyCode: updated.toCurrency.code },
+      ...getRequestAuditContext(req),
+    });
+
     return this.toExchangeRateType(updated);
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => Boolean)
-  async adminDeleteExchangeRate(@Args('id', { type: () => ID }) id: string): Promise<boolean> {
-    return this.adminDeleteExchangeRateUseCase.execute(id);
+  async adminDeleteExchangeRate(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
+  ): Promise<boolean> {
+    const result = await this.adminDeleteExchangeRateUseCase.execute(id);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLog, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_DELETE_EXCHANGE_RATE,
+      resourceType: 'EXCHANGE_RATE',
+      resourceId: id,
+      description: 'Administrador eliminó tasa de cambio',
+      ...getRequestAuditContext(req),
+    });
+
+    return result;
   }
 
   private toExchangeRateType(rate: ExchangeRateReadModel): ExchangeRateType {

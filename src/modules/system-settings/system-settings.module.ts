@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SYSTEM_SETTINGS_COMMAND_PORT, SYSTEM_SETTINGS_QUERY_PORT } from 'src/shared/constants/tokens';
+import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
 import { SystemSettingValueValidatorService } from './application/services/system-setting-value-validator.service';
 import { AdminGetSystemSettingUseCase } from './application/use-cases/admin-get-system-setting.usecase';
 import { AdminListSystemSettingsUseCase } from './application/use-cases/admin-list-system-settings.usecase';
@@ -9,6 +10,7 @@ import { PrismaSystemSettingsQueryAdapter } from './infrastructure/adapters/pris
 import { SystemSettingsResolver } from './presentation/graphql/resolvers/system-settings.resolver';
 
 @Module({
+  imports: [UserActionLogsModule],
   providers: [
     PrismaSystemSettingsCommandAdapter,
     PrismaSystemSettingsQueryAdapter,

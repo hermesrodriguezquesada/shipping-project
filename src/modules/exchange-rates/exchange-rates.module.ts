@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CatalogsModule } from '../catalogs/catalogs.module';
+import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
 import { EXCHANGE_RATES_COMMAND_PORT, EXCHANGE_RATES_QUERY_PORT } from 'src/shared/constants/tokens';
 import { ExchangeRateHistoryModule } from '../exchange-rate-history/exchange-rate-history.module';
 import { AdminCreateExchangeRateUseCase } from './application/use-cases/admin-create-exchange-rate.usecase';
@@ -13,7 +14,7 @@ import { PrismaExchangeRatesQueryAdapter } from './infrastructure/adapters/prism
 import { ExchangeRatesResolver } from './presentation/graphql/resolvers/exchange-rates.resolver';
 
 @Module({
-  imports: [CatalogsModule, ExchangeRateHistoryModule],
+  imports: [CatalogsModule, ExchangeRateHistoryModule, UserActionLogsModule],
   providers: [
     PrismaExchangeRatesCommandAdapter,
     PrismaExchangeRatesQueryAdapter,

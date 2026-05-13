@@ -127,10 +127,12 @@ async adminUsers(
       actorUserId: authUser.id,
       actorEmail: authUser.email,
       actorRole: getPrimaryRole(authUser.roles),
-      action: UserActionLogAction.ADMIN_SET_USER_VIP,
+      action: input.isVip ? UserActionLogAction.ADMIN_SET_USER_VIP : UserActionLogAction.ADMIN_UNSET_USER_VIP,
       resourceType: 'USER',
       resourceId: input.userId,
-      description: 'Admin updated user VIP flag',
+      description: input.isVip
+        ? 'Administrador convirtió usuario en VIP'
+        : 'Administrador quitó privilegio VIP al usuario',
       metadata: { isVip: input.isVip },
       ...getRequestAuditContext(req),
     });
@@ -142,8 +144,22 @@ async adminUsers(
   @Mutation(() => UserType, { name: 'adminBanUser' })
   async adminBanUser(
     @Args('userId', { type: () => ID }) userId: string,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<UserType> {
     const updated = await this.banUser.execute(userId);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_BLOCK_USER,
+      resourceType: 'USER',
+      resourceId: userId,
+      description: 'Administrador bloqueó usuario',
+      ...getRequestAuditContext(req),
+    });
+
     return UserMapper.toGraphQL(updated);
   }
 
@@ -151,8 +167,22 @@ async adminUsers(
   @Mutation(() => UserType, { name: 'adminActivateUser' })
   async adminActivateUser(
     @Args('userId', { type: () => ID }) userId: string,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<UserType> {
     const updated = await this.activateUser.execute(userId);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_UNBLOCK_USER,
+      resourceType: 'USER',
+      resourceId: userId,
+      description: 'Administrador desbloqueó usuario',
+      ...getRequestAuditContext(req),
+    });
+
     return UserMapper.toGraphQL(updated);
   }
 

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CATALOGS_COMMAND_PORT, CATALOGS_QUERY_PORT } from 'src/shared/constants/tokens';
+import { UserActionLogsModule } from '../user-action-logs/user-action-logs.module';
 import { AdminCreatePaymentMethodUseCase } from './application/use-cases/admin-create-payment-method.usecase';
 import { AdminCreateReceptionMethodUseCase } from './application/use-cases/admin-create-reception-method.usecase';
 import { AdminCreateCurrencyUseCase } from './application/use-cases/admin-create-currency.usecase';
@@ -19,6 +20,7 @@ import { PrismaCatalogsQueryAdapter } from './infrastructure/adapters/prisma-cat
 import { CatalogsResolver } from './presentation/graphql/resolvers/catalogs.resolver';
 
 @Module({
+  imports: [UserActionLogsModule],
   providers: [
     PrismaCatalogsCommandAdapter,
     PrismaCatalogsQueryAdapter,

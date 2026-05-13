@@ -1,10 +1,13 @@
-import { UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { Logger, UseGuards } from '@nestjs/common';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Role, UserActionLogAction } from '@prisma/client';
+import { Request } from 'express';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
 import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
+import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
+import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { AdminCreatePaymentMethodUseCase } from 'src/modules/catalogs/application/use-cases/admin-create-payment-method.usecase';
 import { AdminCreateReceptionMethodUseCase } from 'src/modules/catalogs/application/use-cases/admin-create-reception-method.usecase';
 import { AdminCreateCurrencyUseCase } from 'src/modules/catalogs/application/use-cases/admin-create-currency.usecase';
@@ -28,10 +31,15 @@ import { AdminUpdateCurrencyInput } from '../inputs/admin-update-currency.input'
 import { CurrencyCatalogType } from '../types/currency-catalog.type';
 import { PaymentMethodType } from '../types/payment-method.type';
 import { ReceptionMethodType } from '../types/reception-method.type';
+import { RecordUserActionLogUseCase } from 'src/modules/user-action-logs/application/use-cases/record-user-action-log.usecase';
+import { recordUserActionLogSafe } from 'src/modules/user-action-logs/application/utils/record-user-action-log-safe';
+import { getPrimaryRole, getRequestAuditContext } from 'src/modules/user-action-logs/application/utils/user-action-log-context';
 
 @UseGuards(GqlAuthGuard)
 @Resolver()
 export class CatalogsResolver {
+  private readonly logger = new Logger(CatalogsResolver.name);
+
   constructor(
     private readonly listPaymentMethodsUseCase: ListPaymentMethodsUseCase,
     private readonly listReceptionMethodsUseCase: ListReceptionMethodsUseCase,
@@ -47,6 +55,7 @@ export class CatalogsResolver {
     private readonly adminCreateCurrencyUseCase: AdminCreateCurrencyUseCase,
     private readonly adminUpdateCurrencyUseCase: AdminUpdateCurrencyUseCase,
     private readonly adminSetCurrencyEnabledUseCase: AdminSetCurrencyEnabledUseCase,
+    private readonly recordUserActionLog: RecordUserActionLogUseCase,
   ) {}
 
   @Query(() => [PaymentMethodType])
@@ -149,15 +158,51 @@ export class CatalogsResolver {
   @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => CurrencyCatalogType)
-  async adminCreateCurrency(@Args('input') input: AdminCreateCurrencyInput): Promise<CurrencyCatalogType> {
-    return this.adminCreateCurrencyUseCase.execute(input);
+  async adminCreateCurrency(
+    @Args('input') input: AdminCreateCurrencyInput,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
+  ): Promise<CurrencyCatalogType> {
+    const created = await this.adminCreateCurrencyUseCase.execute(input);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLog, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_CREATE_CURRENCY,
+      resourceType: 'CURRENCY',
+      resourceId: input.code,
+      description: 'Administrador creó moneda',
+      metadata: { code: input.code },
+      ...getRequestAuditContext(req),
+    });
+
+    return created;
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => CurrencyCatalogType)
-  async adminUpdateCurrency(@Args('input') input: AdminUpdateCurrencyInput): Promise<CurrencyCatalogType> {
-    return this.adminUpdateCurrencyUseCase.execute(input);
+  async adminUpdateCurrency(
+    @Args('input') input: AdminUpdateCurrencyInput,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
+  ): Promise<CurrencyCatalogType> {
+    const updated = await this.adminUpdateCurrencyUseCase.execute(input);
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLog, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_UPDATE_CURRENCY,
+      resourceType: 'CURRENCY',
+      resourceId: input.code,
+      description: 'Administrador actualizó moneda',
+      metadata: { code: input.code },
+      ...getRequestAuditContext(req),
+    });
+
+    return updated;
   }
 
   @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
