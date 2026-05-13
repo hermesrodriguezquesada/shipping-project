@@ -4,6 +4,7 @@ import { Role } from '@prisma/client';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { AdminCreatePaymentMethodUseCase } from 'src/modules/catalogs/application/use-cases/admin-create-payment-method.usecase';
 import { AdminCreateReceptionMethodUseCase } from 'src/modules/catalogs/application/use-cases/admin-create-reception-method.usecase';
 import { AdminCreateCurrencyUseCase } from 'src/modules/catalogs/application/use-cases/admin-create-currency.usecase';
@@ -69,7 +70,7 @@ export class CatalogsResolver {
     return this.listCurrenciesUseCase.execute(enabledOnly ?? true);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => PaymentMethodType)
   async adminCreatePaymentMethod(
@@ -78,7 +79,7 @@ export class CatalogsResolver {
     return this.adminCreatePaymentMethodUseCase.execute(input);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => PaymentMethodType)
   async adminUpdatePaymentMethodDescription(
@@ -88,7 +89,7 @@ export class CatalogsResolver {
     return this.adminUpdatePaymentMethodDescriptionUseCase.execute({ code, description });
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => PaymentMethodType)
   async adminUpdatePaymentMethodAdditionalData(
@@ -97,7 +98,7 @@ export class CatalogsResolver {
     return this.adminUpdatePaymentMethodAdditionalDataUseCase.execute(input);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => PaymentMethodType)
   async adminUpdatePaymentMethod(
@@ -106,7 +107,7 @@ export class CatalogsResolver {
     return this.adminUpdatePaymentMethodUseCase.execute(input);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => PaymentMethodType)
   async adminSetPaymentMethodEnabled(
@@ -116,7 +117,7 @@ export class CatalogsResolver {
     return this.adminSetPaymentMethodEnabledUseCase.execute({ code, enabled });
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => ReceptionMethodType)
   async adminCreateReceptionMethod(
@@ -125,7 +126,7 @@ export class CatalogsResolver {
     return this.adminCreateReceptionMethodUseCase.execute(input);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => ReceptionMethodType)
   async adminUpdateReceptionMethodDescription(
@@ -135,7 +136,7 @@ export class CatalogsResolver {
     return this.adminUpdateReceptionMethodDescriptionUseCase.execute({ code, description });
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => ReceptionMethodType)
   async adminSetReceptionMethodEnabled(
@@ -145,21 +146,21 @@ export class CatalogsResolver {
     return this.adminSetReceptionMethodEnabledUseCase.execute({ code, enabled });
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => CurrencyCatalogType)
   async adminCreateCurrency(@Args('input') input: AdminCreateCurrencyInput): Promise<CurrencyCatalogType> {
     return this.adminCreateCurrencyUseCase.execute(input);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => CurrencyCatalogType)
   async adminUpdateCurrency(@Args('input') input: AdminUpdateCurrencyInput): Promise<CurrencyCatalogType> {
     return this.adminUpdateCurrencyUseCase.execute(input);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => CurrencyCatalogType)
   async adminSetCurrencyEnabled(

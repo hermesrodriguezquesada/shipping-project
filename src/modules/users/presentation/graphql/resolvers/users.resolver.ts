@@ -9,6 +9,7 @@ import { UserMapper } from 'src/modules/users/presentation/mappers/user.mapper';
 import { UserEntity } from '../../../domain/entities/user.entity';
 import { UpdateMyProfileUseCase } from 'src/modules/users/application/use-cases/update-my-profile.usecase';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { UpdateMyProfileInput } from '../inputs/update-my-profile.input';
@@ -41,7 +42,7 @@ export class UsersResolver {
     return UserMapper.toGraphQL(user);
   }
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard, ActiveUserGuard)
   @Mutation(() => UserType)
   async updateMyProfile(
     @CurrentUser() authUser: AuthContextUser,

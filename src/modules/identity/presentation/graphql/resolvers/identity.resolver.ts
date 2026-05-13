@@ -2,6 +2,7 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Role, IdentityStatus } from '@prisma/client';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
@@ -30,7 +31,7 @@ export class IdentityResolver {
     private readonly identityQuery: IdentityQueryPort,
   ) {}
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard, ActiveUserGuard)
   @Mutation(() => Boolean)
   submitIdentityVerification(
     @Args('input') input: SubmitIdentityInput,
@@ -60,7 +61,7 @@ export class IdentityResolver {
     return IdentityGraphqlMapper.toGraphQLList(views);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => Boolean)
   adminReviewIdentityVerification(

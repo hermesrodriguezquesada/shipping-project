@@ -6,6 +6,7 @@ import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
 import { OptionalGqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/optional-gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { AdminSupportMessagesByAuthorUseCase } from 'src/modules/support-messages/application/use-cases/admin-support-messages-by-author.usecase';
@@ -35,7 +36,7 @@ export class SupportMessagesResolver {
     private readonly recordUserActionLogUseCase: RecordUserActionLogUseCase,
   ) {}
 
-  @UseGuards(OptionalGqlAuthGuard)
+  @UseGuards(OptionalGqlAuthGuard, ActiveUserGuard)
   @Mutation(() => SupportMessageType)
   async createSupportMessage(
     @CurrentUser() authUser: AuthContextUser | undefined,
@@ -69,7 +70,7 @@ export class SupportMessagesResolver {
     return SupportMessageMapper.toGraphQL(created);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Mutation(() => SupportMessageType)
   async answerSupportMessage(

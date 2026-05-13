@@ -6,6 +6,7 @@ import { Request } from 'express';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 
 import { UserType } from '../types/user.type';
 import { UserMapper } from '../../mappers/user.mapper';
@@ -72,6 +73,7 @@ async adminUsers(
 }
 
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => UserType, { name: 'adminCreateUser' })
   async adminCreateUserMutation(
     @Args('input') input: AdminCreateUserInput,
@@ -97,6 +99,7 @@ async adminUsers(
     return UserMapper.toGraphQL(created);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => UserType, { name: 'adminSetUserRoles' })
   async adminSetUserRoles(
     @Args('input') input: AdminSetUserRolesInput,
@@ -108,6 +111,7 @@ async adminUsers(
     return UserMapper.toGraphQL(updated);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => UserType, { name: 'adminSetUserVip' })
   async adminSetUserVip(
     @Args('input') input: AdminSetUserVipInput,
@@ -134,6 +138,7 @@ async adminUsers(
     return UserMapper.toGraphQL(updated);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => UserType, { name: 'adminBanUser' })
   async adminBanUser(
     @Args('userId', { type: () => ID }) userId: string,
@@ -142,6 +147,7 @@ async adminUsers(
     return UserMapper.toGraphQL(updated);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => UserType, { name: 'adminActivateUser' })
   async adminActivateUser(
     @Args('userId', { type: () => ID }) userId: string,
@@ -150,6 +156,7 @@ async adminUsers(
     return UserMapper.toGraphQL(updated);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => UserType, { name: 'adminDeleteUser' })
   async adminDeleteUser(
     @Args('userId', { type: () => ID }) userId: string,
@@ -158,6 +165,7 @@ async adminUsers(
     return UserMapper.toGraphQL(updated);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => UserType, { name: 'adminUpdateUserProfile' })
   async adminUpdateUserProfile(
     @Args('input') input: AdminUpdateUserProfileInput,

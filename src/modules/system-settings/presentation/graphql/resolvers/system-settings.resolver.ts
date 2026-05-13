@@ -4,6 +4,7 @@ import { Role, SystemSettingType as PrismaSystemSettingType } from '@prisma/clie
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { AdminGetSystemSettingUseCase } from 'src/modules/system-settings/application/use-cases/admin-get-system-setting.usecase';
 import { AdminListSystemSettingsUseCase } from 'src/modules/system-settings/application/use-cases/admin-list-system-settings.usecase';
 import { AdminUpdateSystemSettingValueUseCase } from 'src/modules/system-settings/application/use-cases/admin-update-system-setting-value.usecase';
@@ -31,7 +32,7 @@ export class SystemSettingsResolver {
     return setting ? this.toType(setting) : null;
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => SystemSettingObjectType)
   async adminUpdateSetting(@Args('input') input: AdminUpdateSystemSettingInput): Promise<SystemSettingObjectType> {

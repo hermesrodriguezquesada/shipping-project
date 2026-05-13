@@ -4,6 +4,7 @@ import { Role } from '@prisma/client';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { AdminCreateExchangeRateUseCase } from 'src/modules/exchange-rates/application/use-cases/admin-create-exchange-rate.usecase';
 import { AdminDeleteExchangeRateUseCase } from 'src/modules/exchange-rates/application/use-cases/admin-delete-exchange-rate.usecase';
 import { AdminListExchangeRatesUseCase } from 'src/modules/exchange-rates/application/use-cases/admin-list-exchange-rates.usecase';
@@ -60,7 +61,7 @@ export class ExchangeRatesResolver {
     return rates.map((rate) => this.toExchangeRateType(rate));
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => ExchangeRateType)
   async adminCreateExchangeRate(@Args('input') input: AdminCreateExchangeRateInput): Promise<ExchangeRateType> {
@@ -68,7 +69,7 @@ export class ExchangeRatesResolver {
     return this.toExchangeRateType(created);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => ExchangeRateType)
   async adminUpdateExchangeRate(@Args('input') input: AdminUpdateExchangeRateInput): Promise<ExchangeRateType> {
@@ -76,7 +77,7 @@ export class ExchangeRatesResolver {
     return this.toExchangeRateType(updated);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => Boolean)
   async adminDeleteExchangeRate(@Args('id', { type: () => ID }) id: string): Promise<boolean> {

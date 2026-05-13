@@ -5,6 +5,7 @@ import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { AdminCreateVipExchangeRateUseCase } from 'src/modules/vip-pricing/application/use-cases/admin-create-vip-exchange-rate.usecase';
 import { AdminListVipExchangeRatesUseCase } from 'src/modules/vip-pricing/application/use-cases/admin-list-vip-exchange-rates.usecase';
@@ -29,7 +30,7 @@ export class VipPricingResolver {
     private readonly vipProfitPreviewUseCase: VipProfitPreviewUseCase,
   ) {}
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Mutation(() => VipExchangeRateType, { name: 'adminCreateVipExchangeRate' })
   async adminCreateVipExchangeRate(
@@ -39,7 +40,7 @@ export class VipPricingResolver {
     return VipExchangeRateMapper.toGraphQL(created);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Mutation(() => VipExchangeRateType, { name: 'adminUpdateVipExchangeRate' })
   async adminUpdateVipExchangeRate(
@@ -49,7 +50,7 @@ export class VipPricingResolver {
     return VipExchangeRateMapper.toGraphQL(updated);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Mutation(() => VipExchangeRateType, { name: 'adminSetVipExchangeRateEnabled' })
   async adminSetVipExchangeRateEnabled(

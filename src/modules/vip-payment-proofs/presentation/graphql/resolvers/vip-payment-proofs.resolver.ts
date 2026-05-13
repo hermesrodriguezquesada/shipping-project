@@ -6,6 +6,7 @@ import { Roles } from '../../../../../core/auth/roles.decorator';
 import { RolesGuard } from '../../../../../core/auth/roles.guard';
 import { CurrentUser } from '../../../../auth/presentation/graphql/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../../../auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from '../../../../../core/auth/active-user.guard';
 import { AuthContextUser } from '../../../../auth/presentation/graphql/types/auth-context-user.type';
 import { AdminCancelVipPaymentProofUseCase } from '../../../application/use-cases/admin-cancel-vip-payment-proof.usecase';
 import { AdminConfirmVipPaymentProofUseCase } from '../../../application/use-cases/admin-confirm-vip-payment-proof.usecase';
@@ -37,7 +38,7 @@ export class VipPaymentProofsResolver {
     private readonly recordUserActionLogUseCase: RecordUserActionLogUseCase,
   ) {}
 
-  @UseGuards(GqlAuthGuard)
+  @UseGuards(GqlAuthGuard, ActiveUserGuard)
   @Mutation(() => VipPaymentProofType)
   async createVipPaymentProof(
     @Args('input') input: CreateVipPaymentProofInput,
@@ -110,7 +111,7 @@ export class VipPaymentProofsResolver {
     return rows.map(VipPaymentProofMapper.toGraphQL);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Mutation(() => VipPaymentProofType)
   async adminConfirmVipPaymentProof(
@@ -139,7 +140,7 @@ export class VipPaymentProofsResolver {
     return VipPaymentProofMapper.toGraphQL(updated);
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN, Role.EMPLOYEE)
   @Mutation(() => VipPaymentProofType)
   async adminCancelVipPaymentProof(

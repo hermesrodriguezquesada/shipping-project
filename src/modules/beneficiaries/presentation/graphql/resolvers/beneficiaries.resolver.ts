@@ -1,6 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { GqlAuthGuard } from 'src/modules/auth/presentation/graphql/guards/gql-auth.guard';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 
@@ -27,6 +28,7 @@ export class BeneficiariesResolver {
     private readonly deleteUC: DeleteBeneficiaryUseCase,
   ) {}
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => BeneficiaryType)
   async createBeneficiary(
     @Args('input', { type: () => CreateBeneficiaryInput }) input: CreateBeneficiaryInput,
@@ -61,6 +63,7 @@ export class BeneficiariesResolver {
     return BeneficiaryMapper.toGraphQL(item);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => BeneficiaryType)
   async updateBeneficiary(
     @Args('input') input: UpdateBeneficiaryInput,
@@ -70,6 +73,7 @@ export class BeneficiariesResolver {
     return BeneficiaryMapper.toGraphQL(updated);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => Boolean)
   async deleteBeneficiary(
     @Args('id', { type: () => ID }) id: string,

@@ -2,6 +2,7 @@ import { Logger, UseGuards } from '@nestjs/common';
 import { Args, Context, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Prisma, Role, UserActionLogAction } from '@prisma/client';
 import { Request } from 'express';
+import { ActiveUserGuard } from 'src/core/auth/active-user.guard';
 import { Roles } from 'src/core/auth/roles.decorator';
 import { RolesGuard } from 'src/core/auth/roles.guard';
 import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/current-user.decorator';
@@ -277,6 +278,7 @@ export class RemittancesResolver {
     return metrics.map((metric) => this.toAdminPaymentMethodUsageMetricType(metric));
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => RemittanceType)
   async submitRemittanceV2(
     @Args('input') input: SubmitRemittanceV2Input,
@@ -322,6 +324,7 @@ export class RemittancesResolver {
     return this.toRemittanceType(remittance);
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => CreateExternalPaymentSessionPayload)
   async createExternalPaymentSession(
     @Args('input') input: CreateExternalPaymentSessionInput,
@@ -345,6 +348,7 @@ export class RemittancesResolver {
     });
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => Boolean)
   async markRemittancePaid(
     @Args('remittanceId', { type: () => ID }) remittanceId: string,
@@ -380,6 +384,7 @@ export class RemittancesResolver {
     return result;
   }
 
+  @UseGuards(ActiveUserGuard)
   @Mutation(() => Boolean)
   async cancelMyRemittance(
     @Args('remittanceId', { type: () => ID }) remittanceId: string,
@@ -407,7 +412,7 @@ export class RemittancesResolver {
     return result;
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => Boolean)
   async adminConfirmRemittancePayment(
@@ -433,7 +438,7 @@ export class RemittancesResolver {
     return result;
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => Boolean)
   async adminCancelRemittance(
@@ -466,7 +471,7 @@ export class RemittancesResolver {
     return result;
   }
 
-  @UseGuards(GqlAuthGuard, RolesGuard)
+  @UseGuards(GqlAuthGuard, RolesGuard, ActiveUserGuard)
   @Roles(Role.ADMIN)
   @Mutation(() => Boolean)
   async adminMarkRemittanceDelivered(
