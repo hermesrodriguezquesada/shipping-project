@@ -3,8 +3,8 @@ import { InternalNotificationType, Prisma, VipPaymentProofStatus } from '@prisma
 import { NotFoundDomainException } from '../../../../core/exceptions/domain/not-found.exception';
 import { ValidationDomainException } from '../../../../core/exceptions/domain/validation.exception';
 import { InternalNotificationCommandPort } from '../../../internal-notifications/domain/ports/internal-notification-command.port';
-import { VipExchangeRateQueryPort } from '../../../vip-pricing/domain/ports/vip-exchange-rate-query.port';
-import { INTERNAL_NOTIFICATION_COMMAND_PORT, VIP_EXCHANGE_RATE_QUERY_PORT, VIP_PAYMENT_PROOF_COMMAND_PORT, VIP_PAYMENT_PROOF_QUERY_PORT } from '../../../../shared/constants/tokens';
+import { ExchangeRateQueryPort } from '../../../vip-pricing/domain/ports/exchange-rate-query.port';
+import { INTERNAL_NOTIFICATION_COMMAND_PORT, VIP_PAYMENT_PROOF_COMMAND_PORT, VIP_PAYMENT_PROOF_QUERY_PORT } from '../../../../shared/constants/tokens';
 import { VipPaymentProofEntity } from '../../domain/entities/vip-payment-proof.entity';
 import { VipPaymentProofCommandPort } from '../../domain/ports/vip-payment-proof-command.port';
 import { VipPaymentProofQueryPort } from '../../domain/ports/vip-payment-proof-query.port';
@@ -20,8 +20,8 @@ export class AdminConfirmVipPaymentProofUseCase {
     private readonly command: VipPaymentProofCommandPort,
     @Inject(INTERNAL_NOTIFICATION_COMMAND_PORT)
     private readonly notificationCommand: InternalNotificationCommandPort,
-    @Inject(VIP_EXCHANGE_RATE_QUERY_PORT)
-    private readonly vipExchangeRateQuery: VipExchangeRateQueryPort,
+    @Inject(ExchangeRateQueryPort)
+    private readonly exchangeRateQuery: ExchangeRateQueryPort,
   ) {}
 
   async execute(input: { id: string; reviewedById: string }): Promise<VipPaymentProofEntity> {
@@ -66,27 +66,25 @@ export class AdminConfirmVipPaymentProofUseCase {
       return amount;
     }
 
-    // Try direct path: currencyCode → USD (multiply by rate)
-    const rateToUsd = await this.vipExchangeRateQuery.findByCurrencyPair({
-      fromCurrencyCode: currencyCode,
-      toCurrencyCode: 'USD',
-      enabledOnly: true,
-    });
-    if (rateToUsd) {
-      return amount.mul(rateToUsd.rate);
-    }
-
-    // Try inverse path: USD → currencyCode (divide by rate)
-    const rateFromUsd = await this.vipExchangeRateQuery.findByCurrencyPair({
+    // Try: USD → currency (divide by rate)
+    const rateFromUsd = await this.exchangeRateQuery.findRate({
       fromCurrencyCode: 'USD',
       toCurrencyCode: currencyCode,
-      enabledOnly: true,
     });
     if (rateFromUsd) {
-      return amount.div(rateFromUsd.rate);
+      return amount.div(new Prisma.Decimal(rateFromUsd.rate));
     }
 
-    throw new ValidationDomainException('VIP exchange rate to USD not configured');
+    // Try: currency → USD (multiply by rate)
+    const rateToUsd = await this.exchangeRateQuery.findRate({
+      fromCurrencyCode: currencyCode,
+      toCurrencyCode: 'USD',
+    });
+    if (rateToUsd) {
+      return amount.mul(new Prisma.Decimal(rateToUsd.rate));
+    }
+
+    throw new ValidationDomainException('Exchange rate to USD not configured');
   }
 
   private async notifyOwnerSafe(userId: string, referenceId: string): Promise<void> {

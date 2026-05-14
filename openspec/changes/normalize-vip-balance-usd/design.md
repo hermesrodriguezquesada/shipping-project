@@ -40,21 +40,26 @@ Stakeholders:
 
 ## Decisions
 
-### D1 — Use `VipExchangeRate` (not `ExchangeRate`) for proof conversion
+### D1 — Use `ExchangeRate` (general) for proof conversion and PaymentRequest creation
 
-**Decision:** When a VIP payment proof is confirmed, convert `proof.amount → USD` using the **current enabled** `VipExchangeRate` record for the pair (`proof.currencyCode → USD` or `USD → proof.currencyCode`).
+**Decision (revised):** When a VIP payment proof is confirmed, convert `proof.amount → USD` using the **current enabled** general `ExchangeRate` record for the pair (`USD → proof.currencyCode` or `proof.currencyCode → USD`). The same general `ExchangeRate` is used when snapshotting the rate for `PaymentRequest.exchangeRate` at creation time.
 
-**Rationale:** VIP deposits are made at VIP rates, not market rates. Using the general `ExchangeRate` would compute a different USD base than the rate under which the deposit was made. `VipExchangeRate` is the contractual rate for VIP clients.
+**Rationale:** Frontend clarified that VIP exchange rates (configured in `VipExchangeRate`) are used exclusively for pricing/profit-preview calculations. The general `ExchangeRate` configured by admins is the source of truth for currency conversion in VIP balance accumulation. Using a single rate table avoids discrepancies between what the user sees and what the system credits.
 
-**Direction handling:**
+**Direction handling (proof confirmation):**
 - If `proof.currency == USD` → `amountUsd = proof.amount` (no lookup)
-- Else if `VipExchangeRate(from=proof.currency, to=USD)` exists → `amountUsd = proof.amount * rate`
-- Else if `VipExchangeRate(from=USD, to=proof.currency)` exists → `amountUsd = proof.amount / rate`
-- Else → throw `ValidationDomainException('VIP exchange rate to USD not configured for this currency')`
+- Else if `ExchangeRate(from=USD, to=proof.currency, enabled=true)` exists → `amountUsd = proof.amount / rate`
+- Else if `ExchangeRate(from=proof.currency, to=USD, enabled=true)` exists → `amountUsd = proof.amount * rate`
+- Else → throw `ValidationDomainException('Exchange rate to USD not configured')`
 
-**Alternative rejected:** Using the general `ExchangeRate` — rejects because VIP clients have preferential rates and the system already has a VIP-specific rate table.
+**Direction handling (PaymentRequest creation):**
+- If `currency == USD` → `exchangeRate = 1` (no lookup)
+- Else look up `ExchangeRate(from=USD, to=currency, enabled=true)` → `exchangeRate = rate`
+- Else → throw `ValidationDomainException('Exchange rate to USD not configured')`
 
-**Alternative rejected:** Snapshotting the rate at proof creation time and storing it on `VipPaymentProof` — valid but out of scope; would require a schema migration and increases complexity. Phase 2 can revisit.
+**`VipExchangeRate` scope:** `VipExchangeRate` remains for `vipProfitPreview` and VIP pricing only. It does NOT participate in `totalGeneratedAmount` accumulation or balance checks.
+
+**Alternative previously chosen (now rejected):** Using `VipExchangeRate` for balance conversion — rejected because frontend confirmed that the general `ExchangeRate` is the intended source for currency normalization in the VIP balance.
 
 ### D2 — `sumActiveAmountsUsd` uses `exchangeRate` snapshot, not live rate
 
@@ -80,13 +85,13 @@ Stakeholders:
 
 **Risk:** Any user who currently has `totalGeneratedAmount` partially inflated by past remittance confirmations will have an incorrect balance until Phase 2 recalculation. This is a known, accepted data risk documented in the proposal.
 
-### D5 — Inject `VipExchangeRateQueryPort` into `AdminConfirmVipPaymentProofUseCase`
+### D5 — Inject `ExchangeRateQueryPort` into use cases requiring USD normalization
 
-**Decision:** The use case (`admin-confirm-vip-payment-proof.usecase.ts`) will receive `VipExchangeRateQueryPort` via DI. The USD conversion logic lives **in the use case**, not in the Prisma adapter.
+**Decision:** `AdminConfirmVipPaymentProofUseCase` and `CreatePaymentRequestUseCase` receive `ExchangeRateQueryPort` (the general exchange rate port) via DI. `VipExchangeRateQueryPort` is removed from both use cases for balance-related operations.
 
 **Rationale:** The adapter's responsibility is persistence. Fetching and applying a rate is domain logic. Putting it in the use case keeps the adapter testable without exchange-rate stubs and keeps rate logic discoverable at the domain boundary.
 
-**Implication:** `confirmPending` in `VipPaymentProofCommandPort` and its adapter will receive a pre-computed `amountUsd: Prisma.Decimal` parameter instead of deriving it internally.
+**Implication:** `confirmPending` in `VipPaymentProofCommandPort` and its adapter receive a pre-computed `amountUsd: Prisma.Decimal` parameter instead of deriving it internally. `ExchangeRateQueryPort` is now exported from `VipPricingModule` so importing modules can access it.
 
 ### D6 — `sumActiveAmountsUsd` port signature change
 
@@ -100,7 +105,7 @@ Stakeholders:
 
 | Risk | Mitigation |
 |---|---|
-| VipExchangeRate for `proof.currencyId → USD` not configured → proof confirmation blocked | Guard with `ValidationDomainException`; admin must configure rate before confirming proofs in that currency. Document in runbook. |
+| `ExchangeRate` for `USD → proof.currencyId` not configured → proof confirmation blocked | Guard with `ValidationDomainException`; admin must configure the general exchange rate before confirming proofs in that currency. Document in runbook. |
 | Existing `User.totalGeneratedAmount` rows contain mixed-currency amounts | Phase 2 recalculation script; add a technical debt warning log on startup until Phase 2 is executed. |
 | `sumActiveAmountsUsd` fetches N rows instead of 1 aggregate query | Bounded by practical number of active requests per user (< 100); in-process reduction is safe. Add DB index `[ownerUserId, status]` if not already present (it is: `@@index([ownerUserId, status])` confirmed). |
 | Remittance `totalGeneratedAmount` removal is a silent breaking change for any client that used `totalGeneratedAmount` to track remittance cashback | No current evidence of such a client (field is only read by VIP flows and user profile display). Confirm with frontend before deploying. |
@@ -124,7 +129,7 @@ Script logic (to be defined in a separate change):
 ```
 For each User where isVip=true:
   creditUsd = SUM of CONFIRMED VipPaymentProof amounts converted to USD
-                (using VipExchangeRate at time of confirmation, or current rate as fallback)
+                (using ExchangeRate at time of confirmation, or current rate as fallback)
   debitUsd  = SUM of PAID PaymentRequest effectiveAmounts / exchangeRate
   User.totalGeneratedAmount = creditUsd - debitUsd
 ```
@@ -145,5 +150,5 @@ Revert commits for the four changed files. No schema to roll back. Historical da
 |---|---|---|---|
 | OQ-1 | Does frontend currently display `totalGeneratedAmount` outside of VIP context (e.g., admin user list)? If yes, adding a `totalGeneratedAmountCurrency: "USD"` companion field may be needed. | Frontend team | Unresolved |
 | OQ-2 | For proof currencies where only `USD → currencyCode` rate is configured (not the inverse), is direction resolution via division acceptable or must we require an explicit `currencyCode → USD` rate entry? | Business / Admin ops | Decision taken: division is acceptable (see D1) |
-| OQ-3 | Should Phase 2 recalculation use the `VipExchangeRate` rate at the time of the original confirmation (requires storing it on `VipPaymentProof`) or the current rate? | Business | Unresolved — Phase 2 scoping |
+| OQ-3 | Should Phase 2 recalculation use the `ExchangeRate` rate at the time of the original confirmation (requires storing it on `VipPaymentProof`) or the current rate? | Business | Unresolved — Phase 2 scoping |
 | OQ-4 | Feature flag: opt-in vs always-on? | Engineering lead | Recommended: always-on; flag only if rollback risk is high |

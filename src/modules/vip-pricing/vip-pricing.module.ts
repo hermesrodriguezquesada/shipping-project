@@ -30,6 +30,6 @@ import { VipPricingResolver } from './presentation/graphql/resolvers/vip-pricing
     VipProfitPreviewUseCase,
     VipPricingResolver,
   ],
-  exports: [VIP_EXCHANGE_RATE_QUERY_PORT, VIP_EXCHANGE_RATE_COMMAND_PORT],
+  exports: [VIP_EXCHANGE_RATE_QUERY_PORT, VIP_EXCHANGE_RATE_COMMAND_PORT, ExchangeRateQueryPort],
 })
 export class VipPricingModule {}

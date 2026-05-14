@@ -2,12 +2,12 @@
 
 ### Requirement: VIP proof confirmation converts amount to USD before crediting balance
 
-When an admin confirms a `VipPaymentProof`, the system SHALL resolve the USD equivalent of `proof.amount` using the current enabled `VipExchangeRate` and increment `User.totalGeneratedAmount` by that USD amount, not by the raw `proof.amount`.
+When an admin confirms a `VipPaymentProof`, the system SHALL resolve the USD equivalent of `proof.amount` using the current enabled general `ExchangeRate` and increment `User.totalGeneratedAmount` by that USD amount, not by the raw `proof.amount`.
 
 Conversion rules:
 - If `proof.currency.code == "USD"`: `amountUsd = proof.amount`
-- Else if a `VipExchangeRate(from=proof.currency, to=USD, enabled=true)` exists: `amountUsd = proof.amount * rate`
-- Else if a `VipExchangeRate(from=USD, to=proof.currency, enabled=true)` exists: `amountUsd = proof.amount / rate`
+- Else if an `ExchangeRate(from=USD, to=proof.currency, enabled=true)` exists: `amountUsd = proof.amount / rate`
+- Else if an `ExchangeRate(from=proof.currency, to=USD, enabled=true)` exists: `amountUsd = proof.amount * rate`
 - Else: the confirmation MUST be rejected with a `ValidationDomainException`
 
 The conversion and the `totalGeneratedAmount` increment MUST occur atomically within the same `$transaction` that updates `VipPaymentProof.status → CONFIRMED`.
@@ -16,17 +16,17 @@ The conversion and the `totalGeneratedAmount` increment MUST occur atomically wi
 - **WHEN** an admin confirms a `VipPaymentProof` with `currency.code = "USD"` and `amount = 500`
 - **THEN** `User.totalGeneratedAmount` is incremented by exactly `500`
 
-#### Scenario: Proof in CUP with VipExchangeRate USD→CUP at 200
-- **WHEN** an admin confirms a `VipPaymentProof` with `currency.code = "CUP"`, `amount = 20000`, and the only enabled `VipExchangeRate` for CUP is `USD → CUP` with `rate = 200`
+#### Scenario: Proof in CUP with ExchangeRate USD→CUP at 200
+- **WHEN** an admin confirms a `VipPaymentProof` with `currency.code = "CUP"`, `amount = 20000`, and the only enabled `ExchangeRate` for CUP is `USD → CUP` with `rate = 200`
 - **THEN** `User.totalGeneratedAmount` is incremented by exactly `100` (= 20000 / 200)
 
-#### Scenario: Proof in EUR with VipExchangeRate EUR→USD at 1.1
-- **WHEN** an admin confirms a `VipPaymentProof` with `currency.code = "EUR"`, `amount = 100`, and an enabled `VipExchangeRate` `EUR → USD` with `rate = 1.1` exists
+#### Scenario: Proof in EUR with ExchangeRate EUR→USD at 1.1
+- **WHEN** an admin confirms a `VipPaymentProof` with `currency.code = "EUR"`, `amount = 100`, and an enabled `ExchangeRate` `EUR → USD` with `rate = 1.1` exists
 - **THEN** `User.totalGeneratedAmount` is incremented by exactly `110` (= 100 * 1.1)
 
-#### Scenario: No VipExchangeRate configured for proof currency
-- **WHEN** an admin attempts to confirm a `VipPaymentProof` with `currency.code = "MLC"` and no enabled `VipExchangeRate` exists for any pair involving MLC
-- **THEN** the confirmation is rejected with a `ValidationDomainException` containing a message indicating the VIP exchange rate to USD is not configured
+#### Scenario: No ExchangeRate configured for proof currency
+- **WHEN** an admin attempts to confirm a `VipPaymentProof` with `currency.code = "MLC"` and no enabled `ExchangeRate` exists for any pair involving MLC
+- **THEN** the confirmation is rejected with a `ValidationDomainException` containing a message indicating the exchange rate to USD is not configured
 - **AND** `VipPaymentProof.status` remains `PENDING_CONFIRMATION`
 - **AND** `User.totalGeneratedAmount` is not modified
 
@@ -76,7 +76,7 @@ And validate that `amountUsd = amount / exchangeRate ≤ availableBalanceUsd`.
 Both `totalGeneratedAmount` and `sumActiveAmountsUsd` are guaranteed USD after this change.
 
 #### Scenario: Sufficient USD balance
-- **WHEN** a VIP user with `totalGeneratedAmount = 500` has no active requests and submits a `createPaymentRequest` with `amount = 2000` in a currency where `VipExchangeRate USD → currency = 200` (amountUsd = 10)
+- **WHEN** a VIP user with `totalGeneratedAmount = 500` has no active requests and submits a `createPaymentRequest` with `amount = 2000` in a currency where `ExchangeRate USD → currency = 200` (amountUsd = 10)
 - **THEN** the request is created successfully
 
 #### Scenario: Insufficient USD balance

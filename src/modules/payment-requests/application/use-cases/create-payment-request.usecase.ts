@@ -7,7 +7,7 @@ import { ValidationDomainException } from '../../../../core/exceptions/domain/va
 import { InternalNotificationCommandPort } from '../../../internal-notifications/domain/ports/internal-notification-command.port';
 import { UserQueryPort } from '../../../users/domain/ports/user-query.port';
 import { CatalogsQueryPort } from '../../../catalogs/domain/ports/catalogs-query.port';
-import { VipExchangeRateQueryPort } from '../../../vip-pricing/domain/ports/vip-exchange-rate-query.port';
+import { ExchangeRateQueryPort } from '../../../vip-pricing/domain/ports/exchange-rate-query.port';
 import { SystemSettingsQueryPort } from '../../../system-settings/domain/ports/system-settings-query.port';
 import {
   CATALOGS_QUERY_PORT,
@@ -16,7 +16,6 @@ import {
   PAYMENT_REQUEST_QUERY_PORT,
   SYSTEM_SETTINGS_QUERY_PORT,
   USER_QUERY_PORT,
-  VIP_EXCHANGE_RATE_QUERY_PORT,
 } from '../../../../shared/constants/tokens';
 import { PaymentRequestCommandPort } from '../../domain/ports/payment-request-command.port';
 import { PaymentRequestQueryPort } from '../../domain/ports/payment-request-query.port';
@@ -31,8 +30,8 @@ export class CreatePaymentRequestUseCase {
     private readonly userQuery: UserQueryPort,
     @Inject(CATALOGS_QUERY_PORT)
     private readonly catalogsQuery: CatalogsQueryPort,
-    @Inject(VIP_EXCHANGE_RATE_QUERY_PORT)
-    private readonly vipExchangeRateQuery: VipExchangeRateQueryPort,
+    @Inject(ExchangeRateQueryPort)
+    private readonly exchangeRateQuery: ExchangeRateQueryPort,
     @Inject(SYSTEM_SETTINGS_QUERY_PORT)
     private readonly systemSettingsQuery: SystemSettingsQueryPort,
     @Inject(PAYMENT_REQUEST_COMMAND_PORT)
@@ -62,16 +61,15 @@ export class CreatePaymentRequestUseCase {
     if (!currency) throw new NotFoundDomainException('Currency not found');
     if (!currency.enabled) throw new ValidationDomainException('Currency is not enabled');
 
-    // 3. Fetch exchange rate (snapshot)
+    // 3. Fetch exchange rate (snapshot) from general ExchangeRate
     let exchangeRate = new Prisma.Decimal(1);
     if (currency.code !== 'USD') {
-      const vipRate = await this.vipExchangeRateQuery.findByCurrencyPair({
+      const generalRate = await this.exchangeRateQuery.findRate({
         fromCurrencyCode: 'USD',
         toCurrencyCode: currency.code,
-        enabledOnly: true,
       });
-      if (!vipRate) throw new DomainException('No VIP exchange rate available for this currency pair');
-      exchangeRate = new Prisma.Decimal(vipRate.rate);
+      if (!generalRate) throw new ValidationDomainException('Exchange rate to USD not configured');
+      exchangeRate = new Prisma.Decimal(generalRate.rate);
     }
 
     // 4. Read system settings
