@@ -118,6 +118,21 @@ async function main() {
         type: SystemSettingType.PASSWORD,
         value: null,
       },
+      {
+        name: 'CASH_PICKUP_ADDRESS',
+        type: SystemSettingType.STRING,
+        value: 'TBD - Contact admin for address',
+      },
+      {
+        name: 'CASH_DELIVERY_FEE_USD',
+        type: SystemSettingType.NUMBER,
+        value: '10',
+      },
+      {
+        name: 'CASH_DELIVERY_MIN_AMOUNT_USD',
+        type: SystemSettingType.NUMBER,
+        value: '1000',
+      },
     ] as const;
 
     for (const setting of systemSettings) {

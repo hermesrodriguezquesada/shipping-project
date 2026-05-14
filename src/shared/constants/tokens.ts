@@ -57,6 +57,9 @@ export const VIP_EXCHANGE_RATE_COMMAND_PORT = 'VipExchangeRateCommandPort';
 export const EXCHANGE_RATE_HISTORY_RECORDER_PORT = 'ExchangeRateHistoryRecorderPort';
 export const EXCHANGE_RATE_HISTORY_QUERY_PORT = 'ExchangeRateHistoryQueryPort';
 
+export const PAYMENT_REQUEST_COMMAND_PORT = 'PAYMENT_REQUEST_COMMAND_PORT';
+export const PAYMENT_REQUEST_QUERY_PORT   = 'PAYMENT_REQUEST_QUERY_PORT';
+
 
 
 

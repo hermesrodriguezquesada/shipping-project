@@ -55,6 +55,10 @@ model User {
   answeredSupportMessages SupportMessage[] @relation("SupportMessageAnsweredBy")
   actionLogs UserActionLog[] @relation("UserActionLogActor")
   actionAlerts UserActionAlert[] @relation("UserActionAlertActor")
+
+  paymentRequests          PaymentRequest[] @relation("PaymentRequestOwner")
+  reviewedPaymentRequests  PaymentRequest[] @relation("PaymentRequestReviewer")
+  paidPaymentRequests      PaymentRequest[] @relation("PaymentRequestPaidBy")
 }
 
 enum UserActionLogAction {
@@ -89,6 +93,14 @@ enum UserActionLogAction {
   ADMIN_CREATE_CURRENCY
   ADMIN_UPDATE_CURRENCY
   ADMIN_DELETE_CURRENCY
+
+  CREATE_PAYMENT_REQUEST
+  CLIENT_ACCEPT_PAYMENT_REQUEST
+  CLIENT_CANCEL_PAYMENT_REQUEST
+  ADMIN_RENEGOTIATE_PAYMENT_REQUEST
+  ADMIN_ACCEPT_PAYMENT_REQUEST
+  ADMIN_COMPLETE_PAYMENT_REQUEST
+  ADMIN_CANCEL_PAYMENT_REQUEST
 }
 
 enum UserActionAlertType {
@@ -358,6 +370,13 @@ enum InternalNotificationType {
   NEW_PAYMENT_PROOF
   CONFIRMED_PAYMENT_PROOF
   CANCEL_PAYMENT_PROOF
+
+  NEW_PAYMENT_REQUEST
+  PAYMENT_REQUEST_RENEGOTIATED
+  PAYMENT_REQUEST_ACCEPTED
+  PAYMENT_REQUEST_PAID
+  PAYMENT_REQUEST_CANCELED_BY_ADMIN
+  PAYMENT_REQUEST_CANCELED_BY_CLIENT
 }
 
 enum SupportMessageStatus {
@@ -427,6 +446,7 @@ model CurrencyCatalog {
   deliveryFeeRules      DeliveryFeeRule[]
   receptionMethods      ReceptionMethodCatalog[]
   vipPaymentProofs      VipPaymentProof[]
+  paymentRequests       PaymentRequest[]
 }
 
 model VipPaymentProof {
@@ -714,4 +734,50 @@ model SupportMessage {
   @@index([authorId, createdAt])
   @@index([status, createdAt])
   @@index([answeredById])
+}
+
+enum PaymentRequestStatus {
+  REQUESTED
+  RENEGOTIATING
+  ACCEPTED
+  PAID
+  CANCELED_BY_ADMIN
+  CANCELED_BY_CLIENT
+}
+
+enum PaymentRequestMethod {
+  TRANSFER
+  CASH
+}
+
+model PaymentRequest {
+  id             String               @id @default(uuid())
+  ownerUserId    String
+  amount         Decimal
+  currencyId     String
+  exchangeRate   Decimal
+  deliveryFee    Decimal              @default(0)
+  amountToPay    Decimal
+  method         PaymentRequestMethod
+  account        String?
+  address        String?
+  delivery       Boolean              @default(false)
+  newAmount      Decimal?
+  status         PaymentRequestStatus @default(REQUESTED)
+  reviewedById   String?
+  reviewedAt     DateTime?
+  paidById       String?
+  paidAt         DateTime?
+  canceledReason String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  owner      User            @relation("PaymentRequestOwner", fields: [ownerUserId], references: [id])
+  currency   CurrencyCatalog @relation(fields: [currencyId], references: [id])
+  reviewedBy User?           @relation("PaymentRequestReviewer", fields: [reviewedById], references: [id])
+  paidBy     User?           @relation("PaymentRequestPaidBy", fields: [paidById], references: [id])
+
+  @@index([ownerUserId, createdAt])
+  @@index([status, createdAt])
+  @@index([ownerUserId, status])
 }

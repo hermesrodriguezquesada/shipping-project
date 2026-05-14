@@ -16,3 +16,5 @@ import './vip-payment-proof-status.enum';
 import './user-action-log-action.enum';
 import './user-action-alert-type.enum';
 import './exchange-rate-history-type.enum';
+import './payment-request-status.enum';
+import './payment-request-method.enum';

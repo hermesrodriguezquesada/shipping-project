@@ -2,6 +2,11 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AdminCancelPaymentRequestInput {
+  id: ID!
+  reason: String
+}
+
 input AdminCreateCommissionRuleInput {
   currencyCode: String!
   enabled: Boolean
@@ -154,6 +159,22 @@ type AdminPaymentMethodUsageMetricType {
   paymentMethodName: String
   totalPaymentAmount: String!
   usageCount: Int!
+}
+
+input AdminPaymentRequestsInput {
+  dateFrom: DateTime
+  dateTo: DateTime
+  limit: Int
+  method: PaymentRequestMethod
+  offset: Int
+  ownerUserId: ID
+  status: PaymentRequestStatus
+}
+
+input AdminRenegotiatePaymentRequestInput {
+  id: ID!
+  newAmount: String!
+  reason: String
 }
 
 enum AdminReportExportDataset {
@@ -520,6 +541,15 @@ type CreateExternalPaymentSessionPayload {
   status: ExternalPaymentStatus!
 }
 
+input CreatePaymentRequestInput {
+  account: String
+  address: String
+  amount: String!
+  currencyId: ID!
+  delivery: Boolean!
+  method: PaymentRequestMethod!
+}
+
 input CreateSupportMessageInput {
   content: String!
   email: String
@@ -673,8 +703,14 @@ enum InternalNotificationType {
   CONFIRMED_PAYMENT_PROOF
   NEW_CLIENT
   NEW_PAYMENT_PROOF
+  NEW_PAYMENT_REQUEST
   NEW_REMITTANCE
   NEW_SUPPORT_MESSAGE
+  PAYMENT_REQUEST_ACCEPTED
+  PAYMENT_REQUEST_CANCELED_BY_ADMIN
+  PAYMENT_REQUEST_CANCELED_BY_CLIENT
+  PAYMENT_REQUEST_PAID
+  PAYMENT_REQUEST_RENEGOTIATED
   REMITTANCE_CANCELLED_BY_ADMIN
   REMITTANCE_CANCELLED_BY_USER
   REMITTANCE_COMPLETED
@@ -720,10 +756,13 @@ input ManualBeneficiaryInput {
 }
 
 type Mutation {
+  adminAcceptPaymentRequest(id: ID!): PaymentRequest!
   adminActivateUser(userId: ID!): UserType!
   adminBanUser(userId: ID!): UserType!
+  adminCancelPaymentRequest(input: AdminCancelPaymentRequestInput!): PaymentRequest!
   adminCancelRemittance(remittanceId: ID!, statusDescription: String!): Boolean!
   adminCancelVipPaymentProof(id: ID!, reason: String!): VipPaymentProof!
+  adminCompletePaymentRequest(id: ID!): PaymentRequest!
   adminConfirmRemittancePayment(remittanceId: ID!): Boolean!
   adminConfirmVipPaymentProof(id: ID!): VipPaymentProof!
   adminCreateCommissionRule(input: AdminCreateCommissionRuleInput!): CommissionRuleType!
@@ -737,6 +776,7 @@ type Mutation {
   adminDeleteExchangeRate(id: ID!): Boolean!
   adminDeleteUser(userId: ID!): UserType!
   adminMarkRemittanceDelivered(remittanceId: ID!): Boolean!
+  adminRenegotiatePaymentRequest(input: AdminRenegotiatePaymentRequestInput!): PaymentRequest!
   adminReviewIdentityVerification(input: AdminReviewIdentityInput!): Boolean!
   adminSetCommissionRuleEnabled(enabled: Boolean!, id: ID!): CommissionRuleType!
   adminSetCurrencyEnabled(code: String!, enabled: Boolean!): CurrencyType!
@@ -760,8 +800,11 @@ type Mutation {
   answerSupportMessage(input: AnswerSupportMessageInput!): SupportMessageType!
   cancelMyRemittance(remittanceId: ID!): Boolean!
   changePassword(input: ChangePasswordInput!): Boolean!
+  clientAcceptPaymentRequest(id: ID!): PaymentRequest!
+  clientCancelPaymentRequest(id: ID!, reason: String): PaymentRequest!
   createBeneficiary(input: CreateBeneficiaryInput!): BeneficiaryType!
   createExternalPaymentSession(input: CreateExternalPaymentSessionInput!): CreateExternalPaymentSessionPayload!
+  createPaymentRequest(input: CreatePaymentRequestInput!): PaymentRequest!
   createSupportMessage(input: CreateSupportMessageInput!): SupportMessageType!
   createVipPaymentProof(input: CreateVipPaymentProofInput!): VipPaymentProof!
   deleteBeneficiary(id: ID!): Boolean!
@@ -787,6 +830,14 @@ input MyNotificationsInput {
   offset: Int
 }
 
+input MyPaymentRequestsInput {
+  dateFrom: DateTime
+  dateTo: DateTime
+  limit: Int
+  offset: Int
+  status: PaymentRequestStatus
+}
+
 enum OriginAccountHolderType {
   COMPANY
   PERSON
@@ -808,6 +859,47 @@ type PaymentMethodType {
   name: String!
   type: PaymentMethodKind!
   updatedAt: DateTime!
+}
+
+type PaymentRequest {
+  account: String
+  address: String
+  amount: String!
+  amountToPay: String!
+  canceledReason: String
+  createdAt: DateTime!
+  currency: CurrencyType!
+  currencyId: ID!
+  delivery: Boolean!
+  deliveryFee: String!
+  exchangeRate: String!
+  id: ID!
+  method: PaymentRequestMethod!
+  newAmount: String
+  owner: UserType!
+  ownerUserId: ID!
+  paidAt: DateTime
+  paidBy: UserType
+  paidById: ID
+  reviewedAt: DateTime
+  reviewedBy: UserType
+  reviewedById: ID
+  status: PaymentRequestStatus!
+  updatedAt: DateTime!
+}
+
+enum PaymentRequestMethod {
+  CASH
+  TRANSFER
+}
+
+enum PaymentRequestStatus {
+  ACCEPTED
+  CANCELED_BY_ADMIN
+  CANCELED_BY_CLIENT
+  PAID
+  RENEGOTIATING
+  REQUESTED
 }
 
 input PricingPreviewInput {
@@ -842,6 +934,7 @@ type Query {
   adminExportReport(input: AdminReportExportInput!): AdminReportExportPayload!
   adminExportUserActionLogs(input: AdminExportUserActionLogsInput!): UserActionLogExportPayload!
   adminPaymentMethodUsageMetrics(input: AdminPaymentMethodUsageInput!): [AdminPaymentMethodUsageMetricType!]!
+  adminPaymentRequests(input: AdminPaymentRequestsInput!): [PaymentRequest!]!
   adminPendingVerifications(limit: Int, offset: Int): [IdentityVerificationType!]!
   adminRemittance(id: ID!): RemittanceType
   adminRemittances(limit: Int, offset: Int): [RemittanceType!]!
@@ -876,6 +969,7 @@ type Query {
   myBeneficiaries(input: ListBeneficiariesInput): [BeneficiaryType!]!
   myIdentityVerification: IdentityVerificationType
   myNotifications(input: MyNotificationsInput): [InternalNotificationObjectType!]!
+  myPaymentRequests(input: MyPaymentRequestsInput): [PaymentRequest!]!
   myProfile: UserType!
   myRemittance(id: ID!): RemittanceType
   myRemittances(limit: Int, offset: Int): [RemittanceType!]!
@@ -887,6 +981,7 @@ type Query {
   pricingPreview(input: PricingPreviewInput!): PricingPreviewType!
   receptionMethods(enabledOnly: Boolean): [ReceptionMethodType!]!
   remittancePaymentProofViewUrl(remittanceId: ID!): RemittancePaymentProofViewPayload!
+  systemCashPickupAddress: String!
   user(id: ID!): UserType
   vipPaymentProofViewUrl(id: ID!): VipPaymentProofViewPayload!
   vipProfitPreview(input: VipProfitPreviewInput!): VipProfitPreview!
@@ -1174,8 +1269,11 @@ type UserActionLog {
 }
 
 enum UserActionLogAction {
+  ADMIN_ACCEPT_PAYMENT_REQUEST
   ADMIN_BLOCK_USER
+  ADMIN_CANCEL_PAYMENT_REQUEST
   ADMIN_CANCEL_VIP_PAYMENT_PROOF
+  ADMIN_COMPLETE_PAYMENT_REQUEST
   ADMIN_CONFIRM_REMITTANCE_PAYMENT
   ADMIN_CONFIRM_VIP_PAYMENT_PROOF
   ADMIN_CREATE_CURRENCY
@@ -1183,6 +1281,7 @@ enum UserActionLogAction {
   ADMIN_DELETE_CURRENCY
   ADMIN_DELETE_EXCHANGE_RATE
   ADMIN_MARK_REMITTANCE_DELIVERED
+  ADMIN_RENEGOTIATE_PAYMENT_REQUEST
   ADMIN_SET_USER_VIP
   ADMIN_UNBLOCK_USER
   ADMIN_UNSET_USER_VIP
@@ -1192,6 +1291,9 @@ enum UserActionLogAction {
   ADMIN_UPDATE_USER
   ANSWER_SUPPORT_MESSAGE
   CANCEL_REMITTANCE
+  CLIENT_ACCEPT_PAYMENT_REQUEST
+  CLIENT_CANCEL_PAYMENT_REQUEST
+  CREATE_PAYMENT_REQUEST
   CREATE_REMITTANCE
   CREATE_SUPPORT_MESSAGE
   CREATE_VIP_PAYMENT_PROOF

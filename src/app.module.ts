@@ -26,6 +26,7 @@ import { VipPaymentProofsModule } from './modules/vip-payment-proofs/vip-payment
 import { UserActionLogsModule } from './modules/user-action-logs/user-action-logs.module';
 import { VipPricingModule } from './modules/vip-pricing/vip-pricing.module';
 import { ExchangeRateHistoryModule } from './modules/exchange-rate-history/exchange-rate-history.module';
+import { PaymentRequestsModule } from './modules/payment-requests/payment-requests.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { ExchangeRateHistoryModule } from './modules/exchange-rate-history/excha
     ExchangeRateHistoryModule,
     VipPaymentProofsModule,
     UserActionLogsModule,
+    PaymentRequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
