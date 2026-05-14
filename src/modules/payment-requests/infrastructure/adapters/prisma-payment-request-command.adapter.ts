@@ -98,16 +98,17 @@ export class PrismaPaymentRequestCommandAdapter implements PaymentRequestCommand
         throw new DomainException('Cannot complete: unexpected status');
       }
 
-      // Re-fetch to get newAmount / amount
+      // Re-fetch to get newAmount / amount / exchangeRate
       const request = await tx.paymentRequest.findUnique({
         where: { id: input.id },
-        select: { newAmount: true, amount: true, ownerUserId: true },
+        select: { newAmount: true, amount: true, ownerUserId: true, exchangeRate: true },
       });
       if (!request) {
         throw new DomainException('Payment request not found after update');
       }
 
       const effectiveAmount: Prisma.Decimal = request.newAmount ?? request.amount;
+      const effectiveAmountUsd = effectiveAmount.div(request.exchangeRate);
 
       // Re-fetch user balance to prevent negative balance
       const user = await tx.user.findUnique({
@@ -117,14 +118,14 @@ export class PrismaPaymentRequestCommandAdapter implements PaymentRequestCommand
       if (!user) {
         throw new DomainException('Owner user not found');
       }
-      if (user.totalGeneratedAmount.lt(effectiveAmount)) {
+      if (user.totalGeneratedAmount.lt(effectiveAmountUsd)) {
         throw new ValidationDomainException('Insufficient balance at payment time');
       }
 
       await tx.user.update({
         where: { id: request.ownerUserId },
         data: {
-          totalGeneratedAmount: { decrement: effectiveAmount },
+          totalGeneratedAmount: { decrement: effectiveAmountUsd },
         },
       });
     });

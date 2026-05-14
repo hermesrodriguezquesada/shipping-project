@@ -12,7 +12,6 @@ import { RemittanceStatusNotifierPort } from '../../domain/ports/remittance-stat
  * Maps external payment success to business payment confirmation,
  * preserving all side effects:
  * - status → PAID_SENDING_TO_RECEIVER
- * - totalGeneratedAmount increment
  * - PAYMENT_CONFIRMED event
  */
 @Injectable()

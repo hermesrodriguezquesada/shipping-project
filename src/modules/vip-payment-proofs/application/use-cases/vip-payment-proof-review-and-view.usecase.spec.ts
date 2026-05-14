@@ -9,14 +9,15 @@ describe('Vip payment proof review and view use cases', () => {
   it('confirms only pending proofs', async () => {
     const query = {
       findById: jest.fn()
-        .mockResolvedValueOnce({ id: 'proof-1', status: VipPaymentProofStatus.PENDING_CONFIRMATION })
+        .mockResolvedValueOnce({ id: 'proof-1', status: VipPaymentProofStatus.PENDING_CONFIRMATION, amount: 100, currency: { code: 'USD' } })
         .mockResolvedValueOnce({ id: 'proof-1', status: VipPaymentProofStatus.CONFIRMED }),
     };
     const command = {
       confirmPending: jest.fn().mockResolvedValue(true),
     };
     const notificationCommand = { create: jest.fn().mockResolvedValue(undefined) };
-    const useCase = new AdminConfirmVipPaymentProofUseCase(query as any, command as any, notificationCommand as any);
+    const vipExchangeRateQuery = { findByCurrencyPair: jest.fn() };
+    const useCase = new AdminConfirmVipPaymentProofUseCase(query as any, command as any, notificationCommand as any, vipExchangeRateQuery as any);
 
     const result = await useCase.execute({ id: 'proof-1', reviewedById: 'admin-1' });
 

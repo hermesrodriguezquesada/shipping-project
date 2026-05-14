@@ -28,7 +28,7 @@ export class PrismaVipPaymentProofCommandAdapter implements VipPaymentProofComma
     return created.id;
   }
 
-  async confirmPending(input: { id: string; reviewedById: string; reviewedAt: Date }): Promise<boolean> {
+  async confirmPending(input: { id: string; reviewedById: string; reviewedAt: Date; amountUsd: import('@prisma/client').Prisma.Decimal }): Promise<boolean> {
     return await this.prisma.$transaction(async (tx) => {
       const updated = await tx.vipPaymentProof.updateMany({
         where: {
@@ -48,7 +48,7 @@ export class PrismaVipPaymentProofCommandAdapter implements VipPaymentProofComma
 
       const proof = await tx.vipPaymentProof.findUnique({
         where: { id: input.id },
-        select: { userId: true, amount: true },
+        select: { userId: true },
       });
 
       if (!proof) {
@@ -59,7 +59,7 @@ export class PrismaVipPaymentProofCommandAdapter implements VipPaymentProofComma
         where: { id: proof.userId },
         data: {
           totalGeneratedAmount: {
-            increment: proof.amount,
+            increment: input.amountUsd,
           },
         },
       });

@@ -85,7 +85,7 @@ export class CreatePaymentRequestUseCase {
     if (!amountDecimal.gt(0)) throw new ValidationDomainException('amount must be greater than 0');
 
     const amountInUSD = amountDecimal.div(exchangeRate);
-    const activeSum = await this.query.sumActiveAmounts(input.senderUserId);
+    const activeSum = await this.query.sumActiveAmountsUsd(input.senderUserId);
     const availableBalance = user.totalGeneratedAmount.minus(activeSum);
 
     if (amountInUSD.gt(availableBalance)) {

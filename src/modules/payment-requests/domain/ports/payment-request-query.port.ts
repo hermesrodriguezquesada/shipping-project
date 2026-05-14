@@ -18,5 +18,5 @@ export interface PaymentRequestQueryPort {
   findById(id: string): Promise<PaymentRequestEntity | null>;
   findByIdOrThrow(id: string): Promise<PaymentRequestEntity>;
   findMany(filters: PaymentRequestFilters, pagination: PaymentRequestPagination): Promise<PaymentRequestEntity[]>;
-  sumActiveAmounts(ownerUserId: string): Promise<Prisma.Decimal>;
+  sumActiveAmountsUsd(ownerUserId: string): Promise<Prisma.Decimal>;
 }

@@ -125,14 +125,17 @@ export class PrismaPaymentRequestQueryAdapter implements PaymentRequestQueryPort
     return rows.map(toEntity);
   }
 
-  async sumActiveAmounts(ownerUserId: string): Promise<Prisma.Decimal> {
-    const result = await this.prisma.paymentRequest.aggregate({
+  async sumActiveAmountsUsd(ownerUserId: string): Promise<Prisma.Decimal> {
+    const rows = await this.prisma.paymentRequest.findMany({
       where: {
         ownerUserId,
         status: { in: ACTIVE_STATUSES },
       },
-      _sum: { amount: true },
+      select: { amount: true, exchangeRate: true },
     });
-    return result._sum.amount ?? new Prisma.Decimal(0);
+    return rows.reduce(
+      (sum, row) => sum.add(row.amount.div(row.exchangeRate)),
+      new Prisma.Decimal(0),
+    );
   }
 }

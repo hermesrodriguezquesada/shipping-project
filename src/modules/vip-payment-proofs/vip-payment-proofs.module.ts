@@ -4,6 +4,7 @@ import { AppConfigModule } from '../../core/config/config.module';
 import { VIP_PAYMENT_PROOF_COMMAND_PORT, VIP_PAYMENT_PROOF_QUERY_PORT, VIP_PAYMENT_PROOF_STORAGE_PORT } from '../../shared/constants/tokens';
 import { CatalogsModule } from '../catalogs/catalogs.module';
 import { UsersModule } from '../users/users.module';
+import { VipPricingModule } from '../vip-pricing/vip-pricing.module';
 import { AdminCancelVipPaymentProofUseCase } from './application/use-cases/admin-cancel-vip-payment-proof.usecase';
 import { AdminConfirmVipPaymentProofUseCase } from './application/use-cases/admin-confirm-vip-payment-proof.usecase';
 import { AdminListVipPaymentProofsUseCase } from './application/use-cases/admin-list-vip-payment-proofs.usecase';
@@ -18,7 +19,7 @@ import { UserActionLogsModule } from '../user-action-logs/user-action-logs.modul
 import { InternalNotificationsModule } from '../internal-notifications/internal-notifications.module';
 
 @Module({
-  imports: [AppConfigModule, UsersModule, CatalogsModule, UserActionLogsModule, InternalNotificationsModule],
+  imports: [AppConfigModule, UsersModule, CatalogsModule, VipPricingModule, UserActionLogsModule, InternalNotificationsModule],
   providers: [
     RolesGuard,
     PrismaVipPaymentProofCommandAdapter,

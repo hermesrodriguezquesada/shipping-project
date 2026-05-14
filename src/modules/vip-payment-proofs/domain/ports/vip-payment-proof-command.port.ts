@@ -13,6 +13,7 @@ export interface VipPaymentProofCommandPort {
     id: string;
     reviewedById: string;
     reviewedAt: Date;
+    amountUsd: Prisma.Decimal;
   }): Promise<boolean>;
 
   cancelPending(input: {

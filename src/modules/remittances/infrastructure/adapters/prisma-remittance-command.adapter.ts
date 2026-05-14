@@ -146,41 +146,14 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
   }
 
   async confirmPayment(input: { id: string }): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const updated = await tx.remittance.updateMany({
-        where: {
-          id: input.id,
-          status: RemittanceStatus.PENDING_PAYMENT_CONFIRMATION,
-        },
-        data: {
-          status: RemittanceStatus.PAID_SENDING_TO_RECEIVER,
-        },
-      });
-
-      if (updated.count === 0) {
-        return;
-      }
-
-      const remittance = await tx.remittance.findUnique({
-        where: { id: input.id },
-        select: {
-          amount: true,
-          senderUserId: true,
-        },
-      });
-
-      if (!remittance) {
-        return;
-      }
-
-      await tx.user.update({
-        where: { id: remittance.senderUserId },
-        data: {
-          totalGeneratedAmount: {
-            increment: remittance.amount,
-          },
-        },
-      });
+    await this.prisma.remittance.updateMany({
+      where: {
+        id: input.id,
+        status: RemittanceStatus.PENDING_PAYMENT_CONFIRMATION,
+      },
+      data: {
+        status: RemittanceStatus.PAID_SENDING_TO_RECEIVER,
+      },
     });
   }
 
