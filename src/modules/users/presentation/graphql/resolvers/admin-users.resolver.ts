@@ -77,6 +77,8 @@ async adminUsers(
   @Mutation(() => UserType, { name: 'adminCreateUser' })
   async adminCreateUserMutation(
     @Args('input') input: AdminCreateUserInput,
+    @CurrentUser() authUser: AuthContextUser,
+    @Context('req') req: Request,
   ): Promise<UserType> {
     const created = await this.createUser.execute({
       email: input.email,
@@ -96,6 +98,22 @@ async adminUsers(
       clientType: input.clientType,
       companyName: input.companyName,
     });
+
+    await recordUserActionLogSafe(this.logger, this.recordUserActionLogUseCase, {
+      actorUserId: authUser.id,
+      actorEmail: authUser.email,
+      actorRole: getPrimaryRole(authUser.roles),
+      action: UserActionLogAction.ADMIN_CREATE_NEW_USER,
+      resourceType: 'USER',
+      resourceId: created.id,
+      description: 'Administrador creó nuevo usuario',
+      metadata: {
+        createdUserEmail: created.email,
+        createdUserRole: getPrimaryRole(created.roles),
+      },
+      ...getRequestAuditContext(req),
+    });
+
     return UserMapper.toGraphQL(created);
   }
 
