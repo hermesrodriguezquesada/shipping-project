@@ -155,6 +155,16 @@ async function main() {
         type: SystemSettingType.NUMBER,
         value: '1000',
       },
+      {
+        name: 'REMITTANCE_AMOUNT_MIN',
+        type: SystemSettingType.NUMBER,
+        value: '1',
+      },
+      {
+        name: 'REMITTANCE_AMOUNT_MAX',
+        type: SystemSettingType.NUMBER,
+        value: '10000',
+      },
     ] as const;
 
     for (const setting of systemSettings) {

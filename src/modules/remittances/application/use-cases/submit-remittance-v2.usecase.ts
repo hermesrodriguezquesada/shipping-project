@@ -151,7 +151,7 @@ export class SubmitRemittanceV2UseCase {
     }
 
     const amount = this.parseAmount(input.paymentAmount);
-    this.validateAmount(amount);
+    await this.validateAmount(amount);
 
     const paymentMethodCode = input.originAccount.paymentMethodCode.trim().toUpperCase();
 
@@ -380,9 +380,21 @@ export class SubmitRemittanceV2UseCase {
     }
   }
 
-  private validateAmount(amount: Prisma.Decimal): void {
-    const min = new Prisma.Decimal(this.config.remittanceAmountMin);
-    const max = new Prisma.Decimal(this.config.remittanceAmountMax);
+  private async validateAmount(amount: Prisma.Decimal): Promise<void> {
+    const minSetting = await this.systemSettingsQuery.findByName('REMITTANCE_AMOUNT_MIN');
+    const maxSetting = await this.systemSettingsQuery.findByName('REMITTANCE_AMOUNT_MAX');
+
+    const minValue =
+      minSetting?.value != null && minSetting.value.trim() !== ''
+        ? parseFloat(minSetting.value)
+        : this.config.remittanceAmountMin;
+    const maxValue =
+      maxSetting?.value != null && maxSetting.value.trim() !== ''
+        ? parseFloat(maxSetting.value)
+        : this.config.remittanceAmountMax;
+
+    const min = new Prisma.Decimal(minValue);
+    const max = new Prisma.Decimal(maxValue);
 
     if (amount.lte(0)) {
       throw new ValidationDomainException('paymentAmount must be greater than 0');
