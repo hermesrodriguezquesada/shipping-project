@@ -3,6 +3,16 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 
+// UUIDs v4 estables para las monedas del catálogo base.
+// Formato válido: versión 4 (3er grupo empieza con '4') + variante RFC 4122 (4to grupo empieza con '8').
+// Reemplazan los IDs no estándar que generaba la migration original (00000000-0000-0000-0000-0000000002XX).
+const CURRENCY_SEED_IDS = {
+  USD: '11111111-1111-4111-8111-111111111111',
+  EUR: '22222222-2222-4222-8222-222222222222',
+  CUP: '33333333-3333-4333-8333-333333333333',
+  MLC: '44444444-4444-4444-8444-444444444444',
+} as const;
+
 async function main() {
   const email = process.env.ADMIN_SEED_EMAIL;
   const password = process.env.ADMIN_SEED_PASSWORD;
@@ -35,6 +45,18 @@ async function main() {
       create: { code: 'STRIPE', name: 'Stripe', enabled: true },
     });
 
+    // Corregir IDs no estándar creados por la migration original.
+    // ON UPDATE CASCADE en las FKs propaga el cambio a todas las tablas hijas automáticamente.
+    // Se castea id::text para la comparación porque Prisma envía el parámetro como text.
+    for (const [code, newId] of Object.entries(CURRENCY_SEED_IDS)) {
+      await prisma.$executeRaw`
+        UPDATE "CurrencyCatalog"
+        SET id = ${newId}::uuid
+        WHERE code = ${code}
+          AND id::text != ${newId}
+      `;
+    }
+
     const currencies = [
       ['USD', 'US Dollar'],
       ['EUR', 'Euro'],
@@ -46,7 +68,7 @@ async function main() {
       await prisma.currencyCatalog.upsert({
         where: { code },
         update: { enabled: true, name },
-        create: { code, name, enabled: true },
+        create: { id: CURRENCY_SEED_IDS[code], code, name, enabled: true },
       });
     }
 
