@@ -5,6 +5,7 @@ import {
 } from 'src/shared/constants/tokens';
 import { ListMyNotificationsUseCase } from './application/use-cases/list-my-notifications.usecase';
 import { MarkNotificationAsReadUseCase } from './application/use-cases/mark-notification-as-read.usecase';
+import { MarkAllNotificationsAsReadUseCase } from './application/use-cases/mark-all-notifications-as-read.usecase';
 import { PrismaInternalNotificationCommandAdapter } from './infrastructure/adapters/prisma-internal-notification-command.adapter';
 import { PrismaInternalNotificationQueryAdapter } from './infrastructure/adapters/prisma-internal-notification-query.adapter';
 import { InternalNotificationsResolver } from './presentation/graphql/resolvers/internal-notifications.resolver';
@@ -17,6 +18,7 @@ import { InternalNotificationsResolver } from './presentation/graphql/resolvers/
     { provide: INTERNAL_NOTIFICATION_QUERY_PORT, useExisting: PrismaInternalNotificationQueryAdapter },
     ListMyNotificationsUseCase,
     MarkNotificationAsReadUseCase,
+    MarkAllNotificationsAsReadUseCase,
     InternalNotificationsResolver,
   ],
   exports: [INTERNAL_NOTIFICATION_COMMAND_PORT, INTERNAL_NOTIFICATION_QUERY_PORT],

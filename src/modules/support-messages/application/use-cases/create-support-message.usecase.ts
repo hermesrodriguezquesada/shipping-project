@@ -69,7 +69,7 @@ export class CreateSupportMessageUseCase {
       throw new ValidationDomainException('support message must be created with OPEN status');
     }
 
-    await this.notifyAdminsSafe(InternalNotificationType.NEW_SUPPORT_MESSAGE, created.id);
+    await this.notifyAdminsSafe(InternalNotificationType.CREATE_SUPPORT_MESSAGE, created.id);
 
     return created;
   }

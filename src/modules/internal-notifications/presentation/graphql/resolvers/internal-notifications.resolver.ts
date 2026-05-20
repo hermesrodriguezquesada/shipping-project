@@ -5,6 +5,7 @@ import { CurrentUser } from 'src/modules/auth/presentation/graphql/decorators/cu
 import { AuthContextUser } from 'src/modules/auth/presentation/graphql/types/auth-context-user.type';
 import { ListMyNotificationsUseCase } from 'src/modules/internal-notifications/application/use-cases/list-my-notifications.usecase';
 import { MarkNotificationAsReadUseCase } from 'src/modules/internal-notifications/application/use-cases/mark-notification-as-read.usecase';
+import { MarkAllNotificationsAsReadUseCase } from 'src/modules/internal-notifications/application/use-cases/mark-all-notifications-as-read.usecase';
 import { InternalNotificationEntity } from 'src/modules/internal-notifications/domain/entities/internal-notification.entity';
 import { MyNotificationsInput } from '../inputs/my-notifications.input';
 import { InternalNotificationObjectType } from '../types/internal-notification.type';
@@ -15,6 +16,7 @@ export class InternalNotificationsResolver {
   constructor(
     private readonly listMyNotificationsUseCase: ListMyNotificationsUseCase,
     private readonly markNotificationAsReadUseCase: MarkNotificationAsReadUseCase,
+    private readonly markAllNotificationsAsReadUseCase: MarkAllNotificationsAsReadUseCase,
   ) {}
 
   @Query(() => [InternalNotificationObjectType])
@@ -38,6 +40,13 @@ export class InternalNotificationsResolver {
     @Args('id', { type: () => ID }) id: string,
   ): Promise<boolean> {
     return this.markNotificationAsReadUseCase.execute({ id, userId: user.id });
+  }
+
+  @Mutation(() => Boolean)
+  async markAllNotificationAsRead(
+    @CurrentUser() user: AuthContextUser,
+  ): Promise<boolean> {
+    return this.markAllNotificationsAsReadUseCase.execute({ userId: user.id });
   }
 
   private toGraphQL(notification: InternalNotificationEntity): InternalNotificationObjectType {

@@ -38,6 +38,10 @@ class InMemoryInternalNotificationAdapter implements InternalNotificationCommand
     return false;
   }
 
+  async markAllAsRead(): Promise<boolean> {
+    return false;
+  }
+
   async listByUser(input: {
     userId: string;
     offset: number;

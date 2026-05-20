@@ -47,6 +47,13 @@ class InMemoryInternalNotificationAdapter implements InternalNotificationCommand
     return true;
   }
 
+  async markAllAsRead(input: { userId: string }): Promise<boolean> {
+    const unread = this.rows.filter((item) => item.userId === input.userId && !item.isRead);
+    if (unread.length === 0) return false;
+    unread.forEach((item) => { item.isRead = true; item.updatedAt = new Date(); });
+    return true;
+  }
+
   async listByUser(input: {
     userId: string;
     offset: number;

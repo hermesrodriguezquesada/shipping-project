@@ -699,8 +699,10 @@ type InternalNotificationObjectType {
 enum InternalNotificationType {
   ALERT_TRANSACTION_OVER_AMOUNT_LIMIT
   ALERT_USER_HAS_TOO_MANY_TRANSACTIONS_TODAY
+  ANSWER_SUPPORT_MESSAGE
   CANCEL_PAYMENT_PROOF
   CONFIRMED_PAYMENT_PROOF
+  CREATE_SUPPORT_MESSAGE
   NEW_CLIENT
   NEW_PAYMENT_PROOF
   NEW_PAYMENT_REQUEST
@@ -718,7 +720,9 @@ enum InternalNotificationType {
   REMITTANCE_PAYMENT_ERROR
   REMITTANCE_PENDING_CONFIRMATION_PAYMENT
   REMITTANCE_PENDING_PAYMENT
+  SET_USER_VIP
   SUPPORT_MESSAGE_ANSWERED
+  UNSET_USER_VIP
 }
 
 """
@@ -810,6 +814,7 @@ type Mutation {
   deleteBeneficiary(id: ID!): Boolean!
   login(input: LoginInput!): AuthPayload!
   logout(input: LogoutInput!): Boolean!
+  markAllNotificationAsRead: Boolean!
   markNotificationAsRead(id: ID!): Boolean!
   markRemittancePaid(accountHolderName: String!, paymentProofImg: String!, remittanceId: ID!): Boolean!
   refresh(input: RefreshInput!): AuthPayload!

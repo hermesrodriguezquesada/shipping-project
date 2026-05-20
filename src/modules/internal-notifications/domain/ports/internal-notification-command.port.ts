@@ -7,4 +7,5 @@ export interface InternalNotificationCommandPort {
     referenceId?: string | null;
   }): Promise<void>;
   markAsRead(input: { id: string; userId: string }): Promise<boolean>;
+  markAllAsRead(input: { userId: string }): Promise<boolean>;
 }

@@ -28,4 +28,13 @@ export class PrismaInternalNotificationCommandAdapter implements InternalNotific
 
     return updated.count > 0;
   }
+
+  async markAllAsRead(input: { userId: string }): Promise<boolean> {
+    const updated = await this.prisma.internalNotification.updateMany({
+      where: { userId: input.userId, isRead: false },
+      data: { isRead: true },
+    });
+
+    return updated.count > 0;
+  }
 }

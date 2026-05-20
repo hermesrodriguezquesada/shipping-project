@@ -63,7 +63,7 @@ export class AnswerSupportMessageUseCase {
     try {
       await this.internalNotificationCommand.create({
         userId: authorId,
-        type: InternalNotificationType.SUPPORT_MESSAGE_ANSWERED,
+        type: InternalNotificationType.ANSWER_SUPPORT_MESSAGE,
         referenceId,
       });
     } catch (error) {
