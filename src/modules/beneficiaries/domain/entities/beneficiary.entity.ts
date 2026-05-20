@@ -16,7 +16,6 @@ export type BeneficiaryEntity = {
   relationship?: BeneficiaryRelationship | null;
   deliveryInstructions?: string | null ;
   isFavorite: boolean;
-  isVisibleToOwner: boolean;
   favoriteAt?: Date | null;
   timesUsed?: number | null;
   lastUsedAt?: Date | null;

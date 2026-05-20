@@ -1,7 +1,7 @@
 import { PrismaBeneficiaryQueryAdapter } from './prisma-beneficiary-query.adapter';
 
 describe('PrismaBeneficiaryQueryAdapter', () => {
-  it('filters listByOwner by visibility and non-deleted by default', async () => {
+  it('filters listByOwner by non-deleted by default', async () => {
     const findMany = jest.fn().mockResolvedValue([]);
     const prisma = {
       beneficiary: {
@@ -20,7 +20,6 @@ describe('PrismaBeneficiaryQueryAdapter', () => {
     expect(findMany).toHaveBeenCalledWith({
       where: {
         ownerUserId: 'user-1',
-        isVisibleToOwner: true,
         isDeleted: false,
       },
       skip: 0,
@@ -29,7 +28,7 @@ describe('PrismaBeneficiaryQueryAdapter', () => {
     });
   });
 
-  it('keeps includeDeleted behavior while still enforcing visibility', async () => {
+  it('includes deleted when includeDeleted=true', async () => {
     const findMany = jest.fn().mockResolvedValue([]);
     const prisma = {
       beneficiary: {
@@ -49,7 +48,6 @@ describe('PrismaBeneficiaryQueryAdapter', () => {
     expect(findMany).toHaveBeenCalledWith({
       where: {
         ownerUserId: 'user-1',
-        isVisibleToOwner: true,
       },
       skip: 5,
       take: 10,

@@ -16,7 +16,7 @@ export class PrismaRemittanceCommandAdapter implements RemittanceCommandPort {
 
   async createPendingPayment(input: {
     senderUserId: string;
-    beneficiaryId: string;
+    beneficiaryId: string | null;
     recipientFullName: string;
     recipientPhone: string;
     recipientCountry: string;

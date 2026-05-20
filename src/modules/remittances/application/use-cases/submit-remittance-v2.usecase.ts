@@ -118,6 +118,7 @@ export class SubmitRemittanceV2UseCase {
     }
 
     let beneficiary: BeneficiaryEntity;
+    let resolvedBeneficiaryId: string | null = null;
 
     if (input.beneficiaryId) {
       const existingBeneficiary = await this.beneficiaryQuery.findById({
@@ -130,24 +131,54 @@ export class SubmitRemittanceV2UseCase {
       }
 
       beneficiary = existingBeneficiary;
+      resolvedBeneficiaryId = existingBeneficiary.id;
     } else {
       const manualBeneficiary = input.manualBeneficiary!;
-      beneficiary = await this.beneficiaryCommand.create({
-        ownerUserId: input.senderUserId,
-        fullName: manualBeneficiary.fullName,
-        phone: manualBeneficiary.phone,
-        email: manualBeneficiary.email,
-        country: manualBeneficiary.country,
-        city: manualBeneficiary.city,
-        addressLine1: manualBeneficiary.addressLine1,
-        addressLine2: manualBeneficiary.addressLine2,
-        postalCode: manualBeneficiary.postalCode,
-        documentType: manualBeneficiary.documentType,
-        documentNumber: manualBeneficiary.documentNumber,
-        relationship: manualBeneficiary.relationship,
-        deliveryInstructions: manualBeneficiary.deliveryInstructions,
-        isVisibleToOwner: input.saveManualBeneficiary ?? true,
-      });
+
+      if (input.saveManualBeneficiary === false) {
+        // Do NOT persist to Beneficiary table; use data in-memory only
+        beneficiary = {
+          id: '',
+          ownerUserId: input.senderUserId,
+          fullName: manualBeneficiary.fullName,
+          phone: manualBeneficiary.phone,
+          email: manualBeneficiary.email ?? null,
+          country: manualBeneficiary.country,
+          city: manualBeneficiary.city ?? null,
+          addressLine1: manualBeneficiary.addressLine1,
+          addressLine2: manualBeneficiary.addressLine2 ?? null,
+          postalCode: manualBeneficiary.postalCode ?? null,
+          documentType: manualBeneficiary.documentType ?? null,
+          documentNumber: manualBeneficiary.documentNumber,
+          relationship: manualBeneficiary.relationship ?? null,
+          deliveryInstructions: manualBeneficiary.deliveryInstructions ?? null,
+          isFavorite: false,
+          favoriteAt: null,
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        resolvedBeneficiaryId = null;
+      } else {
+        const created = await this.beneficiaryCommand.create({
+          ownerUserId: input.senderUserId,
+          fullName: manualBeneficiary.fullName,
+          phone: manualBeneficiary.phone,
+          email: manualBeneficiary.email,
+          country: manualBeneficiary.country,
+          city: manualBeneficiary.city,
+          addressLine1: manualBeneficiary.addressLine1,
+          addressLine2: manualBeneficiary.addressLine2,
+          postalCode: manualBeneficiary.postalCode,
+          documentType: manualBeneficiary.documentType,
+          documentNumber: manualBeneficiary.documentNumber,
+          relationship: manualBeneficiary.relationship,
+          deliveryInstructions: manualBeneficiary.deliveryInstructions,
+        });
+        beneficiary = created;
+        resolvedBeneficiaryId = created.id;
+      }
     }
 
     const amount = this.parseAmount(input.paymentAmount);
@@ -254,7 +285,7 @@ export class SubmitRemittanceV2UseCase {
 
     const remittanceId = await this.remittanceCommand.createPendingPayment({
       senderUserId: input.senderUserId,
-      beneficiaryId: beneficiary.id,
+      beneficiaryId: resolvedBeneficiaryId,
       recipientFullName: beneficiary.fullName,
       recipientPhone: beneficiary.phone,
       recipientCountry: beneficiary.country,

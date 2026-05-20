@@ -197,7 +197,6 @@ async function main() {
       country: 'CU',
       addressLine1: 'Calle 1',
       documentNumber: `DOC-${runId}-EXT`,
-      isVisibleToOwner: true,
       relationship: 'OTHER',
     },
   });
@@ -210,7 +209,6 @@ async function main() {
       country: 'CU',
       addressLine1: 'Calle 2',
       documentNumber: `DOC-${runId}-MAN`,
-      isVisibleToOwner: true,
       relationship: 'OTHER',
     },
   });

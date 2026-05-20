@@ -243,7 +243,6 @@ model Beneficiary {
   relationship         BeneficiaryRelationship? @default(OTHER)
   deliveryInstructions String?
   isFavorite           Boolean                  @default(false)
-  isVisibleToOwner     Boolean                  @default(true)
   favoriteAt           DateTime?
   isDeleted            Boolean                  @default(false)
   deletedAt            DateTime?
@@ -568,7 +567,7 @@ model ExchangeRateHistory {
 model Remittance {
   id            String           @id @default(uuid())
   senderUserId  String
-  beneficiaryId String
+  beneficiaryId String?
   recipientFullName String
   recipientPhone String
   recipientCountry String
@@ -617,7 +616,7 @@ model Remittance {
   updatedAt     DateTime         @updatedAt
 
   sender      User        @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
-  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
+  beneficiary Beneficiary? @relation(fields: [beneficiaryId], references: [id], onDelete: Restrict)
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
   receptionMethodCatalog ReceptionMethodCatalog? @relation(fields: [receptionMethodId], references: [id], onDelete: SetNull)
   paymentCurrency CurrencyCatalog? @relation("RemittanceCurrency", fields: [currencyId], references: [id], onDelete: SetNull)

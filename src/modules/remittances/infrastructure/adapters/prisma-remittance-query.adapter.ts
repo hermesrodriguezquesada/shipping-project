@@ -432,8 +432,29 @@ export class PrismaRemittanceQueryAdapter implements RemittanceQueryPort {
         }
       : null;
 
+    const beneficiary = remittance.beneficiary ?? {
+      id: remittance.id,
+      fullName: remittance.recipientFullName,
+      phone: remittance.recipientPhone,
+      email: remittance.recipientEmail,
+      country: remittance.recipientCountry,
+      city: remittance.recipientCity,
+      addressLine1: remittance.recipientAddressLine1,
+      addressLine2: remittance.recipientAddressLine2,
+      postalCode: remittance.recipientPostalCode,
+      documentType: remittance.recipientDocumentType,
+      documentNumber: remittance.recipientDocumentNumber,
+      relationship: remittance.recipientRelationship,
+      deliveryInstructions: remittance.recipientDeliveryInstructions,
+      isFavorite: false,
+      favoriteAt: null,
+      createdAt: remittance.createdAt,
+      updatedAt: remittance.updatedAt,
+    };
+
     return {
       ...remittance,
+      beneficiary,
       feesBreakdownJson: remittance.feesBreakdownJson ?? null,
       netReceivingAmount: remittance.netReceivingAmount ?? null,
       paymentProofKey: remittance.paymentProofKey ?? null,

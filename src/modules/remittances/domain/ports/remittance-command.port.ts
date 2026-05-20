@@ -9,7 +9,7 @@ import { Prisma } from '@prisma/client';
 export interface RemittanceCommandPort {
   createPendingPayment(input: {
     senderUserId: string;
-    beneficiaryId: string;
+    beneficiaryId: string | null;
     recipientFullName: string;
     recipientPhone: string;
     recipientCountry: string;

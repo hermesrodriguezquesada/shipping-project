@@ -141,7 +141,6 @@ async function main() {
       country: 'CU',
       addressLine1: 'Calle Smoke 3',
       documentNumber: `DOC-${runId}`,
-      isVisibleToOwner: true,
       relationship: 'OTHER',
     },
   });

@@ -92,7 +92,6 @@ const beneficiaryCommand = {
     documentNumber: string;
     relationship?: BeneficiaryRelationship;
     deliveryInstructions?: string;
-    isVisibleToOwner: boolean;
   }) {
     return {
       id: 'benef-1',
@@ -110,7 +109,6 @@ const beneficiaryCommand = {
       relationship: input.relationship ?? null,
       deliveryInstructions: input.deliveryInstructions ?? null,
       isFavorite: false,
-      isVisibleToOwner: input.isVisibleToOwner,
       isDeleted: false,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -136,7 +134,6 @@ const beneficiaryQuery = {
       relationship: null,
       deliveryInstructions: null,
       isFavorite: false,
-      isVisibleToOwner: true,
       isDeleted: false,
       createdAt: new Date(),
       updatedAt: new Date(),

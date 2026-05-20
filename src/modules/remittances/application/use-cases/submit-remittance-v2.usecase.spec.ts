@@ -162,7 +162,7 @@ describe('SubmitRemittanceV2UseCase destinationAccountNumber validation', () => 
   });
 });
 
-describe('SubmitRemittanceV2UseCase manual beneficiary visibility control', () => {
+describe('SubmitRemittanceV2UseCase manual beneficiary save control', () => {
   const manualInput = (saveManualBeneficiary?: boolean) => ({
     senderUserId: 'user-1',
     manualBeneficiary: {
@@ -193,7 +193,19 @@ describe('SubmitRemittanceV2UseCase manual beneficiary visibility control', () =
     },
   });
 
-  it('sets isVisibleToOwner based on saveManualBeneficiary', async () => {
+  it('does NOT call beneficiaryCommand.create when saveManualBeneficiary=false', async () => {
+    const { useCase, deps } = buildUseCase();
+    setupCommonSuccessMocks(deps);
+
+    await useCase.execute(manualInput(false));
+
+    expect(deps.beneficiaryCommand.create).not.toHaveBeenCalled();
+    expect(deps.remittanceCommand.createPendingPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ beneficiaryId: null }),
+    );
+  });
+
+  it('calls beneficiaryCommand.create and passes its id when saveManualBeneficiary=true', async () => {
     const { useCase, deps } = buildUseCase();
     setupCommonSuccessMocks(deps);
 
@@ -208,20 +220,45 @@ describe('SubmitRemittanceV2UseCase manual beneficiary visibility control', () =
       relationship: null,
       deliveryInstructions: null,
       isFavorite: false,
-      isVisibleToOwner: true,
       isDeleted: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     await useCase.execute(manualInput(true));
-    expect(deps.beneficiaryCommand.create).toHaveBeenCalledWith(expect.objectContaining({ isVisibleToOwner: true }));
 
-    await useCase.execute(manualInput(false));
-    expect(deps.beneficiaryCommand.create).toHaveBeenCalledWith(expect.objectContaining({ isVisibleToOwner: false }));
+    expect(deps.beneficiaryCommand.create).toHaveBeenCalledTimes(1);
+    expect(deps.remittanceCommand.createPendingPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ beneficiaryId: 'beneficiary-created-1' }),
+    );
+  });
+
+  it('calls beneficiaryCommand.create when saveManualBeneficiary is undefined (default save=true)', async () => {
+    const { useCase, deps } = buildUseCase();
+    setupCommonSuccessMocks(deps);
+
+    deps.beneficiaryCommand.create.mockResolvedValue({
+      id: 'beneficiary-created-2',
+      ownerUserId: 'user-1',
+      fullName: 'Manual Beneficiary',
+      phone: '+53 50000000',
+      country: 'CU',
+      addressLine1: 'Line 1',
+      documentNumber: 'DOC-1',
+      relationship: null,
+      deliveryInstructions: null,
+      isFavorite: false,
+      isDeleted: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     await useCase.execute(manualInput(undefined));
-    expect(deps.beneficiaryCommand.create).toHaveBeenCalledWith(expect.objectContaining({ isVisibleToOwner: true }));
+
+    expect(deps.beneficiaryCommand.create).toHaveBeenCalledTimes(1);
+    expect(deps.remittanceCommand.createPendingPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ beneficiaryId: 'beneficiary-created-2' }),
+    );
   });
 });
 
