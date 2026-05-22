@@ -55,9 +55,17 @@ export class AdminRenegotiatePaymentRequestUseCase {
       throw new ValidationDomainException('newAmount must not exceed original amount');
     }
 
+    // Recalculate amountToPay in USD using the stored exchange rate and delivery fee
+    const newAmountUsd = newAmountDecimal.div(request.exchangeRate);
+    const newAmountToPay = newAmountUsd.minus(request.deliveryFee);
+    if (request.deliveryFee.gt(0) && !newAmountToPay.gt(0)) {
+      throw new ValidationDomainException('newAmount must be greater than delivery fee');
+    }
+
     const updated = await this.command.renegotiate({
       id: request.id,
       newAmount: newAmountDecimal,
+      amountToPay: newAmountToPay,
       reviewedById: input.adminUserId,
       reviewedAt: new Date(),
       canceledReason: input.reason ?? null,

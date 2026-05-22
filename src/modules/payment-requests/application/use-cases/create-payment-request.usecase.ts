@@ -111,14 +111,14 @@ export class CreatePaymentRequestUseCase {
       }
     }
 
-    // 7. Compute delivery fee (in currency units)
-    let deliveryFee = new Prisma.Decimal(0);
-    if (input.delivery) {
-      deliveryFee = deliveryFeeUsd.div(exchangeRate);
-    }
+    // 7. Compute delivery fee in USD (always USD, never converted to destination currency)
+    const deliveryFee: Prisma.Decimal = input.delivery ? deliveryFeeUsd : new Prisma.Decimal(0);
 
-    // 8. Compute amountToPay
-    const amountToPay = amountDecimal.minus(deliveryFee);
+    // 8. Compute amountToPay in USD
+    const amountToPay = amountInUSD.minus(deliveryFee);
+    if (deliveryFee.gt(0) && !amountToPay.gt(0)) {
+      throw new ValidationDomainException('amount must be greater than delivery fee');
+    }
 
     // 9. Persist
     const entity = await this.command.create({

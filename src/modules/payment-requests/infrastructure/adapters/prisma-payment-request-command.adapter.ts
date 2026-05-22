@@ -63,6 +63,7 @@ export class PrismaPaymentRequestCommandAdapter implements PaymentRequestCommand
       data: {
         status: PaymentRequestStatus.RENEGOTIATING,
         newAmount: input.newAmount,
+        amountToPay: input.amountToPay,
         reviewedById: input.reviewedById,
         reviewedAt: input.reviewedAt,
         ...(input.canceledReason !== undefined ? { canceledReason: input.canceledReason } : {}),
@@ -98,17 +99,16 @@ export class PrismaPaymentRequestCommandAdapter implements PaymentRequestCommand
         throw new DomainException('Cannot complete: unexpected status');
       }
 
-      // Re-fetch to get newAmount / amount / exchangeRate
+      // Re-fetch to get amountToPay (pre-computed USD amount net of delivery fee)
       const request = await tx.paymentRequest.findUnique({
         where: { id: input.id },
-        select: { newAmount: true, amount: true, ownerUserId: true, exchangeRate: true },
+        select: { amountToPay: true, ownerUserId: true },
       });
       if (!request) {
         throw new DomainException('Payment request not found after update');
       }
 
-      const effectiveAmount: Prisma.Decimal = request.newAmount ?? request.amount;
-      const effectiveAmountUsd = effectiveAmount.div(request.exchangeRate);
+      const effectiveAmountUsd: Prisma.Decimal = request.amountToPay;
 
       // Re-fetch user balance to prevent negative balance
       const user = await tx.user.findUnique({

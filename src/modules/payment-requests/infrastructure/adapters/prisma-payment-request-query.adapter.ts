@@ -131,10 +131,10 @@ export class PrismaPaymentRequestQueryAdapter implements PaymentRequestQueryPort
         ownerUserId,
         status: { in: ACTIVE_STATUSES },
       },
-      select: { amount: true, exchangeRate: true },
+      select: { amountToPay: true },
     });
     return rows.reduce(
-      (sum, row) => sum.add(row.amount.div(row.exchangeRate)),
+      (sum, row) => sum.add(row.amountToPay),
       new Prisma.Decimal(0),
     );
   }

@@ -25,6 +25,7 @@ export interface UpdatePaymentRequestStatusInput {
 export interface RenegotiatePaymentRequestInput {
   id: string;
   newAmount: Prisma.Decimal;
+  amountToPay: Prisma.Decimal;
   reviewedById: string;
   reviewedAt: Date;
   canceledReason?: string | null;
